@@ -1,0 +1,44 @@
+{
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Use the @theme directive to define custom design tokens in Tailwind CSS v4.",
+      "references": [
+        {
+          "name": "Tailwind CSS v4 Theme Configuration",
+          "url": "https://tailwindcss.com/docs/theme"
+        }
+      ]
+    },
+    {
+      "name": "@layer",
+      "description": "Use the @layer directive to tell Tailwind which \"bucket\" a set of custom styles belong to.",
+      "references": [
+        {
+          "name": "Tailwind CSS Functions & Directives",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#layer"
+        }
+      ]
+    },
+    {
+      "name": "@utility",
+      "description": "Use the @utility directive to define custom utilities in Tailwind CSS v4.",
+      "references": [
+        {
+          "name": "Tailwind CSS v4 Adding Custom Utilities",
+          "url": "https://tailwindcss.com/docs/adding-custom-styles#adding-custom-utilities"
+        }
+      ]
+    },
+    {
+      "name": "@variant",
+      "description": "Use the @variant directive to define custom variants in Tailwind CSS v4.",
+      "references": [
+        {
+          "name": "Tailwind CSS v4 Adding Custom Variants",
+          "url": "https://tailwindcss.com/docs/adding-custom-styles#adding-custom-variants"
+        }
+      ]
+    }
+  ]
+}

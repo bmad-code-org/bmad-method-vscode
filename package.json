@@ -1,0 +1,99 @@
+{
+  "name": "bmad-extension",
+  "displayName": "BMAD Dashboard",
+  "description": "Interactive dashboard for BMAD V6 projects",
+  "version": "0.0.1",
+  "publisher": "bmad",
+  "main": "./out/extension/extension.js",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "vscode",
+    "bmad",
+    "dashboard"
+  ],
+  "license": "MIT",
+  "packageManager": "pnpm@10.26.2",
+  "scripts": {
+    "vscode:prepublish": "pnpm build",
+    "build": "pnpm build:extension && pnpm build:webview",
+    "build:extension": "esbuild src/extension/extension.ts --bundle --outfile=out/extension/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "build:webview": "vite build",
+    "watch": "pnpm run --parallel '/watch:.*/'",
+    "watch:extension": "esbuild src/extension/extension.ts --bundle --outfile=out/extension/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch",
+    "watch:webview": "vite build --watch",
+    "lint": "eslint",
+    "typecheck": "pnpm typecheck:extension && pnpm typecheck:webview",
+    "typecheck:extension": "tsc -p tsconfig.extension.json --noEmit",
+    "typecheck:webview": "tsc -p tsconfig.webview.json --noEmit"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/node": "^22.12.0",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "@types/vscode": "^1.96.0",
+    "@vitejs/plugin-react": "^5.1.0",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "esbuild": "^0.27.0",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "globals": "^17.2.0",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.53.0",
+    "vite": "^7.3.0"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.4.0",
+    "zustand": "^5.0.0"
+  },
+  "activationEvents": [
+    "workspaceContains:**/_bmad/**"
+  ],
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "bmad-dashboard",
+          "title": "BMAD Dashboard",
+          "icon": "resources/bmad-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "bmad-dashboard": [
+        {
+          "type": "webview",
+          "id": "bmad.dashboardView",
+          "name": "Dashboard"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "bmad.refresh",
+        "title": "BMAD: Refresh Dashboard"
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm add:*)",
+      "Bash(npx eslint:*)",
+      "Bash(pnpm lint:*)"
+    ]
+  }
+}

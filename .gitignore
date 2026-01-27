@@ -1,0 +1,13 @@
+out/
+node_modules/
+.vscode-test/
+*.vsix
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
