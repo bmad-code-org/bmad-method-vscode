@@ -43,7 +43,7 @@ development_status:
   # Epic 1: Project Foundation & Detection
   epic-1: in-progress
   1-1-project-initialization-from-starter-template: done
-  1-2-test-framework-configuration: backlog
+  1-2-test-framework-configuration: done
   1-3-bmad-project-detection: backlog
   1-4-sidebar-panel-registration: backlog
   epic-1-retrospective: optional

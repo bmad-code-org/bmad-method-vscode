@@ -4,7 +4,12 @@
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm add:*)",
       "Bash(npx eslint:*)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm test:extension:*)",
+      "Bash(npx vitest run)",
+      "Bash(npx vscode-test:*)",
+      "Bash(grep:*)"
     ]
   }
 }

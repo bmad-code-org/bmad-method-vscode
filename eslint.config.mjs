@@ -24,7 +24,7 @@ export default defineConfig(
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ['vite.config.ts', 'eslint.config.mjs'],
+          allowDefaultProject: ['vite.config.ts', 'vitest.config.ts', 'eslint.config.mjs'],
         },
         tsconfigRootDir: import.meta.dirname,
       },
@@ -183,7 +183,7 @@ export default defineConfig(
   // CONFIG FILES - DISABLE TYPE-CHECKED RULES
   // ============================================================================
   {
-    files: ['vite.config.ts'],
+    files: ['vite.config.ts', 'vitest.config.ts'],
     ...tseslint.configs.disableTypeChecked,
   },
 
@@ -191,6 +191,6 @@ export default defineConfig(
   // IGNORES
   // ============================================================================
   {
-    ignores: ['out/', 'node_modules/', '*.js', '*.mjs'],
+    ignores: ['out/', 'node_modules/', '.vscode-test/', '*.js', '*.mjs'],
   }
 );
