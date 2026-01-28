@@ -15,11 +15,13 @@
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["src/shared/*"]
-    }
+    },
+    "types": ["@testing-library/jest-dom"]
   },
   "include": [
     "src/webviews/**/*",
-    "src/shared/**/*"
+    "src/shared/**/*",
+    "vitest.setup.ts"
   ],
   "exclude": [
     "node_modules",

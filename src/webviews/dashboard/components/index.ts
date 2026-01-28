@@ -1,1 +1,2 @@
-// Dashboard components - Epic 3
+// Dashboard components
+export { Placeholder } from './placeholder';

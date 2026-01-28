@@ -13,7 +13,8 @@
       "Bash(pnpm typecheck:extension:*)",
       "Bash(pnpm pretest:extension:*)",
       "Bash(npx tsc --noEmit)",
-      "Bash(pnpm compile:tests:*)"
+      "Bash(pnpm compile:tests:*)",
+      "Bash(pnpm build:webview:*)"
     ]
   }
 }

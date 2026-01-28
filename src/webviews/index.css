@@ -1,4 +1,9 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+
+/* Explicitly configure Tailwind to only scan webview and shared source files */
+/* This prevents scanning _bmad/ folder which contains "file:line" text in docs */
+@source "../**/*.tsx";
+@source "../**/*.ts";
 
 /* VS Code theme color integration */
 @theme {
