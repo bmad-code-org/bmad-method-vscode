@@ -1,4 +1,12 @@
 // Shared types for BMAD Extension
 // These types are used by both extension and webview contexts
 
-export * from '../messages';
+// Re-export all types from individual modules
+export * from './sprint-status';
+export * from './epic';
+export * from './story';
+export * from './parse-result';
+export * from './dashboard-state';
+
+// NOTE: Message types should be imported directly from '../messages' or '@shared/messages'
+// Do NOT re-export messages here to maintain clear architectural boundaries

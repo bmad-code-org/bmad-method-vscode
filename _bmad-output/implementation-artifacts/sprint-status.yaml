@@ -49,9 +49,9 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: BMAD File Parsing & State Management
-  epic-2: backlog
-  2-1-shared-types-and-message-protocol: backlog
-  2-2-sprint-status-parser: backlog
+  epic-2: in-progress
+  2-1-shared-types-and-message-protocol: done
+  2-2-sprint-status-parser: ready-for-dev
   2-3-epic-file-parser: backlog
   2-4-story-file-parser: backlog
   2-5-file-watcher-service: backlog
