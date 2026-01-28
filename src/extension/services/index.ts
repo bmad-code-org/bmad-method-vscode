@@ -1,2 +1,3 @@
 // Extension services
-// Will be implemented in Epic 2
+export { BmadDetector } from './bmad-detector';
+export type { DetectionResult, BmadPaths } from './bmad-detector';

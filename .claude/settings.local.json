@@ -9,7 +9,11 @@
       "Bash(pnpm test:extension:*)",
       "Bash(npx vitest run)",
       "Bash(npx vscode-test:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(pnpm typecheck:extension:*)",
+      "Bash(pnpm pretest:extension:*)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(pnpm compile:tests:*)"
     ]
   }
 }

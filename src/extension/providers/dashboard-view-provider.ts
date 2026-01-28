@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import type { DetectionResult } from '../services/bmad-detector';
 
 /**
  * Provider for the BMAD Dashboard webview in the sidebar
@@ -8,7 +9,10 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
 
   private view?: vscode.WebviewView;
 
-  constructor(private readonly extensionUri: vscode.Uri) {}
+  constructor(
+    private readonly extensionUri: vscode.Uri,
+    private readonly detectionResult: DetectionResult
+  ) {}
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -53,6 +57,10 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
    * Generate the HTML content for the webview
    */
   private getHtmlForWebview(webview: vscode.Webview): string {
+    if (!this.detectionResult.detected) {
+      return this.getNotDetectedHtml(webview);
+    }
+
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.extensionUri, 'out', 'webview', 'index.js')
     );
@@ -75,6 +83,29 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
       <body>
         <div id="root"></div>
         <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Generate HTML for non-BMAD workspaces
+   */
+  private getNotDetectedHtml(_webview: vscode.Webview): string {
+    return /* html */ `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BMAD Dashboard</title>
+      </head>
+      <body>
+        <div style="padding: 16px; text-align: center; color: var(--vscode-descriptionForeground);">
+          <p>Not a BMAD project</p>
+          <p style="font-size: 12px;">Open a workspace with a <code>_bmad/</code> directory to use the BMAD Dashboard.</p>
+        </div>
       </body>
       </html>
     `;
