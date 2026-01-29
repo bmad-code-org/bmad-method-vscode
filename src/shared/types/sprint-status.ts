@@ -51,8 +51,10 @@ export interface SprintStatus {
  * NOTE: Epic status values ('backlog', 'in-progress', 'done') are a subset of story status values.
  * Use `isEpicKey()` to determine if a development_status entry is an epic vs story.
  * This guard only validates if the value is acceptable for an epic status field.
+ *
+ * Accepts any string for validation during parsing.
  */
-export function isEpicStatus(status: DevelopmentStatusValue): status is EpicStatusValue {
+export function isEpicStatus(status: string): status is EpicStatusValue {
   return status === 'backlog' || status === 'in-progress' || status === 'done';
 }
 
@@ -62,8 +64,10 @@ export function isEpicStatus(status: DevelopmentStatusValue): status is EpicStat
  * NOTE: All epic status values are also valid story status values.
  * Use `isStoryKey()` to determine if a development_status entry is a story vs epic.
  * This guard only validates if the value is acceptable for a story status field.
+ *
+ * Accepts any string for validation during parsing.
  */
-export function isStoryStatus(status: DevelopmentStatusValue): status is StoryStatusValue {
+export function isStoryStatus(status: string): status is StoryStatusValue {
   return (
     status === 'backlog' ||
     status === 'ready-for-dev' ||
@@ -79,10 +83,10 @@ export function isStoryStatus(status: DevelopmentStatusValue): status is StorySt
  * NOTE: 'done' is valid for retrospectives, epics, and stories.
  * Use `isRetrospectiveKey()` to determine if a development_status entry is a retrospective.
  * This guard only validates if the value is acceptable for a retrospective status field.
+ *
+ * Accepts any string for validation during parsing.
  */
-export function isRetrospectiveStatus(
-  status: DevelopmentStatusValue
-): status is RetrospectiveStatusValue {
+export function isRetrospectiveStatus(status: string): status is RetrospectiveStatusValue {
   return status === 'optional' || status === 'done';
 }
 
