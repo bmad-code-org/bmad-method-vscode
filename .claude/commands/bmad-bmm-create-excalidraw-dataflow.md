@@ -1,6 +1,7 @@
 ---
 name: 'create-excalidraw-dataflow'
 description: 'Create data flow diagrams (DFD) in Excalidraw format'
+disable-model-invocation: true
 ---
 
 IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have loaded:

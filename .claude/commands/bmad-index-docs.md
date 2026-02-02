@@ -1,5 +1,6 @@
 ---
 description: 'Generates or updates an index.md of all documents in the specified directory'
+disable-model-invocation: true
 ---
 
 # Index Docs

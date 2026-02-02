@@ -30,3 +30,5 @@ name,description,module,path
 "testarch-test-design","Dual-mode workflow: (1) System-level testability review in Solutioning phase, or (2) Epic-level test planning in Implementation phase. Auto-detects mode based on project phase.","bmm","_bmad/bmm/workflows/testarch/test-design/workflow.yaml"
 "testarch-test-review","Review test quality using comprehensive knowledge base and best practices validation","bmm","_bmad/bmm/workflows/testarch/test-review/workflow.yaml"
 "testarch-trace","Generate requirements-to-tests traceability matrix, analyze coverage, and make quality gate decision (PASS/CONCERNS/FAIL/WAIVED)","bmm","_bmad/bmm/workflows/testarch/trace/workflow.yaml"
+"generate-project-context","Creates a concise project-context.md file with critical rules and patterns that AI agents must follow when implementing code. Optimized for LLM context efficiency.","bmm","_bmad/bmm/workflows/generate-project-context/workflow.md"
+"qa-automate","Generate tests quickly for existing features using standard test patterns","bmm","_bmad/bmm/workflows/qa/automate/workflow.yaml"

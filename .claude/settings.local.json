@@ -16,7 +16,8 @@
       "Bash(pnpm compile:tests:*)",
       "Bash(pnpm build:webview:*)",
       "Bash(pnpm typecheck:webview:*)",
-      "Bash(pnpm list:*)"
+      "Bash(pnpm list:*)",
+      "Bash(node:*)"
     ]
   }
 }

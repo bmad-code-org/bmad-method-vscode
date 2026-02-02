@@ -1,6 +1,7 @@
 ---
 name: 'sprint-status'
 description: 'Summarize sprint-status.yaml, surface risks, and route to the right implementation workflow.'
+disable-model-invocation: true
 ---
 
 IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have loaded:

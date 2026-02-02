@@ -1,6 +1,7 @@
 ---
 name: 'testarch-ci'
 description: 'Scaffold CI/CD quality pipeline with test execution, burn-in loops, and artifact collection'
+disable-model-invocation: true
 ---
 
 IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have loaded:

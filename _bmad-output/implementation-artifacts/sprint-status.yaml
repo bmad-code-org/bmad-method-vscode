@@ -53,7 +53,7 @@ development_status:
   2-1-shared-types-and-message-protocol: done
   2-2-sprint-status-parser: done
   2-3-epic-file-parser: done
-  2-4-story-file-parser: backlog
+  2-4-story-file-parser: in-progress
   2-5-file-watcher-service: backlog
   2-6-state-manager-with-parse-error-collection: backlog
   epic-2-retrospective: optional

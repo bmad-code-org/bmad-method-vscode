@@ -1,6 +1,7 @@
 ---
 name: 'create-excalidraw-flowchart'
 description: 'Create a flowchart visualization in Excalidraw format for processes, pipelines, or logic flows'
+disable-model-invocation: true
 ---
 
 IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have loaded:
