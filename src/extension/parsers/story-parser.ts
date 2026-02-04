@@ -8,8 +8,8 @@ import type {
   AcceptanceCriterion,
   ParseResult,
   StoryStatusValue,
-} from '@shared/types';
-import { parseSuccess, parseFailure, isStoryStatus } from '@shared/types';
+} from '../../shared/types';
+import { parseSuccess, parseFailure, isStoryStatus } from '../../shared/types';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 

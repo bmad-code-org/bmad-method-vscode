@@ -1,6 +1,6 @@
 # Story 2.5: File Watcher Service
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -282,14 +282,14 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Graceful error recovery via restart() method
 - Idempotent start() to prevent double initialization
 - Handles missing outputRoot gracefully (stays in stopped state)
-- 21 comprehensive unit tests covering all acceptance criteria
+- 30 comprehensive unit tests covering all acceptance criteria
 - Added sinon and @types/sinon for proper test mocking
 - Updated .vscode-test.mjs to only run mocha-based tests (services) to avoid vitest/mocha conflict
 
 ### File List
 
 - src/extension/services/file-watcher.ts (created) - FileWatcher service implementation
-- src/extension/services/file-watcher.test.ts (created) - 22 comprehensive unit tests
+- src/extension/services/file-watcher.test.ts (created) - 30 comprehensive unit tests
 - src/extension/services/index.ts (modified) - Added FileWatcher exports
 - package.json (modified) - Added sinon, @types/sinon dev dependencies
 - pnpm-lock.yaml (modified) - Updated lockfile for new dependencies
@@ -297,5 +297,6 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Change Log
 
+- 2026-02-04: Code Review #2 - Fixed pendingChanges not cleared on stop(), added test for same-file event type coalescing, improved test subscription disposal, removed setStateForTesting from production code - 62 passing tests (30 FileWatcher)
 - 2026-02-03: Code Review Fixes - Fixed memory leak in disposal, added event subscription tracking, added test for late outputRoot availability, refactored test helper pattern - 28 passing tests
 - 2026-02-02: Implemented Story 2.5: File Watcher Service - All 8 tasks completed with 21 passing tests

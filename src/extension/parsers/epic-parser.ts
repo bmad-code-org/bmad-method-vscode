@@ -2,8 +2,8 @@
 // Parses epic-*.md files into Epic type with frontmatter and story extraction
 
 import matter from 'gray-matter';
-import type { Epic, EpicMetadata, EpicStoryEntry, ParseResult } from '@shared/types';
-import { parseSuccess, parseFailure } from '@shared/types';
+import type { Epic, EpicMetadata, EpicStoryEntry, ParseResult } from '../../shared/types';
+import { parseSuccess, parseFailure } from '../../shared/types';
 import { promises as fs } from 'node:fs';
 
 /**

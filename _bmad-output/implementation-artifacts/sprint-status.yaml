@@ -54,8 +54,8 @@ development_status:
   2-2-sprint-status-parser: done
   2-3-epic-file-parser: done
   2-4-story-file-parser: done
-  2-5-file-watcher-service: review
-  2-6-state-manager-with-parse-error-collection: backlog
+  2-5-file-watcher-service: done
+  2-6-state-manager-with-parse-error-collection: review
   epic-2-retrospective: optional
 
   # Epic 3: Dashboard State Visibility

@@ -74,14 +74,6 @@ export class FileWatcher implements vscode.Disposable {
   }
 
   /**
-   * Set the internal state. Exposed for testing edge cases only.
-   * @internal
-   */
-  protected setStateForTesting(state: FileWatcherState): void {
-    this._state = state;
-  }
-
-  /**
    * Check if the file watcher is healthy (running without errors).
    */
   isHealthy(): boolean {
@@ -124,6 +116,7 @@ export class FileWatcher implements vscode.Disposable {
    */
   stop(): void {
     this.clearDebounce();
+    this.pendingChanges.clear();
     this.disposeWatchers();
     this._state = 'stopped';
   }

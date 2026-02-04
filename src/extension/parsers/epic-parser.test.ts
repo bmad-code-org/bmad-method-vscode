@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parseEpic, parseEpicFile } from './epic-parser';
-import { isParseSuccess, isParseFailure } from '@shared/types';
+import { isParseSuccess, isParseFailure } from '../../shared/types';
 import path from 'node:path';
 
 // Valid epic content based on actual epics.md structure

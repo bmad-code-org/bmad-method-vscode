@@ -6,14 +6,14 @@ export { parseEpic, parseEpicFile } from './epic-parser';
 export { parseStory, parseStoryFile } from './story-parser';
 
 // Re-export types for consumer convenience
-// Primary types are in @shared/types, but re-exporting common ones here
+// Primary types are in ../../shared/types, but re-exporting common ones here
 // improves API discoverability for parser consumers
-export type { Epic, EpicMetadata, EpicStoryEntry } from '@shared/types';
-export type { Story, StoryTask, StorySubtask, AcceptanceCriterion } from '@shared/types';
+export type { Epic, EpicMetadata, EpicStoryEntry } from '../../shared/types';
+export type { Story, StoryTask, StorySubtask, AcceptanceCriterion } from '../../shared/types';
 export type {
   SprintStatus,
   DevelopmentStatusValue,
   EpicStatusValue,
   StoryStatusValue,
-} from '@shared/types';
-export type { ParseResult, ParseSuccess, ParseFailure } from '@shared/types';
+} from '../../shared/types';
+export type { ParseResult, ParseSuccess, ParseFailure } from '../../shared/types';

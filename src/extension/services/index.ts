@@ -9,3 +9,5 @@ export type {
   FileWatcherError,
   FileWatcherState,
 } from './file-watcher';
+
+export { StateManager } from './state-manager';

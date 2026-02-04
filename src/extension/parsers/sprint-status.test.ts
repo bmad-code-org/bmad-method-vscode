@@ -1,7 +1,7 @@
 // Sprint Status Parser Unit Tests
 import { describe, it, expect } from 'vitest';
 import { parseSprintStatus, parseSprintStatusFile } from './sprint-status';
-import { isParseSuccess, isParseFailure } from '@shared/types';
+import { isParseSuccess, isParseFailure } from '../../shared/types';
 import path from 'node:path';
 
 // Valid sprint-status.yaml fixture based on actual project structure

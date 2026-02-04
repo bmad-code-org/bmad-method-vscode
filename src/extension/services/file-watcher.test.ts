@@ -6,12 +6,11 @@ import { FileWatcher, FileChangeEvent, FileWatcherError, FileWatcherState } from
 import { BmadDetector, BmadPaths } from './bmad-detector';
 
 /**
- * Test subclass that exposes protected methods for testing edge cases.
+ * Test helper to set internal state for edge case testing.
+ * Uses type assertion to access private property - acceptable in tests only.
  */
-class TestableFileWatcher extends FileWatcher {
-  public setTestState(state: FileWatcherState): void {
-    this.setStateForTesting(state);
-  }
+function setWatcherState(watcher: FileWatcher, state: FileWatcherState): void {
+  (watcher as unknown as { _state: FileWatcherState })._state = state;
 }
 
 /**
@@ -149,10 +148,10 @@ suite('FileWatcher', () => {
       };
       mockDetector.getBmadPaths.returns(paths);
 
-      const watcher = new TestableFileWatcher(mockDetector);
+      const watcher = new FileWatcher(mockDetector);
 
       // Manually set to starting state (simulating slow initialization)
-      watcher.setTestState('starting');
+      setWatcherState(watcher, 'starting');
 
       watcher.start();
 
@@ -184,7 +183,7 @@ suite('FileWatcher', () => {
       watcher.start();
 
       const events: FileChangeEvent[] = [];
-      watcher.onDidChange((e) => events.push(e));
+      const subscription = watcher.onDidChange((e) => events.push(e));
 
       // Simulate rapid file changes
       const uri1 = vscode.Uri.file('/test/_bmad-output/file1.yaml');
@@ -207,6 +206,7 @@ suite('FileWatcher', () => {
       assert.strictEqual(events.length, 1);
       assert.strictEqual(events[0].changes.size, 3);
 
+      subscription.dispose();
       watcher.dispose();
     });
 
@@ -221,7 +221,7 @@ suite('FileWatcher', () => {
       watcher.start();
 
       const events: FileChangeEvent[] = [];
-      watcher.onDidChange((e) => events.push(e));
+      const subscription = watcher.onDidChange((e) => events.push(e));
 
       const uri1 = vscode.Uri.file('/test/_bmad-output/file1.yaml');
       const uri2 = vscode.Uri.file('/test/_bmad-output/file2.yaml');
@@ -241,6 +241,7 @@ suite('FileWatcher', () => {
       clock.tick(100); // Now 500ms since last change
 
       assert.strictEqual(events.length, 1);
+      subscription.dispose();
       watcher.dispose();
     });
 
@@ -255,7 +256,7 @@ suite('FileWatcher', () => {
       watcher.start();
 
       const events: FileChangeEvent[] = [];
-      watcher.onDidChange((e) => events.push(e));
+      const subscription = watcher.onDidChange((e) => events.push(e));
 
       const uri1 = vscode.Uri.file('/test/_bmad-output/sprint-status.yaml');
       const uri2 = vscode.Uri.file('/test/_bmad-output/story.md');
@@ -270,6 +271,7 @@ suite('FileWatcher', () => {
       assert.strictEqual(changes.get(uri1.fsPath), 'change');
       assert.strictEqual(changes.get(uri2.fsPath), 'create');
 
+      subscription.dispose();
       watcher.dispose();
     });
 
@@ -284,7 +286,7 @@ suite('FileWatcher', () => {
       watcher.start();
 
       const events: FileChangeEvent[] = [];
-      watcher.onDidChange((e) => events.push(e));
+      const subscription = watcher.onDidChange((e) => events.push(e));
 
       const createUri = vscode.Uri.file('/test/_bmad-output/new.yaml');
       const changeUri = vscode.Uri.file('/test/_bmad-output/existing.yaml');
@@ -302,6 +304,39 @@ suite('FileWatcher', () => {
       assert.strictEqual(changes.get(changeUri.fsPath), 'change');
       assert.strictEqual(changes.get(deleteUri.fsPath), 'delete');
 
+      subscription.dispose();
+      watcher.dispose();
+    });
+
+    test('same file with multiple event types keeps only last type', () => {
+      const paths: BmadPaths = {
+        bmadRoot: vscode.Uri.file('/test/_bmad'),
+        outputRoot: vscode.Uri.file('/test/_bmad-output'),
+      };
+      mockDetector.getBmadPaths.returns(paths);
+
+      const watcher = new FileWatcher(mockDetector);
+      watcher.start();
+
+      const events: FileChangeEvent[] = [];
+      const subscription = watcher.onDidChange((e) => events.push(e));
+
+      // Same file receives create -> change -> delete within debounce window
+      const uri = vscode.Uri.file('/test/_bmad-output/file.yaml');
+      mockYamlWatcher._onDidCreate.fire(uri);
+      clock.tick(100);
+      mockYamlWatcher._onDidChange.fire(uri);
+      clock.tick(100);
+      mockYamlWatcher._onDidDelete.fire(uri);
+
+      clock.tick(500);
+
+      // Only the last event type (delete) should be recorded
+      assert.strictEqual(events.length, 1);
+      assert.strictEqual(events[0].changes.size, 1);
+      assert.strictEqual(events[0].changes.get(uri.fsPath), 'delete');
+
+      subscription.dispose();
       watcher.dispose();
     });
   });
@@ -318,7 +353,7 @@ suite('FileWatcher', () => {
 
       const watcher = new FileWatcher(mockDetector);
       const errors: FileWatcherError[] = [];
-      watcher.onError((e) => errors.push(e));
+      const subscription = watcher.onError((e) => errors.push(e));
 
       watcher.start();
 
@@ -327,6 +362,7 @@ suite('FileWatcher', () => {
       assert.ok(errors[0].message.includes('Watcher creation failed'));
       assert.strictEqual(errors[0].recoverable, true);
 
+      subscription.dispose();
       watcher.dispose();
     });
 
@@ -429,7 +465,7 @@ suite('FileWatcher', () => {
       watcher.start();
 
       const events: FileChangeEvent[] = [];
-      watcher.onDidChange((e) => events.push(e));
+      const subscription = watcher.onDidChange((e) => events.push(e));
 
       // Trigger a change
       const uri = vscode.Uri.file('/test/_bmad-output/file.yaml');
@@ -445,6 +481,65 @@ suite('FileWatcher', () => {
       assert.strictEqual(events.length, 0);
 
       clock.restore();
+      subscription.dispose();
+      watcher.dispose();
+    });
+
+    test('stop() clears pending changes map', () => {
+      const clock = sandbox.useFakeTimers();
+      const paths: BmadPaths = {
+        bmadRoot: vscode.Uri.file('/test/_bmad'),
+        outputRoot: vscode.Uri.file('/test/_bmad-output'),
+      };
+      mockDetector.getBmadPaths.returns(paths);
+
+      // Create fresh mocks for after restart
+      const mockYamlWatcher2 = createMockFileSystemWatcher();
+      const mockMdWatcher2 = createMockFileSystemWatcher();
+
+      // Setup stub to return different mocks on subsequent calls
+      let callCount = 0;
+      createFileSystemWatcherStub.callsFake(() => {
+        callCount++;
+        if (callCount <= 2) {
+          // First start: calls 1-2
+          return callCount === 1 ? mockYamlWatcher : mockMdWatcher;
+        } else {
+          // After restart: calls 3-4
+          return callCount === 3 ? mockYamlWatcher2 : mockMdWatcher2;
+        }
+      });
+
+      const watcher = new FileWatcher(mockDetector);
+      watcher.start();
+
+      const events: FileChangeEvent[] = [];
+      const subscription = watcher.onDidChange((e) => events.push(e));
+
+      // Trigger changes on first watcher
+      const uri = vscode.Uri.file('/test/_bmad-output/file.yaml');
+      mockYamlWatcher._onDidChange.fire(uri);
+
+      // Stop clears pending changes
+      watcher.stop();
+
+      // Restart creates new watchers
+      watcher.start();
+
+      // Trigger new change on new watcher
+      const newUri = vscode.Uri.file('/test/_bmad-output/new.yaml');
+      mockYamlWatcher2._onDidChange.fire(newUri);
+
+      clock.tick(500);
+
+      // Only new change should be in event, not the old one
+      assert.strictEqual(events.length, 1);
+      assert.strictEqual(events[0].changes.size, 1);
+      assert.ok(events[0].changes.has(newUri.fsPath));
+      assert.ok(!events[0].changes.has(uri.fsPath));
+
+      clock.restore();
+      subscription.dispose();
       watcher.dispose();
     });
 

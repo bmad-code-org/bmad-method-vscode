@@ -2,7 +2,7 @@
 // Parses sprint-status.yaml files into SprintStatus type
 
 import yaml from 'js-yaml';
-import type { SprintStatus, ParseResult, DevelopmentStatusValue } from '@shared/types';
+import type { SprintStatus, ParseResult, DevelopmentStatusValue } from '../../shared/types';
 import {
   parseSuccess,
   parseFailure,
@@ -12,7 +12,7 @@ import {
   isEpicStatus,
   isStoryStatus,
   isRetrospectiveStatus,
-} from '@shared/types';
+} from '../../shared/types';
 import { promises as fs } from 'node:fs';
 
 /**
