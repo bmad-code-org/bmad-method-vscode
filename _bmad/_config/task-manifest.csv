@@ -5,5 +5,4 @@ name,displayName,description,module,path,standalone
 "review-adversarial-general","Adversarial Review (General)","Cynically review content and produce findings","core","_bmad/core/tasks/review-adversarial-general.xml","true"
 "shard-doc","Shard Document","Splits large markdown documents into smaller, organized files based on level 2 (default) sections","core","_bmad/core/tasks/shard-doc.xml","true"
 "workflow","Execute Workflow","Execute given workflow by loading its configuration, following instructions, and producing output","core","_bmad/core/tasks/workflow.xml","false"
-"editorial-review-structure","Editorial Review - Structure","Structural editor that proposes cuts, reorganization,
-    and simplification while preserving comprehension","core","_bmad/core/tasks/editorial-review-structure.xml","true"
+"editorial-review-structure","Editorial Review - Structure","Structural editor that proposes cuts, reorganization, and simplification while preserving comprehension","core","_bmad/core/tasks/editorial-review-structure.xml","true"
