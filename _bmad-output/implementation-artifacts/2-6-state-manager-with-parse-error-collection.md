@@ -1,6 +1,6 @@
 # Story 2.6: State Manager with Parse Error Collection
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -115,7 +115,7 @@ So that the dashboard displays consistent state and parsing warnings.
   - [ ] 8.12: Test `refresh()` clears errors and re-parses all files
   - [ ] 8.13: Test error recovery on subsequent successful parse
   - [ ] 8.14: Test FileWatcher event during `initialize()` is queued and processed after init
-  - [ ] 8.15: Test story file filtering - only X-Y-*.md files are parsed as stories
+  - [ ] 8.15: Test story file filtering - only X-Y-\*.md files are parsed as stories
   - [ ] 8.16: Mock VS Code APIs (workspace.fs, FileSystemWatcher)
 
 - [ ] Task 9: Update Services Barrel Export (AC: #1)
@@ -139,6 +139,7 @@ So that the dashboard displays consistent state and parsing warnings.
    - WRONG: `StateManager.ts`, `stateManager.ts`
 
 2. **Class/Function Naming**: PascalCase for classes, camelCase for functions
+
    ```typescript
    export class StateManager implements vscode.Disposable { ... }
    public initialize(): Promise<void> { ... }
@@ -153,6 +154,7 @@ So that the dashboard displays consistent state and parsing warnings.
    - See existing `BmadDetector` service for reference pattern
 
 5. **Event Emitter Pattern**: Use VS Code's `EventEmitter` class
+
    ```typescript
    import * as vscode from 'vscode';
 
@@ -161,12 +163,13 @@ So that the dashboard displays consistent state and parsing warnings.
    ```
 
 6. **Disposable Pattern**: Implement `vscode.Disposable` interface
+
    ```typescript
    export class StateManager implements vscode.Disposable {
      private disposables: vscode.Disposable[] = [];
 
      public dispose(): void {
-       this.disposables.forEach(d => d.dispose());
+       this.disposables.forEach((d) => d.dispose());
        this.disposables = [];
      }
    }
@@ -181,7 +184,7 @@ So that the dashboard displays consistent state and parsing warnings.
      this._state.errors.push({
        message: result.error,
        filePath: filePath.fsPath,
-       recoverable: true
+       recoverable: true,
      });
      // Use partial data if available
      if (result.partial) {
@@ -400,7 +403,7 @@ Always use spread operator for state updates to prevent mutation bugs and enable
 this._state = { ...this._state, sprint: result.data };
 
 // WRONG: Direct mutation
-this._state.sprint = result.data;  // Don't do this!
+this._state.sprint = result.data; // Don't do this!
 ```
 
 ### Party Mode Validation
@@ -409,16 +412,17 @@ this._state.sprint = result.data;  // Don't do this!
 
 **Issues Identified and Resolved:**
 
-| Issue | Severity | Resolution |
-|-------|----------|------------|
+| Issue                                | Severity | Resolution                                                                        |
+| ------------------------------------ | -------- | --------------------------------------------------------------------------------- |
 | No `stories` array in DashboardState | **High** | Added internal `_parsedStories: Map<string, Story>` - only `currentStory` exposed |
-| Race condition: init + file change | Medium | Added `_initializing` flag and `_pendingChanges` queue |
-| Error deduplication | Medium | Errors keyed by filePath, replaced not accumulated |
-| Story file exclusion pattern | Low | Added `isStoryFile()` with regex `^\d+-\d+-[\w-]+\.md$` |
-| Missing race condition tests | Medium | Added tests 8.14-8.16 for concurrency and filtering |
-| State mutation risk | Low | Documented immutable update pattern with spread operator |
+| Race condition: init + file change   | Medium   | Added `_initializing` flag and `_pendingChanges` queue                            |
+| Error deduplication                  | Medium   | Errors keyed by filePath, replaced not accumulated                                |
+| Story file exclusion pattern         | Low      | Added `isStoryFile()` with regex `^\d+-\d+-[\w-]+\.md$`                           |
+| Missing race condition tests         | Medium   | Added tests 8.14-8.16 for concurrency and filtering                               |
+| State mutation risk                  | Low      | Documented immutable update pattern with spread operator                          |
 
 **Key Design Decisions Validated:**
+
 - Extension host remains single source of truth (Architecture compliant)
 - Internal `_parsedStories` map keeps DashboardState payload minimal
 - Immutable state updates prevent accidental mutations
@@ -427,13 +431,16 @@ this._state.sprint = result.data;  // Don't do this!
 ### Project Structure Notes
 
 **Files to Create:**
+
 - `src/extension/services/state-manager.ts` - Main service implementation
 - `src/extension/services/state-manager.test.ts` - Unit tests
 
 **Files to Modify:**
+
 - `src/extension/services/index.ts` - Add exports
 
 **Dependencies (already exist - no new npm packages needed):**
+
 - `BmadDetector` service (Story 1.3) - provides BMAD paths
 - `FileWatcher` service (Story 2.5) - provides file change events
 - Parser modules (Stories 2.2-2.4) - parse BMAD files
@@ -454,6 +461,7 @@ this._state.sprint = result.data;  // Don't do this!
 ### Previous Story Intelligence
 
 **From Story 2.5 (File Watcher Service):**
+
 - Services implement `vscode.Disposable` for proper cleanup
 - Use VS Code's `EventEmitter` for event-based communication
 - Track both instance-level and operation-level disposables separately
@@ -463,29 +471,34 @@ this._state.sprint = result.data;  // Don't do this!
 - Use sinon for mocking VS Code APIs in tests
 
 **From Story 2.4 (Story File Parser):**
+
 - Parsers return `ParseResult<T>` - never throw
 - Use `gray-matter` for frontmatter extraction
 - Test files co-located with source
 - 31 tests covered edge cases thoroughly
 
 **Git Commit Patterns:**
+
 - Recent commits follow `feat: X.Y: Story Title` format
 - Files changed: implementation + tests + barrel exports
 
 ### Integration Points
 
 **Upstream Dependencies:**
+
 - `BmadDetector.getBmadPaths()` - provides outputRoot and other paths
 - `FileWatcher.onDidChange` - triggers selective re-parsing
 - `FileWatcher.onError` - triggers error collection
 - `parseSprintStatusFile()`, `parseEpicFile()`, `parseStoryFile()` - parse BMAD artifacts
 
 **Downstream Consumers (Epic 3: Dashboard):**
+
 - Dashboard Zustand Store will subscribe to `StateManager.onStateChange`
 - Webview providers will call `StateManager.state` for initial render
 - Refresh command will call `StateManager.refresh()`
 
 **Data Flow:**
+
 ```
 Extension Activation
   → BmadDetector.detectBmadProject()
