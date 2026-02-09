@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Placeholder } from './components/placeholder';
+import { SprintStatus, SprintStatusSkeleton, PlanningArtifactLinks } from './components';
 import { useMessageHandler } from './hooks';
 import { useLoading } from './store';
 import { useVSCodeApi } from '../shared/hooks';
@@ -19,19 +19,16 @@ export function Dashboard(): React.ReactElement {
     return (
       <div data-testid="dashboard-loading" className="flex flex-col gap-4 p-4">
         <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
-        <div className="flex animate-pulse flex-col gap-3">
-          <div className="h-4 w-3/4 rounded bg-[var(--vscode-editor-inactiveSelectionBackground)]" />
-          <div className="h-4 w-1/2 rounded bg-[var(--vscode-editor-inactiveSelectionBackground)]" />
-          <div className="h-8 w-full rounded bg-[var(--vscode-editor-inactiveSelectionBackground)]" />
-          <div className="h-4 w-2/3 rounded bg-[var(--vscode-editor-inactiveSelectionBackground)]" />
-        </div>
+        <SprintStatusSkeleton />
       </div>
     );
   }
 
   return (
-    <div data-testid="dashboard-content">
-      <Placeholder />
+    <div data-testid="dashboard-content" className="flex flex-col gap-4 p-4">
+      <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
+      <SprintStatus />
+      <PlanningArtifactLinks />
     </div>
   );
 }

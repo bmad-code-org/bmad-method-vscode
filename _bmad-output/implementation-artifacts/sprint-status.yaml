@@ -61,7 +61,7 @@ development_status:
   # Epic 3: Dashboard State Visibility
   epic-3: in-progress
   3-1-dashboard-zustand-store-and-message-handler: done
-  3-2-sprint-status-display-component: backlog
+  3-2-sprint-status-display-component: done
   3-3-epic-list-with-completion-status: backlog
   3-4-active-story-card-with-task-progress: backlog
   3-5-next-action-recommendation: backlog
