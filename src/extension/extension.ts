@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { BmadDetector } from './services';
+import { BmadDetector, FileWatcher, StateManager } from './services';
 import { DashboardViewProvider } from './providers/dashboard-view-provider';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -11,20 +11,38 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // eslint-disable-next-line no-console
   console.log('[BMAD] Detection result:', JSON.stringify(detectionResult));
 
-  // Register the dashboard webview view provider for the sidebar
-  // MUST always register — VS Code requires it for contributes.views entries
-  const dashboardProvider = new DashboardViewProvider(context.extensionUri, detectionResult);
+  if (detectionResult.detected) {
+    // Create services
+    const fileWatcher = new FileWatcher(detector);
+    const stateManager = new StateManager(detector, fileWatcher);
 
-  context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(DashboardViewProvider.viewType, dashboardProvider)
-  );
+    // Start services
+    fileWatcher.start();
+    await stateManager.initialize();
 
-  // Register the refresh command
-  context.subscriptions.push(
-    vscode.commands.registerCommand('bmad.refresh', () => {
-      dashboardProvider.refresh();
-    })
-  );
+    // Register dashboard with StateManager dependency
+    const dashboardProvider = new DashboardViewProvider(
+      context.extensionUri,
+      detectionResult,
+      stateManager
+    );
+
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(DashboardViewProvider.viewType, dashboardProvider),
+      vscode.commands.registerCommand('bmad.refresh', () => {
+        void stateManager.refresh();
+      }),
+      fileWatcher,
+      stateManager
+    );
+  } else {
+    // Non-BMAD workspace - register provider without state manager
+    const dashboardProvider = new DashboardViewProvider(context.extensionUri, detectionResult);
+
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(DashboardViewProvider.viewType, dashboardProvider)
+    );
+  }
 }
 
 export function deactivate(): void {

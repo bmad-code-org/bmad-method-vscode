@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import type { DetectionResult } from '../services/bmad-detector';
+import type { StateManager } from '../services/state-manager';
+import type { ToExtension } from '../../shared/messages';
+import { ToExtensionType, createStateUpdateMessage } from '../../shared/messages';
 
 /**
  * Provider for the BMAD Dashboard webview in the sidebar
@@ -8,10 +11,12 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'bmad.dashboardView';
 
   private view?: vscode.WebviewView;
+  private readonly disposables: vscode.Disposable[] = [];
 
   constructor(
     private readonly extensionUri: vscode.Uri,
-    private readonly detectionResult: DetectionResult
+    private readonly detectionResult: DetectionResult,
+    private readonly stateManager?: StateManager
   ) {}
 
   public resolveWebviewView(
@@ -32,25 +37,62 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this.getHtmlForWebview(webviewView.webview);
 
     // Handle messages from the webview
-    webviewView.webview.onDidReceiveMessage((message: unknown) => {
-      this.handleMessage(message);
-    });
-  }
+    webviewView.webview.onDidReceiveMessage(
+      (message: unknown) => {
+        this.handleMessage(message);
+      },
+      undefined,
+      this.disposables
+    );
 
-  /**
-   * Refresh the dashboard view
-   */
-  public refresh(): void {
-    if (this.view) {
-      this.view.webview.html = this.getHtmlForWebview(this.view.webview);
+    // Subscribe to state changes and forward to webview
+    if (this.stateManager) {
+      this.disposables.push(
+        this.stateManager.onStateChange((state) => {
+          if (this.view) {
+            void this.view.webview.postMessage(createStateUpdateMessage(state));
+          }
+        })
+      );
+
+      // Send current state immediately so webview doesn't need a round-trip REFRESH
+      void webviewView.webview.postMessage(createStateUpdateMessage(this.stateManager.state));
+
+      // Send initial state when webview becomes visible again after being hidden
+      webviewView.onDidChangeVisibility(
+        () => {
+          if (webviewView.visible && this.stateManager) {
+            void this.view!.webview.postMessage(createStateUpdateMessage(this.stateManager.state));
+          }
+        },
+        undefined,
+        this.disposables
+      );
     }
   }
 
   /**
    * Handle messages from the webview
    */
-  private handleMessage(_message: unknown): void {
-    // Message handling will be implemented in Story 2.1
+  private handleMessage(message: unknown): void {
+    if (!message || typeof message !== 'object' || !('type' in message)) {
+      return;
+    }
+    const msg = message as ToExtension;
+    switch (msg.type) {
+      case ToExtensionType.REFRESH:
+        if (this.stateManager) {
+          void this.stateManager.refresh();
+        }
+        break;
+      case ToExtensionType.OPEN_DOCUMENT:
+        // Placeholder for Epic 5
+        break;
+      case ToExtensionType.EXECUTE_WORKFLOW:
+      case ToExtensionType.COPY_COMMAND:
+        // Placeholder for Epic 4
+        break;
+    }
   }
 
   /**
