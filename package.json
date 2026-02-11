@@ -113,6 +113,16 @@
         "command": "bmad.refresh",
         "title": "BMAD: Refresh Dashboard"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "BMAD Dashboard",
+      "properties": {
+        "bmad.outputRoot": {
+          "type": "string",
+          "default": "_bmad-output",
+          "description": "Root directory for BMAD output files, relative to workspace root."
+        }
+      }
+    }
   }
 }

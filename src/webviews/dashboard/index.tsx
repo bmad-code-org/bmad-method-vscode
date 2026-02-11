@@ -1,5 +1,11 @@
 import React, { useEffect } from 'react';
-import { SprintStatus, SprintStatusSkeleton, PlanningArtifactLinks } from './components';
+import {
+  SprintStatus,
+  SprintStatusSkeleton,
+  PlanningArtifactLinks,
+  EpicList,
+  EpicListSkeleton,
+} from './components';
 import { useMessageHandler } from './hooks';
 import { useLoading } from './store';
 import { useVSCodeApi } from '../shared/hooks';
@@ -20,6 +26,7 @@ export function Dashboard(): React.ReactElement {
       <div data-testid="dashboard-loading" className="flex flex-col gap-4 p-4">
         <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
         <SprintStatusSkeleton />
+        <EpicListSkeleton />
       </div>
     );
   }
@@ -28,6 +35,7 @@ export function Dashboard(): React.ReactElement {
     <div data-testid="dashboard-content" className="flex flex-col gap-4 p-4">
       <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
       <SprintStatus />
+      <EpicList />
       <PlanningArtifactLinks />
     </div>
   );

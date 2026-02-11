@@ -78,8 +78,10 @@ export class BmadDetector {
       return result;
     }
 
-    // _bmad/ exists — also check for _bmad-output/ (optional, null if absent)
-    const outputUri = vscode.Uri.joinPath(workspaceRoot, '_bmad-output');
+    // Read configured output root from VS Code settings (defaults to '_bmad-output')
+    const config = vscode.workspace.getConfiguration('bmad');
+    const outputDirName = config.get<string>('outputRoot', '_bmad-output');
+    const outputUri = vscode.Uri.joinPath(workspaceRoot, outputDirName);
     const outputCheck = await this.checkDirectory(outputUri);
 
     const result: DetectionResult = {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useVSCodeApi } from '../../shared/hooks';
+import { useOutputRoot } from '../store';
 import { createOpenDocumentMessage } from '@shared/messages';
 
 export interface ArtifactLink {
@@ -7,21 +8,25 @@ export interface ArtifactLink {
   path: string;
 }
 
-const DEFAULT_PLANNING_ARTIFACTS: ArtifactLink[] = [
-  { label: 'PRD', path: '_bmad-output/planning-artifacts/prd.md' },
-  { label: 'Architecture', path: '_bmad-output/planning-artifacts/architecture.md' },
-];
+function getDefaultPlanningArtifacts(outputRoot: string): ArtifactLink[] {
+  return [
+    { label: 'PRD', path: `${outputRoot}/planning-artifacts/prd.md` },
+    { label: 'Architecture', path: `${outputRoot}/planning-artifacts/architecture.md` },
+  ];
+}
 
 interface PlanningArtifactLinksProps {
   links?: ArtifactLink[];
 }
 
 export function PlanningArtifactLinks({
-  links = DEFAULT_PLANNING_ARTIFACTS,
+  links,
 }: PlanningArtifactLinksProps): React.ReactElement | null {
   const vscodeApi = useVSCodeApi();
+  const outputRoot = useOutputRoot() ?? '_bmad-output';
+  const resolvedLinks = links ?? getDefaultPlanningArtifacts(outputRoot);
 
-  if (links.length === 0) {
+  if (resolvedLinks.length === 0) {
     return null;
   }
 
@@ -31,7 +36,7 @@ export function PlanningArtifactLinks({
         Planning Artifacts
       </h3>
       <div className="flex gap-3">
-        {links.map(({ label, path }) => (
+        {resolvedLinks.map(({ label, path }) => (
           <button
             key={path}
             type="button"

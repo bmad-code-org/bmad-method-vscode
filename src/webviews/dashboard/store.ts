@@ -21,6 +21,7 @@ export const useDashboardStore = create<DashboardStore>()((set) => ({
       currentStory: state.currentStory,
       errors: state.errors,
       loading: state.loading,
+      outputRoot: state.outputRoot,
     }),
 
   setLoading: (loading: boolean) => set({ loading }),
@@ -37,3 +38,4 @@ export const useEpics = () => useDashboardStore((s) => s.epics);
 export const useCurrentStory = () => useDashboardStore((s) => s.currentStory);
 export const useErrors = () => useDashboardStore((s) => s.errors);
 export const useLoading = () => useDashboardStore((s) => s.loading);
+export const useOutputRoot = () => useDashboardStore((s) => s.outputRoot);

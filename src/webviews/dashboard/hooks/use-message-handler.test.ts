@@ -44,6 +44,7 @@ describe('useMessageHandler', () => {
       currentStory: null,
       errors: [],
       loading: false,
+      outputRoot: null,
     };
 
     window.dispatchEvent(

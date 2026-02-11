@@ -21,6 +21,8 @@ export interface DashboardState {
   errors: ParseError[];
   /** Whether data is currently being loaded */
   loading: boolean;
+  /** Configured output root directory relative to workspace root (null if not yet resolved) */
+  outputRoot: string | null;
 }
 
 /**
@@ -33,5 +35,6 @@ export function createInitialDashboardState(): DashboardState {
     currentStory: null,
     errors: [],
     loading: true,
+    outputRoot: null,
   };
 }

@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { useDashboardStore } from '../store';
 import { PlanningArtifactLinks } from './planning-artifact-links';
 
 const mockPostMessage = vi.fn();
@@ -10,6 +11,7 @@ vi.mock('../../shared/hooks', () => ({
 describe('PlanningArtifactLinks', () => {
   beforeEach(() => {
     mockPostMessage.mockClear();
+    useDashboardStore.setState({ outputRoot: '_bmad-output' });
   });
 
   test('renders PRD and Architecture links', () => {

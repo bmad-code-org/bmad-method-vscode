@@ -123,6 +123,10 @@ export class StateManager implements vscode.Disposable {
       return;
     }
 
+    // Populate outputRoot from config so webview can construct document paths
+    const config = vscode.workspace.getConfiguration('bmad');
+    this._state = { ...this._state, outputRoot: config.get<string>('outputRoot', '_bmad-output') };
+
     // Parse sprint status
     await this.parseSprintStatus(paths.outputRoot);
 

@@ -7,6 +7,7 @@ import {
   useCurrentStory,
   useErrors,
   useLoading,
+  useOutputRoot,
 } from './store';
 import { createInitialDashboardState } from '@shared/types';
 import type { DashboardState } from '@shared/types';
@@ -25,6 +26,7 @@ describe('useDashboardStore', () => {
     expect(state.currentStory).toEqual(initial.currentStory);
     expect(state.errors).toEqual(initial.errors);
     expect(state.loading).toEqual(initial.loading);
+    expect(state.outputRoot).toEqual(initial.outputRoot);
   });
 
   describe('updateState', () => {
@@ -53,6 +55,7 @@ describe('useDashboardStore', () => {
         currentStory: null,
         errors: [],
         loading: false,
+        outputRoot: '_bmad-output',
       };
 
       useDashboardStore.getState().updateState(newState);
@@ -63,6 +66,7 @@ describe('useDashboardStore', () => {
       expect(state.currentStory).toEqual(newState.currentStory);
       expect(state.errors).toEqual(newState.errors);
       expect(state.loading).toEqual(newState.loading);
+      expect(state.outputRoot).toEqual(newState.outputRoot);
     });
 
     it('overwrites previous state completely', () => {
@@ -83,6 +87,7 @@ describe('useDashboardStore', () => {
         currentStory: null,
         errors: [{ message: 'old error', recoverable: true }],
         loading: false,
+        outputRoot: '_bmad-output',
       };
 
       const secondState: DashboardState = {
@@ -91,6 +96,7 @@ describe('useDashboardStore', () => {
         currentStory: null,
         errors: [],
         loading: true,
+        outputRoot: null,
       };
 
       useDashboardStore.getState().updateState(firstState);
@@ -161,6 +167,11 @@ describe('useDashboardStore', () => {
     it('useLoading returns loading slice', () => {
       const { result } = renderHook(() => useLoading());
       expect(result.current).toBe(true);
+    });
+
+    it('useOutputRoot returns outputRoot slice', () => {
+      const { result } = renderHook(() => useOutputRoot());
+      expect(result.current).toBeNull();
     });
   });
 });
