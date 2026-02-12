@@ -8,6 +8,7 @@ import {
   useErrors,
   useLoading,
   useOutputRoot,
+  useWorkflows,
 } from './store';
 import { createInitialDashboardState } from '@shared/types';
 import type { DashboardState } from '@shared/types';
@@ -56,6 +57,7 @@ describe('useDashboardStore', () => {
         errors: [],
         loading: false,
         outputRoot: '_bmad-output',
+        workflows: [],
       };
 
       useDashboardStore.getState().updateState(newState);
@@ -88,6 +90,7 @@ describe('useDashboardStore', () => {
         errors: [{ message: 'old error', recoverable: true }],
         loading: false,
         outputRoot: '_bmad-output',
+        workflows: [],
       };
 
       const secondState: DashboardState = {
@@ -97,6 +100,7 @@ describe('useDashboardStore', () => {
         errors: [],
         loading: true,
         outputRoot: null,
+        workflows: [],
       };
 
       useDashboardStore.getState().updateState(firstState);
@@ -172,6 +176,77 @@ describe('useDashboardStore', () => {
     it('useOutputRoot returns outputRoot slice', () => {
       const { result } = renderHook(() => useOutputRoot());
       expect(result.current).toBeNull();
+    });
+
+    it('useWorkflows returns workflows slice', () => {
+      const { result } = renderHook(() => useWorkflows());
+      expect(result.current).toEqual([]);
+    });
+  });
+
+  describe('workflows state', () => {
+    it('workflows are updated via updateState', () => {
+      const workflows = [
+        {
+          id: 'dev-story',
+          name: 'Dev Story',
+          command: 'claude /bmad-bmm-dev-story',
+          description: 'Start or continue story implementation',
+          isPrimary: true,
+        },
+      ];
+
+      const newState: DashboardState = {
+        ...createInitialDashboardState(),
+        loading: false,
+        workflows,
+      };
+
+      useDashboardStore.getState().updateState(newState);
+
+      const state = useDashboardStore.getState();
+      expect(state.workflows).toEqual(workflows);
+    });
+
+    it('useWorkflows selector returns current workflows', () => {
+      const workflows = [
+        {
+          id: 'create-story',
+          name: 'Create Story',
+          command: 'claude /bmad-bmm-create-story',
+          description: 'Create the next user story',
+          isPrimary: true,
+        },
+        {
+          id: 'correct-course',
+          name: 'Correct Course',
+          command: 'claude /bmad-bmm-correct-course',
+          description: 'Adjust sprint plan',
+          isPrimary: false,
+        },
+      ];
+
+      useDashboardStore.setState({ workflows });
+
+      const { result } = renderHook(() => useWorkflows());
+      expect(result.current).toEqual(workflows);
+    });
+
+    it('workflows default to empty array when state has no workflows', () => {
+      const stateWithoutWorkflows: DashboardState = {
+        sprint: null,
+        epics: [],
+        currentStory: null,
+        errors: [],
+        loading: false,
+        outputRoot: null,
+        workflows: [],
+      };
+
+      useDashboardStore.getState().updateState(stateWithoutWorkflows);
+
+      const state = useDashboardStore.getState();
+      expect(state.workflows).toEqual([]);
     });
   });
 });

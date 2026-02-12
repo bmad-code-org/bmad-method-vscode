@@ -1,5 +1,6 @@
 ---
-stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics, step-03-create-stories, party-mode-review]
+stepsCompleted:
+  [step-01-validate-prerequisites, step-02-design-epics, step-03-create-stories, party-mode-review]
 inputDocuments:
   - '_bmad-output/planning-artifacts/prd.md'
   - '_bmad-output/planning-artifacts/architecture.md'
@@ -16,6 +17,7 @@ This document provides the complete epic and story breakdown for bmad-extension,
 ### Functional Requirements
 
 **Project State Visibility**
+
 - FR1: User can view current sprint status at a glance
 - FR2: User can view list of all epics with completion status
 - FR3: User can view current/active epic with story progress
@@ -23,6 +25,7 @@ This document provides the complete epic and story breakdown for bmad-extension,
 - FR5: User can identify the next recommended action based on project state
 
 **BMAD File Parsing**
+
 - FR6: System can parse `sprint-status.yaml` to extract workflow state
 - FR7: System can parse epic files (`epic-*.md`) to extract epic metadata and story lists
 - FR8: System can parse story files to extract tasks and completion status
@@ -31,12 +34,14 @@ This document provides the complete epic and story breakdown for bmad-extension,
 - FR11: User can view parsing warnings/errors for problematic BMAD files
 
 **Workflow Actions**
+
 - FR12: User can launch any available BMAD workflow via terminal command with one click
 - FR13: User can copy a workflow command to clipboard
 - FR14: System displays context-sensitive workflow options based on current project state
 - FR15: System can determine which workflows are available based on project state and BMAD installation
 
 **Document Viewing**
+
 - FR16: User can view any BMAD planning artifact (PRD, architecture, epics, stories)
 - FR17: User can view markdown content with proper formatting (headers, lists, tables)
 - FR18: User can view Mermaid diagrams rendered as visuals
@@ -44,6 +49,7 @@ This document provides the complete epic and story breakdown for bmad-extension,
 - FR20: User can navigate from dashboard to view a specific document
 
 **Extension Lifecycle**
+
 - FR21: Extension activates automatically when BMAD project is detected
 - FR22: Extension does not activate in non-BMAD workspaces
 - FR23: User can manually refresh dashboard state
@@ -51,38 +57,45 @@ This document provides the complete epic and story breakdown for bmad-extension,
 ### NonFunctional Requirements
 
 **Performance**
+
 - NFR1: Dashboard initial render completes within 1 second of activation
 - NFR2: Dashboard updates after file changes within 500ms
 - NFR3: File watching consumes less than 1% CPU and 50MB memory under normal operation
 - NFR4: Markdown rendering completes within 2 seconds for documents under 10KB; larger documents show progressive loading
 
 **Reliability**
+
 - NFR5: Extension does not crash when encountering malformed BMAD files
 - NFR6: Extension recovers from file system errors by showing error state and enabling manual refresh
 - NFR7: Dashboard displays meaningful state even with incomplete BMAD project data
 
 **Integration**
+
 - NFR8: Dashboard automatically updates when BMAD files change in the workspace
 - NFR9: Extension is compatible with VS Code versions from the past 3 months
 - NFR10: Terminal command execution works with user's configured VS Code default shell
 
 **User Feedback**
+
 - NFR11: User receives visual feedback when extension encounters errors or is in degraded state
 
 ### Additional Requirements
 
 **From Architecture - Starter Template:**
+
 - Use `githubnext/vscode-react-webviews` starter template for project initialization
 - Configure Vitest for webview unit tests
 - Configure @vscode/test-electron for extension host tests
 - Establish TypeScript boundary enforcement between extension host and webview contexts
 
 **Dual Webview Architecture:**
+
 - Dashboard webview as sidebar panel (always visible, compact status)
 - Document Viewer webview as editor tab panel (on-demand, full document display)
 - Both webviews subscribe to same extension host state via postMessage
 
 **Parsing Stack:**
+
 - js-yaml for parsing sprint-status.yaml
 - gray-matter for extracting frontmatter from epic/story .md files
 - react-markdown with remark-gfm for rendering markdown in document viewer
@@ -90,26 +103,31 @@ This document provides the complete epic and story breakdown for bmad-extension,
 - rehype-highlight for syntax highlighting code blocks
 
 **State Management:**
+
 - Zustand for webview state management
 - Extension host remains single source of truth
 - ParseResult<T> pattern for all parsing operations (never throw)
 
 **File Watching:**
+
 - VS Code FileSystemWatcher on `_bmad-output/**/*.yaml` and `_bmad-output/**/*.md`
 - 500ms debounce for batching rapid changes
 - Manual refresh button/command as fallback
 
 **Message Protocol:**
+
 - Typed message protocol with discriminated unions
 - Shared types in `/src/shared/messages.ts`
 - Extension → Webview: STATE_UPDATE, DOCUMENT_CONTENT, ERROR
 - Webview → Extension: OPEN_DOCUMENT, EXECUTE_WORKFLOW, COPY_COMMAND, REFRESH
 
 **Workflow Execution:**
+
 - Primary: Terminal execution via `vscode.window.createTerminal()`
 - Secondary: Copy to clipboard via `vscode.env.clipboard.writeText()`
 
 **Implementation Patterns (Consistency Rules):**
+
 - All files use kebab-case naming
 - Test files co-located with source (`*.test.ts`)
 - Components use PascalCase, functions use camelCase
@@ -118,55 +136,60 @@ This document provides the complete epic and story breakdown for bmad-extension,
 
 ### FR Coverage Map
 
-| FR | Epic | Description |
-|----|------|-------------|
-| FR1 | Epic 3 | View current sprint status |
-| FR2 | Epic 3 | View epic list with completion |
-| FR3 | Epic 3 | View active epic with story progress |
-| FR4 | Epic 3 | View active story with task progress |
-| FR5 | Epic 3 | Identify next recommended action |
-| FR6 | Epic 2 | Parse sprint-status.yaml |
-| FR7 | Epic 2 | Parse epic files |
-| FR8 | Epic 2 | Parse story files |
-| FR9 | Epic 1 | Detect BMAD project |
-| FR10 | Epic 2 | Handle malformed files gracefully |
-| FR11 | Epic 2 | Display parsing warnings/errors |
-| FR12 | Epic 4 | One-click workflow launch |
-| FR13 | Epic 4 | Copy command to clipboard |
-| FR14 | Epic 4 | Context-sensitive workflow options |
-| FR15 | Epic 4 | Determine available workflows |
-| FR16 | Epic 5 | View planning artifacts |
-| FR17 | Epic 5 | Render markdown formatting |
-| FR18 | Epic 5 | Render Mermaid diagrams |
-| FR19 | Epic 5 | Syntax-highlighted code blocks |
-| FR20 | Epic 5 | Navigate dashboard to document |
-| FR21 | Epic 1 | Auto-activation on BMAD detection |
+| FR   | Epic   | Description                          |
+| ---- | ------ | ------------------------------------ |
+| FR1  | Epic 3 | View current sprint status           |
+| FR2  | Epic 3 | View epic list with completion       |
+| FR3  | Epic 3 | View active epic with story progress |
+| FR4  | Epic 3 | View active story with task progress |
+| FR5  | Epic 3 | Identify next recommended action     |
+| FR6  | Epic 2 | Parse sprint-status.yaml             |
+| FR7  | Epic 2 | Parse epic files                     |
+| FR8  | Epic 2 | Parse story files                    |
+| FR9  | Epic 1 | Detect BMAD project                  |
+| FR10 | Epic 2 | Handle malformed files gracefully    |
+| FR11 | Epic 2 | Display parsing warnings/errors      |
+| FR12 | Epic 4 | One-click workflow launch            |
+| FR13 | Epic 4 | Copy command to clipboard            |
+| FR14 | Epic 4 | Context-sensitive workflow options   |
+| FR15 | Epic 4 | Determine available workflows        |
+| FR16 | Epic 5 | View planning artifacts              |
+| FR17 | Epic 5 | Render markdown formatting           |
+| FR18 | Epic 5 | Render Mermaid diagrams              |
+| FR19 | Epic 5 | Syntax-highlighted code blocks       |
+| FR20 | Epic 5 | Navigate dashboard to document       |
+| FR21 | Epic 1 | Auto-activation on BMAD detection    |
 | FR22 | Epic 1 | No activation in non-BMAD workspaces |
-| FR23 | Epic 3 | Manual refresh capability |
+| FR23 | Epic 3 | Manual refresh capability            |
 
 ## Epic List
 
 ### Epic 1: Project Foundation & Detection
+
 Developer opens VS Code and the extension activates in BMAD projects, establishing the foundation for all dashboard functionality.
 **FRs covered:** FR9, FR21, FR22
 **NFRs addressed:** NFR9 (VS Code compatibility)
 
 ### Epic 2: BMAD File Parsing & State Management
+
 Developer has reliable parsing of all BMAD artifacts with graceful handling of malformed files, and the system maintains consistent state.
 **FRs covered:** FR6, FR7, FR8, FR10, FR11
 **NFRs addressed:** NFR5, NFR6, NFR7 (reliability requirements)
 
 ### Epic 3: Dashboard State Visibility
+
 Developer opens VS Code and immediately sees their current project state - sprint status, epic progress, active story, and recommended next action - in a sidebar dashboard.
 **FRs covered:** FR1, FR2, FR3, FR4, FR5, FR23
 **NFRs addressed:** NFR1 (1s render), NFR2 (500ms updates), NFR3 (resource limits), NFR8 (auto-update)
 
 ### Epic 4: Workflow Actions
+
 Developer can launch any BMAD workflow with one click or copy commands to clipboard, with context-sensitive options based on project state.
 **FRs covered:** FR12, FR13, FR14, FR15
 **NFRs addressed:** NFR10 (shell compatibility)
 
 ### Epic 5: Document Viewing
+
 Developer can view any BMAD planning artifact with rich rendering - Mermaid diagrams, formatted tables, and syntax-highlighted code blocks - in a dedicated tab panel.
 **FRs covered:** FR16, FR17, FR18, FR19, FR20
 **NFRs addressed:** NFR4 (rendering performance), NFR11 (error feedback)
@@ -299,7 +322,7 @@ So that the extension can extract workflow state for dashboard display.
 ### Story 2.3: Epic File Parser
 
 As a developer,
-I want reliable parsing of epic markdown files (epic-*.md),
+I want reliable parsing of epic markdown files (epic-\*.md),
 So that the extension can extract epic metadata and story lists.
 
 **Acceptance Criteria:**
@@ -626,7 +649,7 @@ So that I can paste it into an existing terminal or use it elsewhere.
 
 **Given** the copy button in the UI
 **When** rendered next to each CTA
-**Then** it is clearly visible as a secondary action (separate from execute)
+**Then** it is clearly visible as a second ary action (separate from execute)
 
 ---
 

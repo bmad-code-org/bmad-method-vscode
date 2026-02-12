@@ -45,6 +45,7 @@ describe('useMessageHandler', () => {
       errors: [],
       loading: false,
       outputRoot: null,
+      workflows: [],
     };
 
     window.dispatchEvent(

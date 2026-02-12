@@ -5,6 +5,7 @@ import type { SprintStatus } from './sprint-status';
 import type { Epic } from './epic';
 import type { Story } from './story';
 import type { ParseError } from './parse-result';
+import type { AvailableWorkflow } from './workflow';
 
 /**
  * Aggregated dashboard state sent from extension to webview
@@ -23,6 +24,8 @@ export interface DashboardState {
   loading: boolean;
   /** Configured output root directory relative to workspace root (null if not yet resolved) */
   outputRoot: string | null;
+  /** Available workflows based on current project state */
+  workflows: AvailableWorkflow[];
 }
 
 /**
@@ -36,5 +39,6 @@ export function createInitialDashboardState(): DashboardState {
     errors: [],
     loading: true,
     outputRoot: null,
+    workflows: [],
   };
 }

@@ -7,6 +7,7 @@ export * from './epic';
 export * from './story';
 export * from './parse-result';
 export * from './dashboard-state';
+export * from './workflow';
 
 // NOTE: Message types should be imported directly from '../messages' or '@shared/messages'
 // Do NOT re-export messages here to maintain clear architectural boundaries

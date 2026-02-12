@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { BmadDetector } from './bmad-detector';
 import { FileWatcher, FileChangeEvent, FileWatcherError } from './file-watcher';
+import type { WorkflowDiscoveryService } from './workflow-discovery';
 import { parseSprintStatus, parseEpics, parseStory } from '../parsers';
 import type { DashboardState, ParseError, SprintStatus, Epic, Story } from '../../shared/types';
 import { createInitialDashboardState, isStoryKey, isEpicKey } from '../../shared/types';
@@ -48,10 +49,12 @@ export class StateManager implements vscode.Disposable {
    * Create a new StateManager instance.
    * @param bmadDetector - The BMAD detector service for path resolution
    * @param fileWatcher - The FileWatcher service for change events
+   * @param workflowDiscovery - Optional workflow discovery service for computing available workflows
    */
   constructor(
     private readonly bmadDetector: BmadDetector,
-    private readonly fileWatcher: FileWatcher
+    private readonly fileWatcher: FileWatcher,
+    private readonly workflowDiscovery?: WorkflowDiscoveryService
   ) {
     this._state = createInitialDashboardState();
     this.disposables.push(this._onStateChange);
@@ -138,6 +141,14 @@ export class StateManager implements vscode.Disposable {
 
     // Determine current story from sprint status
     this.determineCurrentStory();
+
+    // Compute available workflows
+    if (this.workflowDiscovery) {
+      this._state = {
+        ...this._state,
+        workflows: this.workflowDiscovery.discoverWorkflows(this._state),
+      };
+    }
 
     // Mark loading complete
     this._state = { ...this._state, loading: false };
@@ -358,6 +369,15 @@ export class StateManager implements vscode.Disposable {
     await Promise.all(updatePromises);
 
     this.determineCurrentStory();
+
+    // Recompute available workflows
+    if (this.workflowDiscovery) {
+      this._state = {
+        ...this._state,
+        workflows: this.workflowDiscovery.discoverWorkflows(this._state),
+      };
+    }
+
     this.notifyWebviews();
   }
 

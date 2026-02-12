@@ -11,3 +11,5 @@ export type {
 } from './file-watcher';
 
 export { StateManager } from './state-manager';
+
+export { WorkflowDiscoveryService } from './workflow-discovery';

@@ -50,6 +50,7 @@ describe('ToWebview message type guards', () => {
     errors: [],
     loading: false,
     outputRoot: null,
+    workflows: [],
   };
 
   describe('isStateUpdateMessage', () => {
@@ -243,6 +244,7 @@ describe('Message factory functions', () => {
         errors: [],
         loading: true,
         outputRoot: null,
+        workflows: [],
       };
       const message = createStateUpdateMessage(state);
       expect(message.type).toBe('STATE_UPDATE');
@@ -315,6 +317,7 @@ describe('Discriminated union type narrowing', () => {
       errors: [],
       loading: false,
       outputRoot: null,
+      workflows: [],
     };
 
     function handleToWebview(message: ToWebview): string {

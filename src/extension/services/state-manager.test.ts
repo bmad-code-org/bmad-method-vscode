@@ -5,7 +5,8 @@ import * as sinon from 'sinon';
 import { StateManager } from './state-manager';
 import { BmadDetector, BmadPaths } from './bmad-detector';
 import { FileWatcher, FileChangeEvent, FileWatcherError } from './file-watcher';
-import type { DashboardState, SprintStatus } from '../../shared/types';
+import { WorkflowDiscoveryService } from './workflow-discovery';
+import type { DashboardState, SprintStatus, AvailableWorkflow } from '../../shared/types';
 import { createInitialDashboardState } from '../../shared/types';
 
 /**
@@ -806,6 +807,140 @@ tracking_system: file-system
       const afterInit = manager.state;
 
       assert.notStrictEqual(initialState, afterInit);
+      manager.dispose();
+    });
+  });
+
+  suite('WorkflowDiscovery Integration', () => {
+    test('workflows are populated in state when WorkflowDiscoveryService is provided', async () => {
+      const paths = createMockPaths();
+      mockDetector.getBmadPaths.returns(paths);
+
+      const mockWorkflows: AvailableWorkflow[] = [
+        {
+          id: 'dev-story',
+          name: 'Dev Story',
+          command: 'claude /bmad-bmm-dev-story',
+          description: 'Start or continue story implementation',
+          isPrimary: true,
+        },
+      ];
+
+      const mockWorkflowDiscovery = sandbox.createStubInstance(WorkflowDiscoveryService);
+      mockWorkflowDiscovery.discoverWorkflows.returns(mockWorkflows);
+
+      const manager = new TestableStateManager(
+        mockDetector as unknown as BmadDetector,
+        mockFileWatcher as unknown as FileWatcher,
+        mockWorkflowDiscovery as unknown as WorkflowDiscoveryService
+      );
+      manager.setReadFileMock(createReadFileMock({}));
+      manager.setReadDirectoryMock(async () => Promise.resolve([]));
+
+      await manager.initialize();
+
+      assert.deepStrictEqual(manager.state.workflows, mockWorkflows);
+      manager.dispose();
+    });
+
+    test('STATE_UPDATE messages include workflows field', async () => {
+      const paths = createMockPaths();
+      mockDetector.getBmadPaths.returns(paths);
+
+      const mockWorkflows: AvailableWorkflow[] = [
+        {
+          id: 'create-story',
+          name: 'Create Story',
+          command: 'claude /bmad-bmm-create-story',
+          description: 'Create the next user story',
+          isPrimary: true,
+        },
+      ];
+
+      const mockWorkflowDiscovery = sandbox.createStubInstance(WorkflowDiscoveryService);
+      mockWorkflowDiscovery.discoverWorkflows.returns(mockWorkflows);
+
+      const manager = new TestableStateManager(
+        mockDetector as unknown as BmadDetector,
+        mockFileWatcher as unknown as FileWatcher,
+        mockWorkflowDiscovery as unknown as WorkflowDiscoveryService
+      );
+      manager.setReadFileMock(createReadFileMock({}));
+      manager.setReadDirectoryMock(async () => Promise.resolve([]));
+
+      const states: DashboardState[] = [];
+      manager.onStateChange((state) => states.push(state));
+
+      await manager.initialize();
+
+      // The final state update (loading: false) should include workflows
+      const finalState = states[states.length - 1];
+      assert.deepStrictEqual(finalState.workflows, mockWorkflows);
+      manager.dispose();
+    });
+
+    test('workflows default to empty array when no WorkflowDiscoveryService', async () => {
+      const paths = createMockPaths();
+      mockDetector.getBmadPaths.returns(paths);
+
+      const manager = createTestableManager(createReadFileMock({}));
+      await manager.initialize();
+
+      assert.deepStrictEqual(manager.state.workflows, []);
+      manager.dispose();
+    });
+
+    test('workflows are recomputed on file change events', async () => {
+      const paths = createMockPaths();
+      mockDetector.getBmadPaths.returns(paths);
+
+      let callCount = 0;
+      const mockWorkflowDiscovery = sandbox.createStubInstance(WorkflowDiscoveryService);
+      mockWorkflowDiscovery.discoverWorkflows.callsFake(() => {
+        callCount++;
+        return [
+          {
+            id: `workflow-${callCount}`,
+            name: `Workflow ${callCount}`,
+            command: `claude /cmd-${callCount}`,
+            description: `Description ${callCount}`,
+            isPrimary: true,
+          },
+        ];
+      });
+
+      const manager = new TestableStateManager(
+        mockDetector as unknown as BmadDetector,
+        mockFileWatcher as unknown as FileWatcher,
+        mockWorkflowDiscovery as unknown as WorkflowDiscoveryService
+      );
+      manager.setReadFileMock(
+        createReadFileMock({
+          'sprint-status.yaml': createSprintStatusYaml(),
+        })
+      );
+      manager.setReadDirectoryMock(async () => Promise.resolve([]));
+
+      await manager.initialize();
+
+      const initialCallCount = callCount;
+
+      // Fire a file change event
+      const changeEvent: FileChangeEvent = {
+        changes: new Map([
+          [`${paths.outputRoot!.fsPath}/implementation-artifacts/sprint-status.yaml`, 'change'],
+        ]),
+      };
+      mockOnDidChange.fire(changeEvent);
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      assert.ok(
+        callCount > initialCallCount,
+        'discoverWorkflows should be called again after file change'
+      );
       manager.dispose();
     });
   });

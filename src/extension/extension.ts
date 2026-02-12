@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { BmadDetector, FileWatcher, StateManager } from './services';
+import { BmadDetector, FileWatcher, StateManager, WorkflowDiscoveryService } from './services';
 import { DashboardViewProvider } from './providers/dashboard-view-provider';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -14,7 +14,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   if (detectionResult.detected) {
     // Create services
     const fileWatcher = new FileWatcher(detector);
-    const stateManager = new StateManager(detector, fileWatcher);
+    const workflowDiscovery = new WorkflowDiscoveryService(detector);
+    await workflowDiscovery.discoverInstalledWorkflows();
+    const stateManager = new StateManager(detector, fileWatcher, workflowDiscovery);
 
     // Start services
     fileWatcher.start();
@@ -33,7 +35,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         void stateManager.refresh();
       }),
       fileWatcher,
-      stateManager
+      stateManager,
+      workflowDiscovery
     );
   } else {
     // Non-BMAD workspace - register provider without state manager
