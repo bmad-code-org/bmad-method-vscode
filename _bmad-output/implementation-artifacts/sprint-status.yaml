@@ -63,7 +63,7 @@ development_status:
   3-1-dashboard-zustand-store-and-message-handler: done
   3-2-sprint-status-display-component: done
   3-3-epic-list-with-completion-status: done
-  3-4-active-story-card-with-task-progress: backlog
+  3-4-active-story-card-with-task-progress: done
   3-5-next-action-recommendation: backlog
   3-6-manual-refresh-command: backlog
   epic-3-retrospective: optional

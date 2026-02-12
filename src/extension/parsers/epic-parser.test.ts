@@ -2,7 +2,7 @@
 // Tests parseEpic and parseEpicFile functions
 
 import { describe, it, expect } from 'vitest';
-import { parseEpic, parseEpicFile } from './epic-parser';
+import { parseEpic, parseEpics, parseEpicFile } from './epic-parser';
 import { isParseSuccess, isParseFailure } from '../../shared/types';
 import path from 'node:path';
 
@@ -550,6 +550,157 @@ Some content.
       expect(result.partial?.metadata?.stepsCompleted).toEqual(['step-01', 'step-02', 'step-03']);
       expect(result.partial?.metadata?.inputDocuments).toEqual(['prd.md', 'arch.md']);
       expect(result.partial?.filePath).toBe('test.md');
+    }
+  });
+});
+
+// Multi-epic consolidated file content for parseEpics tests
+const MULTI_EPIC_CONTENT = `---
+stepsCompleted: [step-01, step-02]
+---
+
+## Epic 1: Project Foundation & Detection
+
+Developer opens VS Code and the extension activates in BMAD projects.
+
+### Story 1.1: Project Initialization
+
+As a developer,
+I want the project initialized from a starter template,
+So that I have a working foundation.
+
+### Story 1.2: Test Framework Configuration
+
+As a developer,
+I want test frameworks configured,
+So that I can write reliable tests.
+
+## Epic 2: BMAD File Parsing & State Management
+
+Developer has reliable parsing of all BMAD artifacts with graceful handling of malformed files.
+
+### Story 2.1: Shared Types and Message Protocol
+
+As a developer,
+I want shared TypeScript types for BMAD data structures,
+So that type safety is enforced across extension host and webview boundaries.
+
+## Epic 3: Dashboard State Visibility
+
+Developer sees project state at a glance in a sidebar dashboard.
+
+### Story 3.1: Dashboard Store
+
+As a developer,
+I want state management,
+So that components update reactively.
+
+### Story 3.2: Sprint Status Display
+
+As a developer,
+I want to see sprint status,
+So that I know where the project stands.
+`;
+
+describe('parseEpics', () => {
+  it('parses consolidated file with multiple epics', () => {
+    const result = parseEpics(MULTI_EPIC_CONTENT, 'epics.md');
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toHaveLength(3);
+
+      expect(result.data[0].number).toBe(1);
+      expect(result.data[0].title).toBe('Project Foundation & Detection');
+      expect(result.data[0].stories).toHaveLength(2);
+      expect(result.data[0].stories[0].key).toBe('1-1-project-initialization');
+      expect(result.data[0].stories[1].key).toBe('1-2-test-framework-configuration');
+
+      expect(result.data[1].number).toBe(2);
+      expect(result.data[1].title).toBe('BMAD File Parsing & State Management');
+      expect(result.data[1].stories).toHaveLength(1);
+      expect(result.data[1].stories[0].key).toBe('2-1-shared-types-and-message-protocol');
+
+      expect(result.data[2].number).toBe(3);
+      expect(result.data[2].title).toBe('Dashboard State Visibility');
+      expect(result.data[2].stories).toHaveLength(2);
+    }
+  });
+
+  it('handles single-epic content (backwards compatible)', () => {
+    const result = parseEpics(EPIC_WITHOUT_FRONTMATTER, 'epic-1.md');
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].number).toBe(1);
+      expect(result.data[0].title).toBe('Project Foundation');
+    }
+  });
+
+  it('assigns correct stories to each epic (no cross-contamination)', () => {
+    const result = parseEpics(MULTI_EPIC_CONTENT, 'epics.md');
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      // Epic 1 stories should only have epic 1 story numbers
+      for (const story of result.data[0].stories) {
+        expect(story.key).toMatch(/^1-/);
+      }
+      // Epic 2 stories should only have epic 2 story numbers
+      for (const story of result.data[1].stories) {
+        expect(story.key).toMatch(/^2-/);
+      }
+      // Epic 3 stories should only have epic 3 story numbers
+      for (const story of result.data[2].stories) {
+        expect(story.key).toMatch(/^3-/);
+      }
+    }
+  });
+
+  it('returns failure for empty content', () => {
+    const result = parseEpics('', 'epics.md');
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain('empty');
+    }
+  });
+
+  it('returns failure for content with no epic headers', () => {
+    const result = parseEpics('# Just a title\n\nSome text.', 'epics.md');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('preserves filePath on all parsed epics', () => {
+    const result = parseEpics(MULTI_EPIC_CONTENT, 'path/to/epics.md');
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      for (const epic of result.data) {
+        expect(epic.filePath).toBe('path/to/epics.md');
+      }
+    }
+  });
+
+  it('extracts descriptions correctly for each epic', () => {
+    const result = parseEpics(MULTI_EPIC_CONTENT, 'epics.md');
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data[0].description).toContain('Developer opens VS Code');
+      expect(result.data[1].description).toContain('Developer has reliable parsing');
+      expect(result.data[2].description).toContain('Developer sees project state');
+    }
+  });
+
+  it('never throws on malformed input', () => {
+    const inputs = [null, undefined, 123, {}, []];
+    for (const input of inputs) {
+      expect(() => parseEpics(input as string)).not.toThrow();
+      const result = parseEpics(input as string);
+      expect(result).toHaveProperty('success');
     }
   });
 });

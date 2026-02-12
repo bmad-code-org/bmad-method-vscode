@@ -2,7 +2,7 @@
 // Extension-only module - not shared with webview
 
 export { parseSprintStatus, parseSprintStatusFile } from './sprint-status';
-export { parseEpic, parseEpicFile } from './epic-parser';
+export { parseEpic, parseEpics, parseEpicFile } from './epic-parser';
 export { parseStory, parseStoryFile } from './story-parser';
 
 // Re-export types for consumer convenience

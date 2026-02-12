@@ -86,12 +86,31 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
         }
         break;
       case ToExtensionType.OPEN_DOCUMENT:
-        // Placeholder for Epic 5
+        void this.openDocument(msg.payload.path);
         break;
       case ToExtensionType.EXECUTE_WORKFLOW:
       case ToExtensionType.COPY_COMMAND:
         // Placeholder for Epic 4
         break;
+    }
+  }
+
+  /**
+   * Open a document in the editor by relative path.
+   */
+  private async openDocument(relativePath: string): Promise<void> {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+      return;
+    }
+
+    const documentUri = vscode.Uri.joinPath(workspaceFolder.uri, relativePath);
+
+    try {
+      const document = await vscode.workspace.openTextDocument(documentUri);
+      await vscode.window.showTextDocument(document, { preview: true });
+    } catch {
+      void vscode.window.showErrorMessage(`Could not open: ${relativePath}`);
     }
   }
 

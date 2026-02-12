@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { BmadDetector } from './bmad-detector';
 import { FileWatcher, FileChangeEvent, FileWatcherError } from './file-watcher';
-import { parseSprintStatus, parseEpic, parseStory } from '../parsers';
+import { parseSprintStatus, parseEpics, parseStory } from '../parsers';
 import type { DashboardState, ParseError, SprintStatus, Epic, Story } from '../../shared/types';
 import { createInitialDashboardState, isStoryKey, isEpicKey } from '../../shared/types';
 
@@ -199,12 +199,12 @@ export class StateManager implements vscode.Disposable {
         return;
       }
 
-      const result = parseEpic(content, epicsFilePath.fsPath);
+      const result = parseEpics(content, epicsFilePath.fsPath);
       if (result.success) {
         this.clearErrorForFile(epicsFilePath.fsPath);
         // Merge status from sprint status if available
-        const epicWithStatus = this.mergeEpicStatus(result.data);
-        this._state = { ...this._state, epics: [epicWithStatus] };
+        const epicsWithStatus = result.data.map((epic) => this.mergeEpicStatus(epic));
+        this._state = { ...this._state, epics: epicsWithStatus };
       } else {
         this.collectError({
           message: result.error,
@@ -289,7 +289,7 @@ export class StateManager implements vscode.Disposable {
 
   /**
    * Determine the current story based on sprint status.
-   * Finds the first story with status 'in-progress' or 'ready-for-dev'.
+   * Finds the first story with status 'in-progress', 'ready-for-dev', or 'review'.
    */
   private determineCurrentStory(): void {
     if (!this._state.sprint || !this._state.sprint.development_status) {
@@ -297,8 +297,8 @@ export class StateManager implements vscode.Disposable {
       return;
     }
 
-    // Find first story with status 'in-progress' or 'ready-for-dev'
-    const activeStatuses = ['in-progress', 'ready-for-dev'];
+    // Find first story with an active status (in-progress, ready-for-dev, or review)
+    const activeStatuses = ['in-progress', 'ready-for-dev', 'review'];
     const entries = Object.entries(this._state.sprint.development_status);
 
     for (const [key, status] of entries) {

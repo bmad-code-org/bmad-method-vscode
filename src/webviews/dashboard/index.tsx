@@ -5,6 +5,8 @@ import {
   PlanningArtifactLinks,
   EpicList,
   EpicListSkeleton,
+  ActiveStoryCard,
+  ActiveStoryCardSkeleton,
 } from './components';
 import { useMessageHandler } from './hooks';
 import { useLoading } from './store';
@@ -27,6 +29,7 @@ export function Dashboard(): React.ReactElement {
         <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
         <SprintStatusSkeleton />
         <EpicListSkeleton />
+        <ActiveStoryCardSkeleton />
       </div>
     );
   }
@@ -36,6 +39,7 @@ export function Dashboard(): React.ReactElement {
       <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
       <SprintStatus />
       <EpicList />
+      <ActiveStoryCard />
       <PlanningArtifactLinks />
     </div>
   );

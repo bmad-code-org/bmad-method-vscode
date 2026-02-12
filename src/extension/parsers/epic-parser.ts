@@ -196,6 +196,71 @@ export function parseEpic(content: string, filePath?: string): ParseResult<Epic>
 }
 
 /**
+ * Regex to find all epic header positions in a consolidated file (global match)
+ */
+const EPIC_HEADER_GLOBAL_REGEX = /^##\s+Epic\s+\d+:\s+.+$/gm;
+
+/**
+ * Parse a consolidated markdown file containing multiple epics.
+ * Splits content at each `## Epic N:` boundary and parses each section independently.
+ *
+ * @param content - Raw markdown content potentially containing multiple epics
+ * @param filePath - File path for error messages and filePath field (optional)
+ * @returns ParseResult<Epic[]> - array of all successfully parsed epics, never throws
+ */
+export function parseEpics(content: string, filePath?: string): ParseResult<Epic[]> {
+  try {
+    if (!content || content.trim().length === 0) {
+      return parseFailure('Invalid epics file: content is empty');
+    }
+
+    // Strip frontmatter before splitting — frontmatter only applies to the file, not individual epics
+    const { content: markdownContent } = matter(content);
+
+    // Find all epic header positions
+    EPIC_HEADER_GLOBAL_REGEX.lastIndex = 0;
+    const headerPositions: number[] = [];
+    let headerMatch: RegExpExecArray | null;
+    while ((headerMatch = EPIC_HEADER_GLOBAL_REGEX.exec(markdownContent)) !== null) {
+      headerPositions.push(headerMatch.index);
+    }
+
+    // If no epic headers found, try parsing as single epic (backwards compatible)
+    if (headerPositions.length === 0) {
+      const singleResult = parseEpic(content, filePath);
+      if (singleResult.success) {
+        return parseSuccess([singleResult.data]);
+      }
+      return parseFailure(singleResult.error);
+    }
+
+    // Split content into sections at each epic header
+    const epics: Epic[] = [];
+    for (let i = 0; i < headerPositions.length; i++) {
+      const start = headerPositions[i];
+      const end = i + 1 < headerPositions.length ? headerPositions[i + 1] : markdownContent.length;
+      const section = markdownContent.slice(start, end);
+
+      // Parse each section as a standalone epic (no frontmatter wrapper needed)
+      const result = parseEpic(section, filePath);
+      if (result.success) {
+        epics.push(result.data);
+      }
+      // Silently skip sections that fail to parse (partial success is fine)
+    }
+
+    if (epics.length === 0) {
+      return parseFailure('No valid epics found in file');
+    }
+
+    return parseSuccess(epics);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return parseFailure(`Failed to parse epics file: ${message}`);
+  }
+}
+
+/**
  * Parse epic file from disk
  *
  * @param filePath - Absolute path to epic markdown file

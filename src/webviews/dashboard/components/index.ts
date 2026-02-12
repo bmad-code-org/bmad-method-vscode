@@ -2,3 +2,4 @@
 export { SprintStatus, SprintStatusSkeleton } from './sprint-status';
 export { PlanningArtifactLinks } from './planning-artifact-links';
 export { EpicList, EpicListSkeleton } from './epic-list';
+export { ActiveStoryCard, ActiveStoryCardSkeleton } from './active-story-card';
