@@ -18,7 +18,8 @@
       "Bash(pnpm typecheck:webview:*)",
       "Bash(pnpm list:*)",
       "Bash(node:*)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(npx prettier:*)"
     ]
   }
 }

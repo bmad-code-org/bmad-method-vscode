@@ -7,6 +7,8 @@ import {
   EpicListSkeleton,
   ActiveStoryCard,
   ActiveStoryCardSkeleton,
+  NextActionRecommendation,
+  NextActionRecommendationSkeleton,
 } from './components';
 import { useMessageHandler } from './hooks';
 import { useLoading } from './store';
@@ -30,6 +32,7 @@ export function Dashboard(): React.ReactElement {
         <SprintStatusSkeleton />
         <EpicListSkeleton />
         <ActiveStoryCardSkeleton />
+        <NextActionRecommendationSkeleton />
       </div>
     );
   }
@@ -40,6 +43,7 @@ export function Dashboard(): React.ReactElement {
       <SprintStatus />
       <EpicList />
       <ActiveStoryCard />
+      <NextActionRecommendation />
       <PlanningArtifactLinks />
     </div>
   );

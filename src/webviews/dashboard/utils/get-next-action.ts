@@ -1,0 +1,147 @@
+import type { SprintStatus } from '@shared/types/sprint-status';
+import { isEpicKey, isStoryKey, isStoryStatus } from '@shared/types/sprint-status';
+import type { Story } from '@shared/types/story';
+
+export interface NextAction {
+  type:
+    | 'sprint-planning'
+    | 'create-story'
+    | 'dev-story'
+    | 'code-review'
+    | 'retrospective'
+    | 'sprint-complete';
+  /** Short action label, e.g., "Continue Story 3.4" */
+  label: string;
+  /** Brief context, e.g., "Story is in progress - keep working on implementation" */
+  description: string;
+  /** Optional story reference when relevant */
+  storyKey?: string;
+}
+
+function formatStoryLabel(story: Story): string {
+  return `${story.epicNumber}.${story.storyNumber}`;
+}
+
+export function getNextAction(sprint: SprintStatus | null, currentStory: Story | null): NextAction {
+  // 1. No sprint data → recommend sprint planning
+  if (!sprint) {
+    return {
+      type: 'sprint-planning',
+      label: 'Run Sprint Planning',
+      description: 'No sprint status found — set up your sprint to get started',
+    };
+  }
+
+  // 2. Active story in-progress → continue working
+  if (currentStory?.status === 'in-progress') {
+    return {
+      type: 'dev-story',
+      label: `Continue Story ${formatStoryLabel(currentStory)}`,
+      description: 'Story is in progress — keep working on implementation',
+      storyKey: currentStory.key,
+    };
+  }
+
+  // 3. Story in review → run code review
+  if (currentStory?.status === 'review') {
+    return {
+      type: 'code-review',
+      label: 'Run Code Review',
+      description: `Story ${formatStoryLabel(currentStory)} is ready for code review`,
+      storyKey: currentStory.key,
+    };
+  }
+
+  // 4. Story ready-for-dev → start dev
+  if (currentStory?.status === 'ready-for-dev') {
+    return {
+      type: 'dev-story',
+      label: `Start Dev Story ${formatStoryLabel(currentStory)}`,
+      description: 'Story is ready for development — start implementing',
+      storyKey: currentStory.key,
+    };
+  }
+
+  // 5. No active story - analyze development_status per epic
+  const entries = Object.entries(sprint.development_status);
+  let hasBacklogStory = false;
+  let allStoriesDone = true;
+  let hasStories = false;
+
+  // Track per-epic story completion
+  const epicStories = new Map<number, { total: number; done: number }>();
+
+  // Collect epic keys to know which epics exist
+  for (const [key] of entries) {
+    if (isEpicKey(key)) {
+      const epicNum = parseInt(key.replace('epic-', ''), 10);
+      epicStories.set(epicNum, { total: 0, done: 0 });
+    }
+  }
+
+  for (const [key, status] of entries) {
+    if (!isStoryKey(key)) continue;
+    if (!isStoryStatus(status)) continue;
+    hasStories = true;
+
+    const epicNum = parseInt(key.split('-')[0], 10);
+    const counts = epicStories.get(epicNum);
+    if (counts) {
+      counts.total++;
+      if (status === 'done') {
+        counts.done++;
+      }
+    }
+
+    if (status === 'backlog') {
+      hasBacklogStory = true;
+      allStoriesDone = false;
+    } else if (status !== 'done') {
+      allStoriesDone = false;
+    }
+  }
+
+  if (!hasStories) {
+    return {
+      type: 'create-story',
+      label: 'Create Next Story',
+      description: 'No stories found in sprint — create your first story from the epics',
+    };
+  }
+
+  // All stories across all epics are done → sprint complete
+  if (allStoriesDone) {
+    return {
+      type: 'sprint-complete',
+      label: 'Sprint Complete',
+      description: 'All stories are done — run a retrospective or plan the next sprint',
+    };
+  }
+
+  // Check if any single epic has all its stories done (per-epic retrospective)
+  // This fires before backlog check so completed epics get acknowledged
+  for (const [epicNum, counts] of epicStories) {
+    if (counts.total > 0 && counts.done === counts.total) {
+      return {
+        type: 'retrospective',
+        label: `Run Retrospective for Epic ${epicNum}`,
+        description: `All stories in Epic ${epicNum} are complete — review what went well and what to improve`,
+      };
+    }
+  }
+
+  if (hasBacklogStory) {
+    return {
+      type: 'create-story',
+      label: 'Create Next Story',
+      description: 'No active story — create the next story from your backlog',
+    };
+  }
+
+  // Fallback: some stories exist in non-backlog, non-done states but no currentStory
+  return {
+    type: 'create-story',
+    label: 'Create Next Story',
+    description: 'Check sprint status and create the next story to work on',
+  };
+}
