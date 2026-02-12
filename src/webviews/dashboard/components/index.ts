@@ -7,3 +7,4 @@ export {
   NextActionRecommendation,
   NextActionRecommendationSkeleton,
 } from './next-action-recommendation';
+export { RefreshButton } from './refresh-button';

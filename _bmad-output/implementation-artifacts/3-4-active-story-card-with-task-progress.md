@@ -87,6 +87,7 @@ So that I know exactly where I left off and what remains.
    - WRONG: `ActiveStoryCard.tsx`, `storyCard.tsx`
 
 2. **Component Naming**: PascalCase for components, camelCase for functions/hooks
+
    ```typescript
    export function ActiveStoryCard(): React.ReactElement { ... }
    export function ActiveStoryCardSkeleton(): React.ReactElement { ... }
@@ -112,6 +113,7 @@ So that I know exactly where I left off and what remains.
    - `bg-[var(--vscode-list-activeSelectionBackground)]` for card background accent
 
 6. **Zustand Store Usage**: Use existing selector hooks from `store.ts`
+
    ```typescript
    import { useCurrentStory } from '../store';
    // DO NOT create new store - use existing selectors
@@ -119,6 +121,7 @@ So that I know exactly where I left off and what remains.
    ```
 
 7. **Message Protocol**: Use existing factories from `@shared/messages`
+
    ```typescript
    import { createOpenDocumentMessage } from '@shared/messages';
    import { useVSCodeApi } from '../../shared/hooks';
@@ -142,15 +145,15 @@ The `currentStory` is determined by the StateManager on the extension host side.
 
 ```typescript
 interface Story {
-  key: string;                    // "3-4-active-story-card-with-task-progress"
-  epicNumber: number;             // 3
-  storyNumber: number;            // 4
-  title: string;                  // "Active Story Card with Task Progress"
-  userStory: string;              // "As a... I want... So that..."
+  key: string; // "3-4-active-story-card-with-task-progress"
+  epicNumber: number; // 3
+  storyNumber: number; // 4
+  title: string; // "Active Story Card with Task Progress"
+  userStory: string; // "As a... I want... So that..."
   acceptanceCriteria: AcceptanceCriterion[];
   tasks: StoryTask[];
-  filePath: string;               // Relative path to story .md file
-  status: StoryStatusValue;       // 'backlog' | 'ready-for-dev' | 'in-progress' | 'review' | 'done'
+  filePath: string; // Relative path to story .md file
+  status: StoryStatusValue; // 'backlog' | 'ready-for-dev' | 'in-progress' | 'review' | 'done'
   totalTasks: number;
   completedTasks: number;
   totalSubtasks: number;
@@ -170,11 +173,16 @@ import { calculateStoryProgress } from '@shared/types/story';
 ```typescript
 function getStatusLabel(status: StoryStatusValue): string {
   switch (status) {
-    case 'ready-for-dev': return 'Ready for Dev';
-    case 'in-progress': return 'In Progress';
-    case 'review': return 'Review';
-    case 'done': return 'Done';
-    default: return 'Backlog';
+    case 'ready-for-dev':
+      return 'Ready for Dev';
+    case 'in-progress':
+      return 'In Progress';
+    case 'review':
+      return 'Review';
+    case 'done':
+      return 'Done';
+    default:
+      return 'Backlog';
   }
 }
 ```
@@ -268,14 +276,17 @@ beforeEach(() => {
 ### Project Structure Notes
 
 **Files to Create:**
+
 - `src/webviews/dashboard/components/active-story-card.tsx` - ActiveStoryCard and ActiveStoryCardSkeleton components
 - `src/webviews/dashboard/components/active-story-card.test.tsx` - Unit tests for ActiveStoryCard and ActiveStoryCardSkeleton
 
 **Files to Modify:**
+
 - `src/webviews/dashboard/components/index.ts` - Add ActiveStoryCard and ActiveStoryCardSkeleton exports
 - `src/webviews/dashboard/index.tsx` - Wire ActiveStoryCard + ActiveStoryCardSkeleton into Dashboard layout
 
 **Files to NOT Modify (read-only references):**
+
 - `src/webviews/dashboard/store.ts` - Use existing `useCurrentStory()` selector
 - `src/shared/types/story.ts` - Use existing `Story` interface and `calculateStoryProgress()` helper
 - `src/shared/types/sprint-status.ts` - Use existing `StoryStatusValue` type
@@ -284,6 +295,7 @@ beforeEach(() => {
 - `src/webviews/shared/utils/cn.ts` - Use existing `cn()` utility for conditional classes
 
 **Dependencies (all already installed - NO new packages):**
+
 - `react` 19.2.0
 - `zustand` ^5.0.0
 - `tailwindcss` 4.1.0
@@ -314,6 +326,7 @@ beforeEach(() => {
 ### Previous Story Intelligence
 
 **From Story 3.3 (Epic List with Completion Status):**
+
 - EpicList derives data from sprint `development_status` using `isEpicKey()` and `isStoryKey()` type guards
 - Two-pass algorithm for data derivation (first collect epics, then count stories)
 - Empty state handled for both null sprint and empty development_status entries
@@ -324,6 +337,7 @@ beforeEach(() => {
 - All validation gates passed: typecheck, lint, test, build
 
 **From Story 3.2 (Sprint Status Display Component):**
+
 - Dashboard owns loading orchestration - components should NOT internally check loading
 - Remove dead exports from barrel file (keep `index.ts` clean)
 - Components handle empty/null props gracefully
@@ -331,12 +345,14 @@ beforeEach(() => {
 - Skeleton: separate named export, not a separate file
 
 **From Story 3.1 (Dashboard Zustand Store and Message Handler):**
+
 - `useVSCodeApi` needs `useMemo` wrapper internally (already handled)
 - Avoid dead code in components
 - Validate message types at runtime
 - Store state can be set directly in tests via `useDashboardStore.setState()`
 
 **Git Intelligence:**
+
 - Recent commits follow `feat: X-Y-story-title` format
 - Package manager: `pnpm` (NOT npm)
 - All previous stories pass: typecheck, lint, test, build

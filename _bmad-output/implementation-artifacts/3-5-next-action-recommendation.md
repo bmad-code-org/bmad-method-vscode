@@ -95,6 +95,7 @@ So that I immediately know what to do next.
    - WRONG: `NextActionRecommendation.tsx`, `getNextAction.ts`
 
 2. **Component Naming**: PascalCase for components, camelCase for functions/hooks
+
    ```typescript
    export function NextActionRecommendation(): React.ReactElement { ... }
    export function NextActionRecommendationSkeleton(): React.ReactElement { ... }
@@ -119,6 +120,7 @@ So that I immediately know what to do next.
    - `border-[var(--vscode-focusBorder)]` for highlighted borders
 
 6. **Zustand Store Usage**: Use existing selector hooks from `store.ts`
+
    ```typescript
    import { useSprint, useCurrentStory } from '../store';
    // DO NOT create new store - use existing selectors
@@ -137,10 +139,16 @@ So that I immediately know what to do next.
 
 ```typescript
 interface NextAction {
-  type: 'sprint-planning' | 'create-story' | 'dev-story' | 'code-review' | 'retrospective' | 'sprint-complete';
-  label: string;        // Short action label, e.g., "Continue Story 3.4"
-  description: string;  // Brief context, e.g., "Story is in progress - keep working on implementation"
-  storyKey?: string;    // Optional story reference when relevant
+  type:
+    | 'sprint-planning'
+    | 'create-story'
+    | 'dev-story'
+    | 'code-review'
+    | 'retrospective'
+    | 'sprint-complete';
+  label: string; // Short action label, e.g., "Continue Story 3.4"
+  description: string; // Brief context, e.g., "Story is in progress - keep working on implementation"
+  storyKey?: string; // Optional story reference when relevant
 }
 ```
 
@@ -170,11 +178,13 @@ function getNextAction(sprint: SprintStatus | null, currentStory: Story | null):
 **Key Data Access:**
 
 The `SprintStatus.development_status` is `Record<string, DevelopmentStatusValue>` where:
+
 - Epic keys match `isEpicKey()`: `epic-1`, `epic-2`, etc.
 - Story keys match `isStoryKey()`: `1-1-project-init`, `3-5-next-action`, etc.
 - Story statuses: `'backlog' | 'ready-for-dev' | 'in-progress' | 'review' | 'done'`
 
 Use existing type guards from `@shared/types/sprint-status`:
+
 ```typescript
 import { isStoryKey, isEpicKey } from '@shared/types/sprint-status';
 ```
@@ -217,16 +227,19 @@ import { cn } from '../../shared/utils/cn';
 ### Project Structure Notes
 
 **Files to Create:**
+
 - `src/webviews/dashboard/utils/get-next-action.ts` - NextAction interface and getNextAction() logic
 - `src/webviews/dashboard/utils/get-next-action.test.ts` - Unit tests for recommendation logic
 - `src/webviews/dashboard/components/next-action-recommendation.tsx` - Component and skeleton
 - `src/webviews/dashboard/components/next-action-recommendation.test.tsx` - Component tests
 
 **Files to Modify:**
+
 - `src/webviews/dashboard/components/index.ts` - Add NextActionRecommendation and NextActionRecommendationSkeleton exports
 - `src/webviews/dashboard/index.tsx` - Wire NextActionRecommendation + skeleton into Dashboard layout
 
 **Files to NOT Modify (read-only references):**
+
 - `src/webviews/dashboard/store.ts` - Use existing `useSprint()` and `useCurrentStory()` selectors
 - `src/shared/types/sprint-status.ts` - Use existing `SprintStatus`, `isStoryKey()`, `isEpicKey()` type guards
 - `src/shared/types/story.ts` - Use existing `Story` interface
@@ -235,6 +248,7 @@ import { cn } from '../../shared/utils/cn';
 - `src/webviews/shared/utils/cn.ts` - Use existing `cn()` utility
 
 **Dependencies (all already installed - NO new packages):**
+
 - `react` 19.2.0
 - `zustand` ^5.0.0
 - `tailwindcss` 4.1.0
@@ -264,6 +278,7 @@ import { cn } from '../../shared/utils/cn';
 ### Previous Story Intelligence
 
 **From Story 3.4 (Active Story Card with Task Progress):**
+
 - ActiveStoryCard displays story title with epic context, task progress bar, subtask count, status badge
 - Skeleton uses animate-pulse pattern matching SprintStatusSkeleton and EpicListSkeleton
 - 17 tests added (260 total tests, up from 242)
@@ -274,6 +289,7 @@ import { cn } from '../../shared/utils/cn';
 - Prettier formatting issues on multi-line arrow functions fixed by inlining expressions
 
 **From Story 3.3 (Epic List with Completion Status):**
+
 - EpicList derives data from sprint `development_status` using `isEpicKey()` and `isStoryKey()` type guards
 - Two-pass algorithm for data derivation (first collect epics, then count stories)
 - THIS PATTERN IS DIRECTLY RELEVANT - NextActionRecommendation needs to iterate development_status similarly
@@ -281,16 +297,19 @@ import { cn } from '../../shared/utils/cn';
 - Skeleton uses 3 placeholder rows with animate-pulse
 
 **From Story 3.2 (Sprint Status Display Component):**
+
 - Dashboard owns loading orchestration - components should NOT internally check loading
 - Remove dead exports from barrel file (keep `index.ts` clean)
 - Components handle empty/null props gracefully
 - Test ALL status values to cover all conditional render paths
 
 **From Story 3.1 (Dashboard Zustand Store and Message Handler):**
+
 - Store state can be set directly in tests via `useDashboardStore.setState()`
 - Avoid dead code in components
 
 **Git Intelligence:**
+
 - Recent commits follow `feat: X-Y-story-title` format
 - Package manager: `pnpm` (NOT npm)
 - All previous stories pass: typecheck, lint, test, build
@@ -299,14 +318,14 @@ import { cn } from '../../shared/utils/cn';
 
 **Workflow State Mapping (from Epics Story 4.1 - relevant context for recommendation logic):**
 
-| Project State | Recommended Workflow |
-|---------------|---------------------|
-| No sprint-status.yaml exists | `/sprint-planning` |
-| Sprint active, no stories started | `/create-story` |
-| Story status: ready-for-dev | `/dev-story` |
-| Story status: in-progress | `/dev-story` (continue) |
-| Story status: review | `/code-review` |
-| All stories in epic complete | `/retrospective`, `/create-story` (next epic) |
+| Project State                     | Recommended Workflow                          |
+| --------------------------------- | --------------------------------------------- |
+| No sprint-status.yaml exists      | `/sprint-planning`                            |
+| Sprint active, no stories started | `/create-story`                               |
+| Story status: ready-for-dev       | `/dev-story`                                  |
+| Story status: in-progress         | `/dev-story` (continue)                       |
+| Story status: review              | `/code-review`                                |
+| All stories in epic complete      | `/retrospective`, `/create-story` (next epic) |
 
 This mapping from Epic 4 Story 4.1 directly informs the recommendation logic for this story.
 
@@ -338,12 +357,14 @@ Claude Opus 4.6
 ### File List
 
 **New Files:**
+
 - `src/webviews/dashboard/utils/get-next-action.ts` - NextAction interface and getNextAction() recommendation logic
 - `src/webviews/dashboard/utils/get-next-action.test.ts` - 14 unit tests for recommendation logic
 - `src/webviews/dashboard/components/next-action-recommendation.tsx` - NextActionRecommendation and NextActionRecommendationSkeleton components
 - `src/webviews/dashboard/components/next-action-recommendation.test.tsx` - 11 unit tests for component rendering
 
 **Modified Files:**
+
 - `src/webviews/dashboard/components/index.ts` - Added NextActionRecommendation and NextActionRecommendationSkeleton exports
 - `src/webviews/dashboard/index.tsx` - Wired NextActionRecommendation + skeleton into Dashboard layout
 - `_bmad-output/implementation-artifacts/sprint-status.yaml` - Updated story 3-5 status to review

@@ -65,7 +65,7 @@ development_status:
   3-3-epic-list-with-completion-status: done
   3-4-active-story-card-with-task-progress: done
   3-5-next-action-recommendation: done
-  3-6-manual-refresh-command: backlog
+  3-6-manual-refresh-command: done
   epic-3-retrospective: optional
 
   # Epic 4: Workflow Actions

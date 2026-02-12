@@ -9,6 +9,7 @@ import {
   ActiveStoryCardSkeleton,
   NextActionRecommendation,
   NextActionRecommendationSkeleton,
+  RefreshButton,
 } from './components';
 import { useMessageHandler } from './hooks';
 import { useLoading } from './store';
@@ -28,7 +29,10 @@ export function Dashboard(): React.ReactElement {
   if (loading) {
     return (
       <div data-testid="dashboard-loading" className="flex flex-col gap-4 p-4">
-        <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
+          <RefreshButton />
+        </div>
         <SprintStatusSkeleton />
         <EpicListSkeleton />
         <ActiveStoryCardSkeleton />
@@ -39,7 +43,10 @@ export function Dashboard(): React.ReactElement {
 
   return (
     <div data-testid="dashboard-content" className="flex flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
+        <RefreshButton />
+      </div>
       <SprintStatus />
       <EpicList />
       <ActiveStoryCard />
