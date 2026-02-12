@@ -11,37 +11,37 @@ const WORKFLOW_DEFINITIONS: Record<string, Omit<AvailableWorkflow, 'isPrimary'>>
   'sprint-planning': {
     id: 'sprint-planning',
     name: 'Sprint Planning',
-    command: 'claude /bmad-bmm-sprint-planning',
+    command: '/bmad-bmm-sprint-planning',
     description: 'Set up sprint tracking and plan story execution order',
   },
   'create-story': {
     id: 'create-story',
     name: 'Create Story',
-    command: 'claude /bmad-bmm-create-story',
+    command: '/bmad-bmm-create-story',
     description: 'Create the next user story with comprehensive dev context',
   },
   'dev-story': {
     id: 'dev-story',
     name: 'Dev Story',
-    command: 'claude /bmad-bmm-dev-story',
+    command: '/bmad-bmm-dev-story',
     description: 'Start or continue story implementation',
   },
   'code-review': {
     id: 'code-review',
     name: 'Code Review',
-    command: 'claude /bmad-bmm-code-review',
+    command: '/bmad-bmm-code-review',
     description: 'Run code review on completed story',
   },
   retrospective: {
     id: 'retrospective',
     name: 'Retrospective',
-    command: 'claude /bmad-bmm-retrospective',
+    command: '/bmad-bmm-retrospective',
     description: 'Review what went well and what to improve',
   },
   'correct-course': {
     id: 'correct-course',
     name: 'Correct Course',
-    command: 'claude /bmad-bmm-correct-course',
+    command: '/bmad-bmm-correct-course',
     description: 'Adjust sprint plan based on learnings',
   },
 };

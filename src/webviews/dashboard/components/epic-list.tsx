@@ -136,9 +136,12 @@ export function EpicList(): React.ReactElement {
               <button
                 type="button"
                 className="text-left text-xs text-[var(--vscode-textLink-foreground)] hover:underline"
-                onClick={() =>
+                onClick={(e) =>
                   vscodeApi.postMessage(
-                    createOpenDocumentMessage(`${outputRoot}/planning-artifacts/epics.md`)
+                    createOpenDocumentMessage(
+                      `${outputRoot}/planning-artifacts/epics.md`,
+                      e.shiftKey
+                    )
                   )
                 }
               >

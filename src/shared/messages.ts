@@ -84,6 +84,8 @@ export interface OpenDocumentMessage {
   payload: {
     /** File path to open (relative to project root) */
     path: string;
+    /** When true, always open in text editor even for .md files (shift+click) */
+    forceTextEditor?: boolean;
   };
 }
 
@@ -214,8 +216,11 @@ export function createErrorMessage(message: string, recoverable: boolean): Error
 /**
  * Create an OPEN_DOCUMENT message
  */
-export function createOpenDocumentMessage(path: string): OpenDocumentMessage {
-  return { type: ToExtensionType.OPEN_DOCUMENT, payload: { path } };
+export function createOpenDocumentMessage(
+  path: string,
+  forceTextEditor?: boolean
+): OpenDocumentMessage {
+  return { type: ToExtensionType.OPEN_DOCUMENT, payload: { path, forceTextEditor } };
 }
 
 /**

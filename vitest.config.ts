@@ -20,7 +20,12 @@ export default defineConfig({
       'src/extension/parsers/**/*.test.ts',
     ],
     // Exclude extension tests that require VSCode APIs (use @vscode/test-electron)
-    exclude: ['src/extension/*.test.ts', 'src/extension/services/**/*.test.ts', 'node_modules'],
+    exclude: [
+      'src/extension/*.test.ts',
+      'src/extension/services/**/*.test.ts',
+      'src/extension/providers/**/*.test.ts',
+      'node_modules',
+    ],
     setupFiles: ['./vitest.setup.ts'],
     coverage: {
       provider: 'v8',

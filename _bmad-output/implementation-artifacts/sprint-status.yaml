@@ -71,7 +71,7 @@ development_status:
   # Epic 4: Workflow Actions
   epic-4: in-progress
   4-1-workflow-discovery-service: done
-  4-2-context-sensitive-cta-buttons: backlog
+  4-2-context-sensitive-cta-buttons: done
   4-3-terminal-workflow-execution: backlog
   4-4-copy-command-to-clipboard: backlog
   epic-4-retrospective: optional

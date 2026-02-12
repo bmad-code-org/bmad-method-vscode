@@ -190,7 +190,7 @@ describe('useDashboardStore', () => {
         {
           id: 'dev-story',
           name: 'Dev Story',
-          command: 'claude /bmad-bmm-dev-story',
+          command: '/bmad-bmm-dev-story',
           description: 'Start or continue story implementation',
           isPrimary: true,
         },
@@ -213,14 +213,14 @@ describe('useDashboardStore', () => {
         {
           id: 'create-story',
           name: 'Create Story',
-          command: 'claude /bmad-bmm-create-story',
+          command: '/bmad-bmm-create-story',
           description: 'Create the next user story',
           isPrimary: true,
         },
         {
           id: 'correct-course',
           name: 'Correct Course',
-          command: 'claude /bmad-bmm-correct-course',
+          command: '/bmad-bmm-correct-course',
           description: 'Adjust sprint plan',
           isPrimary: false,
         },

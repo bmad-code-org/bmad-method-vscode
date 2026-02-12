@@ -282,6 +282,16 @@ describe('Message factory functions', () => {
       expect(message.type).toBe('OPEN_DOCUMENT');
       expect(message.payload.path).toBe('/docs/readme.md');
     });
+
+    it('includes forceTextEditor when provided', () => {
+      const message = createOpenDocumentMessage('/docs/readme.md', true);
+      expect(message.payload.forceTextEditor).toBe(true);
+    });
+
+    it('leaves forceTextEditor undefined when not provided', () => {
+      const message = createOpenDocumentMessage('/docs/readme.md');
+      expect(message.payload.forceTextEditor).toBeUndefined();
+    });
   });
 
   describe('createExecuteWorkflowMessage', () => {

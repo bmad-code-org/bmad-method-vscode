@@ -41,7 +41,7 @@ export function PlanningArtifactLinks({
             key={path}
             type="button"
             className="text-xs text-[var(--vscode-textLink-foreground)] hover:underline"
-            onClick={() => vscodeApi.postMessage(createOpenDocumentMessage(path))}
+            onClick={(e) => vscodeApi.postMessage(createOpenDocumentMessage(path, e.shiftKey))}
           >
             {label}
           </button>

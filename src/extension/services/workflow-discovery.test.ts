@@ -460,15 +460,19 @@ suite('WorkflowDiscoveryService', () => {
       }
     });
 
-    test('commands follow claude /bmad-bmm- pattern', async () => {
+    test('commands follow /bmad-bmm- pattern without CLI prefix', async () => {
       setup();
       await service.discoverInstalledWorkflows();
       const state = createState({ sprint: null });
       const workflows = service.discoverWorkflows(state);
       for (const w of workflows) {
         assert.ok(
-          w.command.startsWith('claude /bmad-bmm-'),
-          `Expected command to start with 'claude /bmad-bmm-', got '${w.command}'`
+          w.command.startsWith('/bmad-bmm-'),
+          `Expected command to start with '/bmad-bmm-', got '${w.command}'`
+        );
+        assert.ok(
+          !w.command.startsWith('claude'),
+          `Command should not include CLI prefix, got '${w.command}'`
         );
       }
     });

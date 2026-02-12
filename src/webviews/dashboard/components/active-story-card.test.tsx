@@ -150,6 +150,23 @@ describe('ActiveStoryCard', () => {
         type: 'OPEN_DOCUMENT',
         payload: {
           path: '_bmad-output/implementation-artifacts/3-4-active-story-card-with-task-progress.md',
+          forceTextEditor: false,
+        },
+      })
+    );
+  });
+
+  test('shift+clicking story title sends OPEN_DOCUMENT with forceTextEditor true', () => {
+    render(<ActiveStoryCard />);
+    fireEvent.click(screen.getByText('Story 3.4: Active Story Card with Task Progress'), {
+      shiftKey: true,
+    });
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'OPEN_DOCUMENT',
+        payload: {
+          path: '_bmad-output/implementation-artifacts/3-4-active-story-card-with-task-progress.md',
+          forceTextEditor: true,
         },
       })
     );

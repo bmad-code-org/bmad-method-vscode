@@ -6,7 +6,7 @@ export interface AvailableWorkflow {
   id: string;
   /** Human-readable display name (e.g., 'Sprint Planning', 'Create Story') */
   name: string;
-  /** Command to execute in terminal (e.g., 'claude /bmad-bmm-sprint-planning') */
+  /** BMAD slash command without CLI prefix (e.g., '/bmad-bmm-sprint-planning'). The CLI prefix (e.g., 'claude') is prepended at execution time from bmad.cliPrefix setting. */
   command: string;
   /** Brief description of what the workflow does */
   description: string;

@@ -74,7 +74,9 @@ export function ActiveStoryCard(): React.ReactElement {
         <button
           type="button"
           className="text-left text-sm text-[var(--vscode-textLink-foreground)] hover:underline"
-          onClick={() => vscodeApi.postMessage(createOpenDocumentMessage(currentStory.filePath))}
+          onClick={(e) =>
+            vscodeApi.postMessage(createOpenDocumentMessage(currentStory.filePath, e.shiftKey))
+          }
         >
           Story {currentStory.epicNumber}.{currentStory.storyNumber}: {currentStory.title}
         </button>

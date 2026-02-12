@@ -274,7 +274,9 @@ export class StateManager implements vscode.Disposable {
       return;
     }
 
-    const result = parseStory(content, storyPath.fsPath);
+    // Use workspace-relative path so openDocument() in the webview can resolve it correctly
+    const relativePath = vscode.workspace.asRelativePath(storyPath, false);
+    const result = parseStory(content, relativePath);
     if (result.success) {
       this.clearErrorForFile(storyPath.fsPath);
       this._parsedStories.set(result.data.key, result.data);

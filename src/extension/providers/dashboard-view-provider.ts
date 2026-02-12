@@ -9,6 +9,7 @@ import { ToExtensionType, createStateUpdateMessage } from '../../shared/messages
  */
 export class DashboardViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'bmad.dashboardView';
+  private static readonly TERMINAL_NAME = 'BMAD';
 
   private view?: vscode.WebviewView;
   private readonly disposables: vscode.Disposable[] = [];
@@ -86,19 +87,22 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
         }
         break;
       case ToExtensionType.OPEN_DOCUMENT:
-        void this.openDocument(msg.payload.path);
+        void this.openDocument(msg.payload.path, msg.payload.forceTextEditor);
         break;
       case ToExtensionType.EXECUTE_WORKFLOW:
+        void this.executeWorkflow(msg.payload.command);
+        break;
       case ToExtensionType.COPY_COMMAND:
-        // Placeholder for Epic 4
+        void this.copyCommand(msg.payload.command);
         break;
     }
   }
 
   /**
    * Open a document in the editor by relative path.
+   * Markdown files open in preview by default; pass forceTextEditor to open as text.
    */
-  private async openDocument(relativePath: string): Promise<void> {
+  private async openDocument(relativePath: string, forceTextEditor?: boolean): Promise<void> {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       return;
@@ -107,10 +111,47 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
     const documentUri = vscode.Uri.joinPath(workspaceFolder.uri, relativePath);
 
     try {
-      const document = await vscode.workspace.openTextDocument(documentUri);
-      await vscode.window.showTextDocument(document, { preview: true });
+      if (!forceTextEditor && relativePath.endsWith('.md')) {
+        await vscode.commands.executeCommand('markdown.showPreview', documentUri);
+      } else {
+        const document = await vscode.workspace.openTextDocument(documentUri);
+        await vscode.window.showTextDocument(document, { preview: true });
+      }
     } catch {
       void vscode.window.showErrorMessage(`Could not open: ${relativePath}`);
+    }
+  }
+
+  /**
+   * Execute a workflow command in a BMAD terminal.
+   * Prepends the configured CLI prefix (bmad.cliPrefix, default "claude") to the command.
+   */
+  private executeWorkflow(command: string): void {
+    try {
+      const config = vscode.workspace.getConfiguration('bmad');
+      const cliPrefix = config.get<string>('cliPrefix', 'claude');
+      let terminal = vscode.window.terminals.find(
+        (t) => t.name === DashboardViewProvider.TERMINAL_NAME
+      );
+      if (!terminal) {
+        terminal = vscode.window.createTerminal(DashboardViewProvider.TERMINAL_NAME);
+      }
+      terminal.show();
+      terminal.sendText(`${cliPrefix} ${command}`);
+    } catch {
+      void vscode.window.showErrorMessage('Failed to execute workflow command');
+    }
+  }
+
+  /**
+   * Copy a command string to the clipboard
+   */
+  private async copyCommand(command: string): Promise<void> {
+    try {
+      await vscode.env.clipboard.writeText(command);
+      void vscode.window.showInformationMessage('Command copied to clipboard');
+    } catch {
+      void vscode.window.showErrorMessage('Failed to copy command to clipboard');
     }
   }
 

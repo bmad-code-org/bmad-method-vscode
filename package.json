@@ -76,6 +76,7 @@
     "clsx": "^2.1.1",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.1",
+    "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwind-merge": "^3.4.0",
@@ -121,6 +122,11 @@
           "type": "string",
           "default": "_bmad-output",
           "description": "Root directory for BMAD output files, relative to workspace root."
+        },
+        "bmad.cliPrefix": {
+          "type": "string",
+          "default": "claude",
+          "description": "CLI tool prefix for workflow terminal commands (e.g., 'claude', 'aider', 'copilot'). The BMAD slash command is appended after this prefix."
         }
       }
     }

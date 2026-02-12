@@ -100,7 +100,18 @@ describe('EpicList', () => {
     expect(mockPostMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'OPEN_DOCUMENT',
-        payload: { path: '_bmad-output/planning-artifacts/epics.md' },
+        payload: { path: '_bmad-output/planning-artifacts/epics.md', forceTextEditor: false },
+      })
+    );
+  });
+
+  test('shift+clicking epic title sends OPEN_DOCUMENT with forceTextEditor true', () => {
+    render(<EpicList />);
+    fireEvent.click(screen.getByText('Epic 1'), { shiftKey: true });
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'OPEN_DOCUMENT',
+        payload: { path: '_bmad-output/planning-artifacts/epics.md', forceTextEditor: true },
       })
     );
   });

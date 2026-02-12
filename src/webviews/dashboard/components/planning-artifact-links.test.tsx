@@ -30,7 +30,7 @@ describe('PlanningArtifactLinks', () => {
     fireEvent.click(screen.getByText('PRD'));
     expect(mockPostMessage).toHaveBeenCalledWith({
       type: 'OPEN_DOCUMENT',
-      payload: { path: '_bmad-output/planning-artifacts/prd.md' },
+      payload: { path: '_bmad-output/planning-artifacts/prd.md', forceTextEditor: false },
     });
   });
 
@@ -39,7 +39,16 @@ describe('PlanningArtifactLinks', () => {
     fireEvent.click(screen.getByText('Architecture'));
     expect(mockPostMessage).toHaveBeenCalledWith({
       type: 'OPEN_DOCUMENT',
-      payload: { path: '_bmad-output/planning-artifacts/architecture.md' },
+      payload: { path: '_bmad-output/planning-artifacts/architecture.md', forceTextEditor: false },
+    });
+  });
+
+  test('shift+click sends OPEN_DOCUMENT with forceTextEditor true', () => {
+    render(<PlanningArtifactLinks />);
+    fireEvent.click(screen.getByText('PRD'), { shiftKey: true });
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      type: 'OPEN_DOCUMENT',
+      payload: { path: '_bmad-output/planning-artifacts/prd.md', forceTextEditor: true },
     });
   });
 

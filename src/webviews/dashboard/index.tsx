@@ -10,6 +10,8 @@ import {
   NextActionRecommendation,
   NextActionRecommendationSkeleton,
   RefreshButton,
+  CTAButtons,
+  CTAButtonsSkeleton,
 } from './components';
 import { useMessageHandler } from './hooks';
 import { useLoading } from './store';
@@ -37,6 +39,7 @@ export function Dashboard(): React.ReactElement {
         <EpicListSkeleton />
         <ActiveStoryCardSkeleton />
         <NextActionRecommendationSkeleton />
+        <CTAButtonsSkeleton />
       </div>
     );
   }
@@ -51,6 +54,7 @@ export function Dashboard(): React.ReactElement {
       <EpicList />
       <ActiveStoryCard />
       <NextActionRecommendation />
+      <CTAButtons />
       <PlanningArtifactLinks />
     </div>
   );
