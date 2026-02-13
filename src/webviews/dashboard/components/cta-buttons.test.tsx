@@ -37,28 +37,26 @@ describe('CTAButtons', () => {
     expect(container.innerHTML).toBe('');
   });
 
-  test('renders execute and copy buttons for each workflow', () => {
+  test('renders only secondary workflow buttons (primary is filtered out)', () => {
     useDashboardStore.setState({ workflows: [primaryWorkflow, secondaryWorkflow] });
     render(<CTAButtons />);
-    expect(screen.getByTestId('cta-execute-dev-story')).toBeInTheDocument();
-    expect(screen.getByTestId('cta-copy-dev-story')).toBeInTheDocument();
+    expect(screen.queryByTestId('cta-execute-dev-story')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('cta-copy-dev-story')).not.toBeInTheDocument();
     expect(screen.getByTestId('cta-execute-create-story')).toBeInTheDocument();
     expect(screen.getByTestId('cta-copy-create-story')).toBeInTheDocument();
   });
 
-  test('renders section with Actions heading', () => {
-    useDashboardStore.setState({ workflows: [primaryWorkflow] });
+  test('renders section with Other Actions heading', () => {
+    useDashboardStore.setState({ workflows: [primaryWorkflow, secondaryWorkflow] });
     render(<CTAButtons />);
     expect(screen.getByTestId('cta-buttons')).toBeInTheDocument();
-    expect(screen.getByText('Actions')).toBeInTheDocument();
+    expect(screen.getByText('Other Actions')).toBeInTheDocument();
   });
 
-  test('primary workflow button has primary styling', () => {
+  test('returns null when only primary workflow exists (no secondary)', () => {
     useDashboardStore.setState({ workflows: [primaryWorkflow] });
-    render(<CTAButtons />);
-    const button = screen.getByTestId('cta-execute-dev-story');
-    expect(button.className).toContain('bg-[var(--vscode-button-background)]');
-    expect(button.className).toContain('text-[var(--vscode-button-foreground)]');
+    const { container } = render(<CTAButtons />);
+    expect(container.innerHTML).toBe('');
   });
 
   test('secondary workflow buttons have secondary styling', () => {
@@ -69,55 +67,53 @@ describe('CTAButtons', () => {
     expect(button.className).toContain('text-[var(--vscode-button-secondaryForeground)]');
   });
 
-  test('clicking main button calls postMessage with EXECUTE_WORKFLOW and correct command', () => {
-    useDashboardStore.setState({ workflows: [primaryWorkflow] });
+  test('clicking execute button calls postMessage with EXECUTE_WORKFLOW and correct command', () => {
+    useDashboardStore.setState({ workflows: [secondaryWorkflow] });
     render(<CTAButtons />);
-    fireEvent.click(screen.getByTestId('cta-execute-dev-story'));
+    fireEvent.click(screen.getByTestId('cta-execute-create-story'));
     expect(mockPostMessage).toHaveBeenCalledWith({
       type: 'EXECUTE_WORKFLOW',
-      payload: { command: '/bmad-bmm-dev-story' },
+      payload: { command: '/bmad-bmm-create-story' },
     });
   });
 
   test('clicking copy button calls postMessage with COPY_COMMAND and correct command', () => {
-    useDashboardStore.setState({ workflows: [primaryWorkflow] });
+    useDashboardStore.setState({ workflows: [secondaryWorkflow] });
     render(<CTAButtons />);
-    fireEvent.click(screen.getByTestId('cta-copy-dev-story'));
+    fireEvent.click(screen.getByTestId('cta-copy-create-story'));
     expect(mockPostMessage).toHaveBeenCalledWith({
       type: 'COPY_COMMAND',
-      payload: { command: '/bmad-bmm-dev-story' },
+      payload: { command: '/bmad-bmm-create-story' },
     });
   });
 
   test('buttons re-render when workflows state changes', () => {
-    useDashboardStore.setState({ workflows: [primaryWorkflow] });
+    useDashboardStore.setState({ workflows: [secondaryWorkflow] });
     const { rerender } = render(<CTAButtons />);
-    expect(screen.getByTestId('cta-execute-dev-story')).toBeInTheDocument();
-    expect(screen.queryByTestId('cta-execute-create-story')).not.toBeInTheDocument();
-
-    useDashboardStore.setState({ workflows: [primaryWorkflow, secondaryWorkflow] });
-    rerender(<CTAButtons />);
-    expect(screen.getByTestId('cta-execute-dev-story')).toBeInTheDocument();
     expect(screen.getByTestId('cta-execute-create-story')).toBeInTheDocument();
+
+    useDashboardStore.setState({ workflows: [] });
+    rerender(<CTAButtons />);
+    expect(screen.queryByTestId('cta-execute-create-story')).not.toBeInTheDocument();
   });
 
   test('displays workflow name on button', () => {
-    useDashboardStore.setState({ workflows: [primaryWorkflow] });
+    useDashboardStore.setState({ workflows: [secondaryWorkflow] });
     render(<CTAButtons />);
-    expect(screen.getByTestId('cta-execute-dev-story')).toHaveTextContent('Dev Story');
+    expect(screen.getByTestId('cta-execute-create-story')).toHaveTextContent('Create Story');
   });
 
   test('copy button has accessible aria-label', () => {
-    useDashboardStore.setState({ workflows: [primaryWorkflow] });
+    useDashboardStore.setState({ workflows: [secondaryWorkflow] });
     render(<CTAButtons />);
-    expect(screen.getByLabelText('Copy Dev Story command')).toBeInTheDocument();
+    expect(screen.getByLabelText('Copy Create Story command')).toBeInTheDocument();
   });
 
   test('copy button title shows full command', () => {
-    useDashboardStore.setState({ workflows: [primaryWorkflow] });
+    useDashboardStore.setState({ workflows: [secondaryWorkflow] });
     render(<CTAButtons />);
-    const copyButton = screen.getByTestId('cta-copy-dev-story');
-    expect(copyButton).toHaveAttribute('title', 'Copy: /bmad-bmm-dev-story');
+    const copyButton = screen.getByTestId('cta-copy-create-story');
+    expect(copyButton).toHaveAttribute('title', 'Copy: /bmad-bmm-create-story');
   });
 });
 

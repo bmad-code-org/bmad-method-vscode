@@ -1,9 +1,9 @@
 {
-  "name": "bmad-extension",
+  "name": "bmad-dashboard",
   "displayName": "BMAD Dashboard",
   "description": "Interactive dashboard for BMAD V6 projects",
   "version": "0.0.1",
-  "publisher": "bmad",
+  "publisher": "elvince",
   "main": "./out/extension/extension.js",
   "engines": {
     "vscode": "^1.96.0"

@@ -7,8 +7,8 @@
   },
   "mode": "initial_scan",
   "scan_level": "deep",
-  "project_root": "c:\\workspaces\\bmad-extension",
-  "output_folder": "c:\\workspaces\\bmad-extension\\docs",
+  "project_root": "bmad-extension",
+  "output_folder": "bmad-extension\\docs",
   "completed_steps": [
     {
       "step": "step_1",

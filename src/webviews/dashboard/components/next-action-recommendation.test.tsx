@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, test, expect, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { useDashboardStore } from '../store';
 import {
   NextActionRecommendation,
@@ -7,6 +7,28 @@ import {
 } from './next-action-recommendation';
 import type { Story } from '@shared/types/story';
 import type { SprintStatus } from '@shared/types/sprint-status';
+import type { AvailableWorkflow } from '@shared/types';
+
+const mockPostMessage = vi.fn();
+vi.mock('../../shared/hooks', () => ({
+  useVSCodeApi: () => ({ postMessage: mockPostMessage }),
+}));
+
+const mockPrimaryWorkflow: AvailableWorkflow = {
+  id: 'dev-story',
+  name: 'Dev Story',
+  command: '/bmad-bmm-dev-story',
+  description: 'Implement the next story',
+  isPrimary: true,
+};
+
+const mockSecondaryWorkflow: AvailableWorkflow = {
+  id: 'correct-course',
+  name: 'Correct Course',
+  command: '/bmad-bmm-correct-course',
+  description: 'Adjust sprint plan',
+  isPrimary: false,
+};
 
 const mockSprintStatus: SprintStatus = {
   generated: '2026-01-27',
@@ -39,10 +61,12 @@ const mockStory: Story = {
 
 describe('NextActionRecommendation', () => {
   beforeEach(() => {
+    mockPostMessage.mockClear();
     useDashboardStore.setState({
       sprint: mockSprintStatus,
       epics: [],
       currentStory: mockStory,
+      workflows: [mockPrimaryWorkflow, mockSecondaryWorkflow],
       errors: [],
       loading: false,
       outputRoot: '_bmad-output',
@@ -123,6 +147,83 @@ describe('NextActionRecommendation', () => {
     });
     render(<NextActionRecommendation />);
     expect(screen.getByTestId('next-action-label')).toHaveTextContent('Retrospective');
+  });
+
+  test('play button renders and sends EXECUTE_WORKFLOW message with correct command', () => {
+    render(<NextActionRecommendation />);
+    const playButton = screen.getByTestId('next-action-execute');
+    expect(playButton).toBeInTheDocument();
+    fireEvent.click(playButton);
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      type: 'EXECUTE_WORKFLOW',
+      payload: { command: '/bmad-bmm-dev-story' },
+    });
+  });
+
+  test('copy button renders and sends COPY_COMMAND message with correct command', () => {
+    render(<NextActionRecommendation />);
+    const copyButton = screen.getByTestId('next-action-copy');
+    expect(copyButton).toBeInTheDocument();
+    fireEvent.click(copyButton);
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      type: 'COPY_COMMAND',
+      payload: { command: '/bmad-bmm-dev-story' },
+    });
+  });
+
+  test('play and copy buttons do NOT render when workflows is empty', () => {
+    useDashboardStore.setState({ workflows: [] });
+    render(<NextActionRecommendation />);
+    expect(screen.queryByTestId('next-action-execute')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('next-action-copy')).not.toBeInTheDocument();
+  });
+
+  test('play and copy buttons do NOT render when no primary workflow exists', () => {
+    useDashboardStore.setState({ workflows: [mockSecondaryWorkflow] });
+    render(<NextActionRecommendation />);
+    expect(screen.queryByTestId('next-action-execute')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('next-action-copy')).not.toBeInTheDocument();
+  });
+
+  test('buttons have correct data-testid attributes', () => {
+    render(<NextActionRecommendation />);
+    expect(screen.getByTestId('next-action-execute')).toBeInTheDocument();
+    expect(screen.getByTestId('next-action-copy')).toBeInTheDocument();
+  });
+
+  test('buttons have correct aria-label attributes', () => {
+    render(<NextActionRecommendation />);
+    expect(screen.getByLabelText('Execute Dev Story')).toBeInTheDocument();
+    expect(screen.getByLabelText('Copy Dev Story command')).toBeInTheDocument();
+  });
+
+  test('play button has title with workflow description', () => {
+    render(<NextActionRecommendation />);
+    const playButton = screen.getByTestId('next-action-execute');
+    expect(playButton).toHaveAttribute('title', 'Implement the next story');
+  });
+
+  test('copy button has title showing full command', () => {
+    render(<NextActionRecommendation />);
+    const copyButton = screen.getByTestId('next-action-copy');
+    expect(copyButton).toHaveAttribute('title', 'Copy: /bmad-bmm-dev-story');
+  });
+
+  test('play/copy buttons use primary workflow command even when next action type differs', () => {
+    // Simulate edge case: story is in review (next action = code-review)
+    // but primary workflow is still dev-story (stale/mismatched state)
+    useDashboardStore.setState({
+      currentStory: { ...mockStory, status: 'review' },
+    });
+    render(<NextActionRecommendation />);
+    // Next action label should reflect review state
+    expect(screen.getByTestId('next-action-label')).toHaveTextContent('Run Code Review');
+    // But buttons still use whatever the primary workflow is
+    fireEvent.click(screen.getByTestId('next-action-execute'));
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      type: 'EXECUTE_WORKFLOW',
+      payload: { command: '/bmad-bmm-dev-story' },
+    });
   });
 });
 
