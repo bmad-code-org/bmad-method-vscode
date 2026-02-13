@@ -37,11 +37,13 @@ describe('CTAButtons', () => {
     expect(container.innerHTML).toBe('');
   });
 
-  test('renders button for each workflow in the array', () => {
+  test('renders execute and copy buttons for each workflow', () => {
     useDashboardStore.setState({ workflows: [primaryWorkflow, secondaryWorkflow] });
     render(<CTAButtons />);
     expect(screen.getByTestId('cta-execute-dev-story')).toBeInTheDocument();
+    expect(screen.getByTestId('cta-copy-dev-story')).toBeInTheDocument();
     expect(screen.getByTestId('cta-execute-create-story')).toBeInTheDocument();
+    expect(screen.getByTestId('cta-copy-create-story')).toBeInTheDocument();
   });
 
   test('renders section with Actions heading', () => {
@@ -109,6 +111,13 @@ describe('CTAButtons', () => {
     useDashboardStore.setState({ workflows: [primaryWorkflow] });
     render(<CTAButtons />);
     expect(screen.getByLabelText('Copy Dev Story command')).toBeInTheDocument();
+  });
+
+  test('copy button title shows full command', () => {
+    useDashboardStore.setState({ workflows: [primaryWorkflow] });
+    render(<CTAButtons />);
+    const copyButton = screen.getByTestId('cta-copy-dev-story');
+    expect(copyButton).toHaveAttribute('title', 'Copy: /bmad-bmm-dev-story');
   });
 });
 

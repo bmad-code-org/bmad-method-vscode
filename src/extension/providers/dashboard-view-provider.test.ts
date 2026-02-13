@@ -410,4 +410,42 @@ suite('DashboardViewProvider - COPY_COMMAND handler', () => {
       'Should show correct toast message'
     );
   });
+
+  test('shows error message when clipboard write fails', async () => {
+    // vscode.env.clipboard.writeText is non-configurable, so override via defineProperty
+    const originalClipboard = vscode.env.clipboard;
+    const fakeClipboard = {
+      readText: originalClipboard.readText.bind(originalClipboard),
+      writeText: sandbox.stub().rejects(new Error('Clipboard unavailable')),
+    };
+    Object.defineProperty(vscode.env, 'clipboard', { value: fakeClipboard, configurable: true });
+
+    const showErrorStub = sandbox.stub(vscode.window, 'showErrorMessage').resolves();
+
+    const provider = new DashboardViewProvider(vscode.Uri.file('/test'), createDetectedResult());
+    const { view, simulateMessage } = createMockWebviewView();
+
+    provider.resolveWebviewView(
+      view,
+      {} as vscode.WebviewViewResolveContext,
+      new vscode.CancellationTokenSource().token
+    );
+
+    simulateMessage({ type: 'COPY_COMMAND', payload: { command: '/bmad-bmm-dev-story' } });
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    assert.ok(showErrorStub.calledOnce, 'Should show error message');
+    assert.strictEqual(
+      showErrorStub.firstCall.args[0],
+      'Failed to copy command to clipboard',
+      'Should show correct error message'
+    );
+
+    // Restore original clipboard
+    Object.defineProperty(vscode.env, 'clipboard', {
+      value: originalClipboard,
+      configurable: true,
+    });
+  });
 });

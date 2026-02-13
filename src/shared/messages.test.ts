@@ -197,7 +197,7 @@ describe('ToExtension message type guards', () => {
     it('returns true for COPY_COMMAND messages', () => {
       const message: ToExtension = {
         type: ToExtensionType.COPY_COMMAND,
-        payload: { command: 'claude code /dev-story' },
+        payload: { command: '/bmad-bmm-dev-story' },
       };
       expect(isCopyCommandMessage(message)).toBe(true);
     });
@@ -210,10 +210,10 @@ describe('ToExtension message type guards', () => {
     it('narrows type correctly', () => {
       const message: ToExtension = {
         type: ToExtensionType.COPY_COMMAND,
-        payload: { command: 'test command' },
+        payload: { command: '/bmad-bmm-code-review' },
       };
       if (isCopyCommandMessage(message)) {
-        expect(message.payload.command).toBe('test command');
+        expect(message.payload.command).toBe('/bmad-bmm-code-review');
       }
     });
   });
@@ -304,9 +304,9 @@ describe('Message factory functions', () => {
 
   describe('createCopyCommandMessage', () => {
     it('creates a COPY_COMMAND message', () => {
-      const message = createCopyCommandMessage('claude code /dev-story');
+      const message = createCopyCommandMessage('/bmad-bmm-dev-story');
       expect(message.type).toBe('COPY_COMMAND');
-      expect(message.payload.command).toBe('claude code /dev-story');
+      expect(message.payload.command).toBe('/bmad-bmm-dev-story');
     });
   });
 
