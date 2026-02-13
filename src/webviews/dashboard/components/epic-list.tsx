@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
+import { ChevronRight, ChevronDown, Check } from 'lucide-react';
 import { useSprint, useEpics, useOutputRoot } from '../store';
 import { useVSCodeApi } from '../../shared/hooks';
 import { createOpenDocumentMessage } from '@shared/messages';
-import { isEpicKey, isStoryKey, isEpicStatus } from '@shared/types/sprint-status';
-import type { DevelopmentStatusValue, EpicStatusValue } from '@shared/types/sprint-status';
-import type { Epic } from '@shared/types/epic';
+import { isEpicKey, isStoryKey, isEpicStatus, isStoryStatus } from '@shared/types/sprint-status';
+import type {
+  DevelopmentStatusValue,
+  EpicStatusValue,
+  StoryStatusValue,
+} from '@shared/types/sprint-status';
+import type { Epic, EpicStoryEntry } from '@shared/types/epic';
 import { cn } from '../../shared/utils/cn';
 
 interface EpicSummary {
@@ -66,6 +71,39 @@ function getStatusLabel(summary: EpicSummary): string {
   return 'Backlog';
 }
 
+function getStoriesForEpic(
+  epicNum: number,
+  epicsData: Epic[],
+  developmentStatus: Record<string, DevelopmentStatusValue>
+): (EpicStoryEntry & { resolvedStatus: StoryStatusValue })[] {
+  const epic = epicsData.find((e) => e.number === epicNum);
+  if (!epic?.stories?.length) return [];
+
+  return epic.stories.map((story) => {
+    const raw = developmentStatus[story.key];
+    return {
+      ...story,
+      resolvedStatus:
+        (raw !== undefined && isStoryStatus(raw) ? raw : undefined) ?? story.status ?? 'backlog',
+    };
+  });
+}
+
+function getStoryStatusLabel(status: StoryStatusValue): string {
+  switch (status) {
+    case 'done':
+      return 'Done';
+    case 'in-progress':
+      return 'In Progress';
+    case 'review':
+      return 'Review';
+    case 'ready-for-dev':
+      return 'Ready';
+    default:
+      return 'Backlog';
+  }
+}
+
 export function EpicListSkeleton(): React.ReactElement {
   return (
     <div data-testid="epic-list-skeleton" className="flex animate-pulse flex-col gap-2">
@@ -85,6 +123,19 @@ export function EpicList(): React.ReactElement {
   const epicsData = useEpics();
   const vscodeApi = useVSCodeApi();
   const outputRoot = useOutputRoot() ?? '_bmad-output';
+  const [expandedEpics, setExpandedEpics] = useState<Set<number>>(new Set());
+
+  const toggleEpic = useCallback((epicNum: number) => {
+    setExpandedEpics((prev) => {
+      const next = new Set(prev);
+      if (next.has(epicNum)) {
+        next.delete(epicNum);
+      } else {
+        next.add(epicNum);
+      }
+      return next;
+    });
+  }, []);
 
   if (!sprint) {
     return (
@@ -117,10 +168,12 @@ export function EpicList(): React.ReactElement {
         const isActive = summary.status === 'in-progress';
         const isDone = summary.status === 'done';
         const title = getEpicTitle(summary.number, epicsData);
+        const isExpanded = expandedEpics.has(summary.number);
         const progressPercent =
           summary.totalStories > 0
             ? Math.round((summary.doneStories / summary.totalStories) * 100)
             : 0;
+        const stories = getStoriesForEpic(summary.number, epicsData, sprint.development_status);
 
         return (
           <div
@@ -135,16 +188,23 @@ export function EpicList(): React.ReactElement {
             <div className="flex items-center justify-between">
               <button
                 type="button"
-                className="text-left text-xs text-[var(--vscode-textLink-foreground)] hover:underline"
-                onClick={(e) =>
-                  vscodeApi.postMessage(
-                    createOpenDocumentMessage(
-                      `${outputRoot}/planning-artifacts/epics.md`,
-                      e.shiftKey
-                    )
-                  )
-                }
+                aria-expanded={isExpanded}
+                className="flex items-center gap-1 text-left text-xs text-[var(--vscode-textLink-foreground)] hover:underline"
+                onClick={(e) => {
+                  if (e.shiftKey) {
+                    vscodeApi.postMessage(
+                      createOpenDocumentMessage(`${outputRoot}/planning-artifacts/epics.md`, true)
+                    );
+                  } else {
+                    toggleEpic(summary.number);
+                  }
+                }}
               >
+                {isExpanded ? (
+                  <ChevronDown size={14} className="shrink-0" />
+                ) : (
+                  <ChevronRight size={14} className="shrink-0" />
+                )}
                 {title}
               </button>
               <span
@@ -176,6 +236,71 @@ export function EpicList(): React.ReactElement {
                 {summary.doneStories}/{summary.totalStories}
               </span>
             </div>
+            {isExpanded && (
+              <div
+                role="group"
+                aria-label={`Stories in ${title}`}
+                className="animate-expand-in flex flex-col gap-0.5 pt-1 pl-4"
+                data-testid={`epic-${summary.number}-stories`}
+              >
+                {stories.length > 0 ? (
+                  stories.map((story) => (
+                    <button
+                      key={story.key}
+                      type="button"
+                      className="flex items-center justify-between gap-2 rounded px-1 py-0.5 text-left text-xs hover:bg-[var(--vscode-list-hoverBackground)]"
+                      onClick={() =>
+                        vscodeApi.postMessage(
+                          createOpenDocumentMessage(
+                            `${outputRoot}/implementation-artifacts/${story.key}.md`
+                          )
+                        )
+                      }
+                    >
+                      <span className="flex items-center gap-1 truncate">
+                        {story.resolvedStatus === 'done' && (
+                          <Check
+                            size={12}
+                            aria-hidden="true"
+                            className="shrink-0 text-[var(--vscode-testing-iconPassed)]"
+                          />
+                        )}
+                        <span
+                          className={cn(
+                            'truncate',
+                            story.resolvedStatus === 'done'
+                              ? 'text-[var(--vscode-descriptionForeground)] line-through'
+                              : 'text-[var(--vscode-foreground)]'
+                          )}
+                        >
+                          {story.title}
+                        </span>
+                      </span>
+                      <span
+                        className={cn(
+                          'shrink-0 text-xs',
+                          story.resolvedStatus === 'done' &&
+                            'text-[var(--vscode-testing-iconPassed)]',
+                          story.resolvedStatus === 'in-progress' &&
+                            'text-[var(--vscode-textLink-foreground)]',
+                          story.resolvedStatus === 'review' &&
+                            'text-[var(--vscode-editorWarning-foreground)]',
+                          (story.resolvedStatus === 'backlog' ||
+                            story.resolvedStatus === 'ready-for-dev') &&
+                            'text-[var(--vscode-descriptionForeground)]'
+                        )}
+                      >
+                        {getStoryStatusLabel(story.resolvedStatus)}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <span className="text-xs text-[var(--vscode-descriptionForeground)]">
+                    No stories found
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         );
       })}

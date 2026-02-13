@@ -153,11 +153,11 @@ This document provides the complete epic and story breakdown for bmad-extension,
 | FR13 | Epic 4 | Copy command to clipboard            |
 | FR14 | Epic 4 | Context-sensitive workflow options   |
 | FR15 | Epic 4 | Determine available workflows        |
-| FR16 | Epic 5 | View planning artifacts              |
-| FR17 | Epic 5 | Render markdown formatting           |
-| FR18 | Epic 5 | Render Mermaid diagrams              |
-| FR19 | Epic 5 | Syntax-highlighted code blocks       |
-| FR20 | Epic 5 | Navigate dashboard to document       |
+| FR16 | Deferred | View planning artifacts (moved to Phase 2)   |
+| FR17 | Deferred | Render markdown formatting (moved to Phase 2) |
+| FR18 | Deferred | Render Mermaid diagrams (moved to Phase 2)    |
+| FR19 | Deferred | Syntax-highlighted code blocks (Phase 2)      |
+| FR20 | Epic 5   | Navigate dashboard to document (partial: doc tree view) |
 | FR21 | Epic 1 | Auto-activation on BMAD detection    |
 | FR22 | Epic 1 | No activation in non-BMAD workspaces |
 | FR23 | Epic 3 | Manual refresh capability            |
@@ -188,11 +188,11 @@ Developer can launch any BMAD workflow with one click or copy commands to clipbo
 **FRs covered:** FR12, FR13, FR14, FR15
 **NFRs addressed:** NFR10 (shell compatibility)
 
-### Epic 5: Document Viewing
+### Epic 5: UX Polish & Dashboard Enhancements
 
-Developer can view any BMAD planning artifact with rich rendering - Mermaid diagrams, formatted tables, and syntax-highlighted code blocks - in a dedicated tab panel.
-**FRs covered:** FR16, FR17, FR18, FR19, FR20
-**NFRs addressed:** NFR4 (rendering performance), NFR11 (error feedback)
+Developer benefits from a refined dashboard experience with epic drill-down views, actionable next actions, an overflow menu, an about section, improved epic list UX, document tree navigation, and a kanban board view.
+**FRs covered:** FR2 (enhanced), FR5 (enhanced), FR20 (partial), plus new UX capabilities
+**NFRs addressed:** NFR1 (render performance), NFR11 (error feedback)
 
 ---
 
@@ -653,124 +653,142 @@ So that I can paste it into an existing terminal or use it elsewhere.
 
 ---
 
-## Epic 5: Document Viewing
+## Epic 5: UX Polish & Dashboard Enhancements
 
-Developer can view any BMAD planning artifact with rich rendering - Mermaid diagrams, formatted tables, and syntax-highlighted code blocks - in a dedicated tab panel. Supports deeper exploration for the Sam and Jordan user journeys.
+Developer benefits from a refined dashboard experience with epic drill-down views, actionable next actions, an overflow menu, an about section, improved epic list UX, document tree navigation, and a kanban board view. Builds entirely on proven patterns from Epics 1-4.
 
-### Story 5.1: Document Viewer Tab Panel Registration
+**Implementation Note:** Stories 5.1-5.5 modify the existing sidebar dashboard webview. Story 5.6 (Kanban Board) introduces a new editor panel webview. Stories 5.1-5.5 can be developed in any order after reviewing existing component structure. Story 5.6 is independent.
+
+### Story 5.1: Epic Detail View with Story Lists
 
 As a developer,
-I want a document viewer that opens in an editor tab panel,
-So that I can view documents with full screen real estate.
+I want to drill down into an epic and see its individual stories with status,
+So that I can understand epic progress at the story level, not just top-level completion.
 
 **Acceptance Criteria:**
 
-**Given** the extension is activated
-**When** the document viewer panel provider is registered
-**Then** `bmad.documentView` is available as a webview panel type
+**Given** the epic list is displayed in the dashboard
+**When** the user clicks/expands an epic
+**Then** the epic expands to show a list of stories within that epic
+**And** each story displays its title and status (backlog, in-progress, done, etc.)
+**And** story completion is visually indicated (checkmark, strikethrough, or similar)
 
-**Given** the `bmad.openDocument` command is invoked
-**When** a document path is provided
-**Then** a tab panel opens with the document viewer webview
-**And** the panel title reflects the document name
+**Given** an expanded epic with stories
+**When** the user clicks on a story title
+**Then** the raw story .md file opens in a VS Code editor tab
 
-**Given** multiple documents are opened
-**When** each opens in a tab
-**Then** each document has its own tab panel instance
+**Given** an epic with no stories parsed
+**When** the epic is expanded
+**Then** a helpful message indicates no stories were found
 
-**Given** the document viewer webview
-**When** dependencies are configured
-**Then** required rendering dependencies are installed (react-markdown, remark-gfm, mermaid, rehype-highlight)
-
-### Story 5.2: Dashboard to Document Navigation
+### Story 5.2: Next Action Enhancements
 
 As a developer,
-I want to navigate from the dashboard to view a specific document,
-So that I can quickly access planning artifacts.
+I want the next action to be directly actionable with play and copy icons, and the Actions section to show only secondary actions,
+So that I can launch my next workflow instantly without scanning through all actions.
 
 **Acceptance Criteria:**
 
-**Given** the dashboard displays document links (PRD, Architecture, Epics, Stories)
-**When** the user clicks a document link
-**Then** the OPEN_DOCUMENT message is sent to extension host (FR20)
-**And** the document viewer tab panel opens with the selected document
+**Given** the dashboard displays a next action recommendation
+**When** the NextAction component renders
+**Then** a "play" icon button is displayed that launches the next action command in the terminal
+**And** a "copy" icon button is displayed that copies the next action command to clipboard
+**And** the play/copy icons follow existing terminal execution and clipboard patterns from Epic 4
 
-**Given** the document path is valid
-**When** the extension processes OPEN_DOCUMENT
-**Then** it reads the file and sends DOCUMENT_CONTENT to the viewer
+**Given** the next action has play and copy functionality
+**When** the Actions section renders below it
+**Then** the Actions section heading reads "Other Actions" (or similar, excluding the primary)
+**And** the primary/next action is NOT duplicated in the Other Actions list
+**And** only secondary workflow actions appear in the Other Actions section
 
-**Given** the document path is invalid or file is missing
-**When** the extension processes OPEN_DOCUMENT
-**Then** an error message is displayed in the viewer (NFR11)
-
-### Story 5.3: Basic Markdown Rendering
+### Story 5.3: Overflow Menu & Help Icon
 
 As a developer,
-I want to view markdown content with proper formatting,
-So that documents are readable and well-structured.
+I want a "?" help icon and a "..." overflow menu replacing the standalone refresh button,
+So that I have quick access to help and a clean menu for utility actions.
 
 **Acceptance Criteria:**
 
-**Given** the document viewer receives markdown content
-**When** the MarkdownRenderer component renders it
-**Then** headers, paragraphs, and lists are properly formatted (FR17)
-**And** tables are rendered with proper alignment (remark-gfm)
-**And** links are clickable
-**And** the content uses VS Code theme colors
+**Given** the dashboard header/toolbar area
+**When** the help icon ("?") is rendered
+**Then** clicking it suggests running `bmad help` (e.g., copies command or shows tooltip with instruction)
 
-**Given** a document under 10KB
-**When** rendering completes
-**Then** it completes within 2 seconds (NFR4)
+**Given** the dashboard currently shows a standalone Refresh button
+**When** the overflow menu ("...") replaces it
+**Then** the "..." button opens a dropdown/context menu
+**And** the menu contains "Refresh" as an action
+**And** the menu contains all "quick workflow" commands discovered by WorkflowDiscoveryService
+**And** if the TEA module is installed, a "TEA" action appears in the menu
+**And** the standalone Refresh button is removed from its current location
 
-### Story 5.4: Mermaid Diagram Rendering
+### Story 5.4: About Section & Epic List UX
 
 As a developer,
-I want to view Mermaid diagrams rendered as visuals,
-So that architecture and flow diagrams are easy to understand.
+I want an About section showing BMAD metadata and improved epic list UX with show/hide for done epics and scroll for long lists,
+So that I can see project metadata at a glance and navigate epics cleanly in large projects.
 
 **Acceptance Criteria:**
 
-**Given** markdown content contains a Mermaid code block
-**When** the MermaidDiagram component renders it
-**Then** the diagram is displayed as a visual (FR18)
-**And** the diagram uses appropriate colors for readability
+**Given** the dashboard sidebar
+**When** the About section renders
+**Then** it displays the BMAD version (from bmad installation metadata)
+**And** it displays the last updated date (from sprint-status.yaml or file timestamps)
+**And** it displays installed modules (detected from bmad installation)
 
-**Given** a Mermaid diagram has syntax errors
-**When** rendering fails
-**Then** the error boundary catches the failure
-**And** the raw code block is displayed as fallback
-**And** an error indicator shows the diagram failed to parse (NFR11)
+**Given** a project with completed epics
+**When** the epic list renders
+**Then** completed ("done") epics are hidden by default
+**And** a toggle button allows showing/hiding done epics
+**And** when shown, done epics are visually distinct (muted, strikethrough, or similar)
 
-### Story 5.5: Syntax-Highlighted Code Blocks
+**Given** a project with more than 5 epics
+**When** the epic list renders
+**Then** only 5 epics are visible at a time
+**And** additional epics are accessible via scrolling within the epic list area
+**And** the scroll area has a defined max-height to prevent the epic list from consuming the entire sidebar
+
+### Story 5.5: Keyboard Navigation & Doc Tree View
 
 As a developer,
-I want to view code blocks with syntax highlighting,
-So that code examples are easy to read.
+I want Ctrl/Cmd+click to open raw .md files and a document tree view for planning artifacts,
+So that I can quickly access source files and browse all planning documents.
 
 **Acceptance Criteria:**
 
-**Given** markdown content contains fenced code blocks with language tags
-**When** the CodeBlock component renders them
-**Then** syntax highlighting is applied based on language (FR19)
-**And** common languages (typescript, javascript, yaml, json, bash) are supported
+**Given** any clickable document link in the dashboard (epic titles, story titles, artifact links)
+**When** the user Ctrl+click (Windows/Linux) or Cmd+click (macOS) on the link
+**Then** the raw .md file opens in a VS Code editor tab (instead of any formatted view)
+**And** the previous Shift+click behavior is replaced with Ctrl/Cmd+click
 
-**Given** a code block has no language tag
-**When** rendering occurs
-**Then** the code is displayed without highlighting (plain text)
+**Given** the Planning Artifacts section of the dashboard
+**When** the Doc Tree View renders
+**Then** it displays a tree/folder structure of all documents in the planning artifacts directory
+**And** folders are expandable/collapsible
+**And** clicking a document in the tree opens its raw .md file in a VS Code editor tab
+**And** the tree view updates when files change (via existing file watcher)
 
-### Story 5.6: Progressive Loading for Large Documents
+### Story 5.6: Kanban Board View
 
 As a developer,
-I want large documents to load progressively,
-So that I can start reading without waiting for full render.
+I want a kanban board view showing story status across columns in a dedicated editor panel,
+So that I can visualize workflow progress across all stories in the current epic.
 
 **Acceptance Criteria:**
 
-**Given** a document larger than 10KB
-**When** the document viewer renders it
-**Then** content appears progressively as it renders (NFR4)
-**And** a loading indicator shows rendering is in progress
+**Given** the user triggers the kanban view (via command palette or dashboard action)
+**When** the kanban board editor panel opens
+**Then** a new webview panel opens in the editor area (not sidebar)
+**And** stories are displayed as cards organized in columns by status (backlog, in-progress, review, done)
+**And** each card shows the story title, epic context, and task completion count
 
-**Given** rendering is in progress
-**When** the user scrolls
-**Then** the visible content is prioritized for rendering
+**Given** the kanban board is open
+**When** story statuses change (detected by file watcher)
+**Then** cards move to the appropriate status column automatically
+
+**Given** a story card in the kanban view
+**When** the user clicks on a story card
+**Then** the raw story .md file opens in a VS Code editor tab
+
+**Given** the kanban board
+**When** no stories exist or parsing fails
+**Then** a helpful empty state or error message is displayed
