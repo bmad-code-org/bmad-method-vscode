@@ -293,6 +293,25 @@ suite('WorkflowDiscoveryService', () => {
       assert.ok(findById(workflows, 'create-story'));
     });
 
+    test('skips epic with completed retrospective and returns create-story for backlog', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'done',
+          '1-1-first-story': 'done',
+          '1-2-second-story': 'done',
+          'epic-1-retrospective': 'done',
+          'epic-2': 'in-progress',
+          '2-1-third-story': 'backlog',
+        }),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.isPrimary);
+      assert.strictEqual(primary?.id, 'create-story');
+    });
+
     test('all stories in sprint complete returns retrospective', async () => {
       setup();
       await service.discoverInstalledWorkflows();

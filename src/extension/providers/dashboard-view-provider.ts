@@ -10,6 +10,7 @@ import { ToExtensionType, createStateUpdateMessage } from '../../shared/messages
 export class DashboardViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'bmad.dashboardView';
   private static readonly TERMINAL_NAME = 'BMAD';
+  private static readonly VALID_COMMAND_PATTERN = /^\/bmad-[a-z0-9-]+$/;
 
   private view?: vscode.WebviewView;
   private readonly disposables: vscode.Disposable[] = [];
@@ -90,7 +91,7 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
         void this.openDocument(msg.payload.path, msg.payload.forceTextEditor);
         break;
       case ToExtensionType.EXECUTE_WORKFLOW:
-        void this.executeWorkflow(msg.payload.command);
+        this.executeWorkflow(msg.payload.command);
         break;
       case ToExtensionType.COPY_COMMAND:
         void this.copyCommand(msg.payload.command);
@@ -125,16 +126,21 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
   /**
    * Execute a workflow command in a BMAD terminal.
    * Prepends the configured CLI prefix (bmad.cliPrefix, default "claude") to the command.
+   * Validates command matches expected /bmad- pattern to prevent command injection.
    */
   private executeWorkflow(command: string): void {
     try {
+      if (!DashboardViewProvider.VALID_COMMAND_PATTERN.test(command)) {
+        void vscode.window.showErrorMessage('Invalid workflow command');
+        return;
+      }
       const config = vscode.workspace.getConfiguration('bmad');
       const cliPrefix = config.get<string>('cliPrefix', 'claude');
       let terminal = vscode.window.terminals.find(
         (t) => t.name === DashboardViewProvider.TERMINAL_NAME
       );
       if (!terminal) {
-        terminal = vscode.window.createTerminal(DashboardViewProvider.TERMINAL_NAME);
+        terminal = vscode.window.createTerminal({ name: DashboardViewProvider.TERMINAL_NAME });
       }
       terminal.show();
       terminal.sendText(`${cliPrefix} ${command}`);

@@ -1,5 +1,10 @@
 import type { SprintStatus } from '@shared/types/sprint-status';
-import { isEpicKey, isStoryKey, isStoryStatus } from '@shared/types/sprint-status';
+import {
+  isEpicKey,
+  isStoryKey,
+  isStoryStatus,
+  isRetrospectiveKey,
+} from '@shared/types/sprint-status';
 import type { Story } from '@shared/types/story';
 
 export interface NextAction {
@@ -68,14 +73,18 @@ export function getNextAction(sprint: SprintStatus | null, currentStory: Story |
   let allStoriesDone = true;
   let hasStories = false;
 
-  // Track per-epic story completion
+  // Track per-epic story completion and retrospective status
   const epicStories = new Map<number, { total: number; done: number }>();
+  const retroDone = new Set<number>();
 
-  // Collect epic keys to know which epics exist
-  for (const [key] of entries) {
+  // Collect epic keys and retrospective statuses
+  for (const [key, status] of entries) {
     if (isEpicKey(key)) {
       const epicNum = parseInt(key.replace('epic-', ''), 10);
       epicStories.set(epicNum, { total: 0, done: 0 });
+    } else if (isRetrospectiveKey(key) && status === 'done') {
+      const epicNum = parseInt(key.replace('epic-', '').replace('-retrospective', ''), 10);
+      retroDone.add(epicNum);
     }
   }
 
@@ -119,9 +128,9 @@ export function getNextAction(sprint: SprintStatus | null, currentStory: Story |
   }
 
   // Check if any single epic has all its stories done (per-epic retrospective)
-  // This fires before backlog check so completed epics get acknowledged
+  // Skip epics whose retrospective is already done
   for (const [epicNum, counts] of epicStories) {
-    if (counts.total > 0 && counts.done === counts.total) {
+    if (counts.total > 0 && counts.done === counts.total && !retroDone.has(epicNum)) {
       return {
         type: 'retrospective',
         label: `Run Retrospective for Epic ${epicNum}`,

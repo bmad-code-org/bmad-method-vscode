@@ -20,6 +20,7 @@
   "packageManager": "pnpm@10.26.2",
   "scripts": {
     "vscode:prepublish": "pnpm build",
+    "vscode:package":"npx @vscode/vsce package --no-dependencies",
     "build": "pnpm build:extension && pnpm build:webview",
     "build:extension": "esbuild src/extension/extension.ts --bundle --outfile=out/extension/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
     "build:webview": "vite build",

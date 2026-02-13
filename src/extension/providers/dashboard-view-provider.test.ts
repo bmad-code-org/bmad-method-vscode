@@ -97,7 +97,7 @@ suite('DashboardViewProvider - EXECUTE_WORKFLOW handler', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     assert.ok(createTerminalStub.calledOnce, 'Should create a new terminal');
-    assert.strictEqual(createTerminalStub.firstCall.args[0], 'BMAD');
+    assert.deepStrictEqual(createTerminalStub.firstCall.args[0], { name: 'BMAD' });
     assert.ok(mockTerminal.show.calledOnce, 'Should show the terminal');
     assert.ok(mockTerminal.sendText.calledOnce, 'Should send command to terminal');
     // executeWorkflow prepends the configured CLI prefix (defaults to 'claude')
@@ -131,6 +131,57 @@ suite('DashboardViewProvider - EXECUTE_WORKFLOW handler', () => {
     assert.ok(createTerminalStub.notCalled, 'Should NOT create a new terminal');
     assert.ok(existingTerminal.show.calledOnce, 'Should show existing terminal');
     assert.ok(existingTerminal.sendText.calledOnce, 'Should send command to existing terminal');
+  });
+
+  test('uses custom cliPrefix from configuration', async () => {
+    sandbox.stub(vscode.window, 'terminals').value([]);
+    sandbox.stub(vscode.workspace, 'getConfiguration').returns({
+      get: (key: string, defaultValue: string) => (key === 'cliPrefix' ? 'aider' : defaultValue),
+    } as unknown as vscode.WorkspaceConfiguration);
+
+    const provider = new DashboardViewProvider(vscode.Uri.file('/test'), createDetectedResult());
+    const { view, simulateMessage } = createMockWebviewView();
+
+    provider.resolveWebviewView(
+      view,
+      {} as vscode.WebviewViewResolveContext,
+      new vscode.CancellationTokenSource().token
+    );
+
+    simulateMessage({
+      type: 'EXECUTE_WORKFLOW',
+      payload: { command: '/bmad-bmm-dev-story' },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    assert.ok(mockTerminal.sendText.calledOnce, 'Should send command to terminal');
+    assert.strictEqual(mockTerminal.sendText.firstCall.args[0], 'aider /bmad-bmm-dev-story');
+  });
+
+  test('rejects command that does not match /bmad- pattern', async () => {
+    sandbox.stub(vscode.window, 'terminals').value([]);
+    const showErrorStub = sandbox.stub(vscode.window, 'showErrorMessage').resolves();
+
+    const provider = new DashboardViewProvider(vscode.Uri.file('/test'), createDetectedResult());
+    const { view, simulateMessage } = createMockWebviewView();
+
+    provider.resolveWebviewView(
+      view,
+      {} as vscode.WebviewViewResolveContext,
+      new vscode.CancellationTokenSource().token
+    );
+
+    simulateMessage({
+      type: 'EXECUTE_WORKFLOW',
+      payload: { command: '; rm -rf /' },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    assert.ok(createTerminalStub.notCalled, 'Should NOT create a terminal for invalid command');
+    assert.ok(showErrorStub.calledOnce, 'Should show error message');
+    assert.strictEqual(showErrorStub.firstCall.args[0], 'Invalid workflow command');
   });
 });
 

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import type { BmadDetector } from './bmad-detector';
 import type { DashboardState, AvailableWorkflow } from '../../shared/types';
-import { isStoryKey, isEpicKey, isStoryStatus } from '../../shared/types';
+import { isStoryKey, isEpicKey, isStoryStatus, isRetrospectiveKey } from '../../shared/types';
 
 /**
  * Known BMAD implementation workflow definitions.
@@ -158,13 +158,17 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
     let allStoriesDone = true;
     let hasStories = false;
 
-    // Track per-epic story completion
+    // Track per-epic story completion and retrospective status
     const epicStories = new Map<number, { total: number; done: number }>();
+    const retroDone = new Set<number>();
 
-    for (const [key] of entries) {
+    for (const [key, status] of entries) {
       if (isEpicKey(key)) {
         const epicNum = parseInt(key.replace('epic-', ''), 10);
         epicStories.set(epicNum, { total: 0, done: 0 });
+      } else if (isRetrospectiveKey(key) && status === 'done') {
+        const epicNum = parseInt(key.replace('epic-', '').replace('-retrospective', ''), 10);
+        retroDone.add(epicNum);
       }
     }
 
@@ -204,8 +208,9 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
     }
 
     // 6. Check if any single epic has all its stories done (per-epic retrospective)
-    for (const [, counts] of epicStories) {
-      if (counts.total > 0 && counts.done === counts.total) {
+    // Skip epics whose retrospective is already done
+    for (const [epicNum, counts] of epicStories) {
+      if (counts.total > 0 && counts.done === counts.total && !retroDone.has(epicNum)) {
         return [this.makeWorkflow('retrospective', true), this.makeWorkflow('create-story', false)];
       }
     }

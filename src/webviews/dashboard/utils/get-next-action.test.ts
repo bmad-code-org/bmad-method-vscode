@@ -200,6 +200,23 @@ describe('getNextAction', () => {
     expect(result.description).toContain('Check sprint status');
   });
 
+  test('skips epic with completed retrospective and returns create-story for backlog', () => {
+    const sprint: SprintStatus = {
+      ...mockSprint,
+      development_status: {
+        'epic-1': 'done',
+        '1-1-project-init': 'done',
+        '1-2-test-framework': 'done',
+        'epic-1-retrospective': 'done',
+        'epic-2': 'in-progress',
+        '2-1-shared-types': 'backlog',
+      },
+    };
+    const result = getNextAction(sprint, null);
+    expect(result.type).toBe('create-story');
+    expect(result.label).toBe('Create Next Story');
+  });
+
   test('returns retrospective for earliest completed epic', () => {
     const sprint: SprintStatus = {
       ...mockSprint,

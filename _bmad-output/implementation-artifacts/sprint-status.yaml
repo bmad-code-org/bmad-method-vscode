@@ -41,39 +41,39 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # Epic 1: Project Foundation & Detection
-  epic-1: in-progress
+  epic-1: done
   1-1-project-initialization-from-starter-template: done
   1-2-test-framework-configuration: done
   1-3-bmad-project-detection: done
   1-4-sidebar-panel-registration: done
-  epic-1-retrospective: optional
+  epic-1-retrospective: done
 
   # Epic 2: BMAD File Parsing & State Management
-  epic-2: in-progress
+  epic-2: done
   2-1-shared-types-and-message-protocol: done
   2-2-sprint-status-parser: done
   2-3-epic-file-parser: done
   2-4-story-file-parser: done
   2-5-file-watcher-service: done
   2-6-state-manager-with-parse-error-collection: done
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   # Epic 3: Dashboard State Visibility
-  epic-3: in-progress
+  epic-3: done
   3-1-dashboard-zustand-store-and-message-handler: done
   3-2-sprint-status-display-component: done
   3-3-epic-list-with-completion-status: done
   3-4-active-story-card-with-task-progress: done
   3-5-next-action-recommendation: done
   3-6-manual-refresh-command: done
-  epic-3-retrospective: optional
+  epic-3-retrospective: done
 
   # Epic 4: Workflow Actions
   epic-4: in-progress
   4-1-workflow-discovery-service: done
   4-2-context-sensitive-cta-buttons: done
-  4-3-terminal-workflow-execution: backlog
-  4-4-copy-command-to-clipboard: backlog
+  4-3-terminal-workflow-execution: done
+  4-4-copy-command-to-clipboard: ready-for-dev
   epic-4-retrospective: optional
 
   # Epic 5: Document Viewing
