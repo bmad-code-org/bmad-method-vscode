@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCurrentStory } from '../store';
 import { useVSCodeApi } from '../../shared/hooks';
-import { createOpenDocumentMessage } from '@shared/messages';
+import { createDocumentLinkHandler } from '../../shared/utils/document-link';
 import { calculateStoryProgress } from '@shared/types/story';
 import type { StoryStatusValue } from '@shared/types/sprint-status';
 import { cn } from '../../shared/utils/cn';
@@ -74,9 +74,7 @@ export function ActiveStoryCard(): React.ReactElement {
         <button
           type="button"
           className="text-left text-sm text-[var(--vscode-textLink-foreground)] hover:underline"
-          onClick={(e) =>
-            vscodeApi.postMessage(createOpenDocumentMessage(currentStory.filePath, e.shiftKey))
-          }
+          onClick={createDocumentLinkHandler(vscodeApi, currentStory.filePath)}
         >
           Story {currentStory.epicNumber}.{currentStory.storyNumber}: {currentStory.title}
         </button>

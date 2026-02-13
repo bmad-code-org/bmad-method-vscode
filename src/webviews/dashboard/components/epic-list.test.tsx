@@ -316,7 +316,21 @@ describe('EpicList expand/collapse', () => {
       type: 'OPEN_DOCUMENT',
       payload: {
         path: '_bmad-output/implementation-artifacts/1-1-project-initialization.md',
-        forceTextEditor: undefined,
+        forceTextEditor: false,
+      },
+    });
+  });
+
+  test('shift+clicking a story title sends OPEN_DOCUMENT with forceTextEditor true', () => {
+    render(<EpicList />);
+    showCompletedEpics();
+    fireEvent.click(screen.getByText('Project Foundation'));
+    fireEvent.click(screen.getByText('Project Initialization'), { shiftKey: true });
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      type: 'OPEN_DOCUMENT',
+      payload: {
+        path: '_bmad-output/implementation-artifacts/1-1-project-initialization.md',
+        forceTextEditor: true,
       },
     });
   });

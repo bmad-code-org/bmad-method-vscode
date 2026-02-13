@@ -1,7 +1,7 @@
 import React from 'react';
 import { useVSCodeApi } from '../../shared/hooks';
 import { useOutputRoot } from '../store';
-import { createOpenDocumentMessage } from '@shared/messages';
+import { createDocumentLinkHandler } from '../../shared/utils/document-link';
 
 export interface ArtifactLink {
   label: string;
@@ -41,7 +41,7 @@ export function PlanningArtifactLinks({
             key={path}
             type="button"
             className="text-xs text-[var(--vscode-textLink-foreground)] hover:underline"
-            onClick={(e) => vscodeApi.postMessage(createOpenDocumentMessage(path, e.shiftKey))}
+            onClick={createDocumentLinkHandler(vscodeApi, path)}
           >
             {label}
           </button>

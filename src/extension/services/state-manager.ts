@@ -312,7 +312,13 @@ export class StateManager implements vscode.Disposable {
       const installation = raw?.installation as Record<string, unknown> | undefined;
       const modules = (raw?.modules as Array<Record<string, unknown>>) ?? [];
       const str = (val: unknown, fallback = ''): string =>
-        typeof val === 'string' ? val : typeof val === 'number' ? String(val) : fallback;
+        typeof val === 'string'
+          ? val
+          : val instanceof Date
+            ? val.toISOString()
+            : typeof val === 'number'
+              ? String(val)
+              : fallback;
       this._state = {
         ...this._state,
         bmadMetadata: {

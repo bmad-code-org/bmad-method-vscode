@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { ChevronRight, ChevronDown, Check } from 'lucide-react';
 import { useSprint, useEpics, useOutputRoot } from '../store';
 import { useVSCodeApi } from '../../shared/hooks';
-import { createOpenDocumentMessage } from '@shared/messages';
+import { createDocumentLinkHandler, createShiftOpenHandler } from '../../shared/utils/document-link';
 import { isEpicKey, isStoryKey, isEpicStatus, isStoryStatus } from '@shared/types/sprint-status';
 import type {
   DevelopmentStatusValue,
@@ -201,15 +201,11 @@ export function EpicList(): React.ReactElement {
                       ? 'text-[var(--vscode-disabledForeground)]'
                       : 'text-[var(--vscode-textLink-foreground)]'
                   )}
-                  onClick={(e) => {
-                    if (e.shiftKey) {
-                      vscodeApi.postMessage(
-                        createOpenDocumentMessage(`${outputRoot}/planning-artifacts/epics.md`, true)
-                      );
-                    } else {
-                      toggleEpic(summary.number);
-                    }
-                  }}
+                  onClick={createShiftOpenHandler(
+                    vscodeApi,
+                    `${outputRoot}/planning-artifacts/epics.md`,
+                    () => toggleEpic(summary.number)
+                  )}
                 >
                   {isExpanded ? (
                     <ChevronDown size={14} className="shrink-0" />
@@ -260,13 +256,10 @@ export function EpicList(): React.ReactElement {
                         key={story.key}
                         type="button"
                         className="flex items-center justify-between gap-2 rounded px-1 py-0.5 text-left text-xs hover:bg-[var(--vscode-list-hoverBackground)]"
-                        onClick={() =>
-                          vscodeApi.postMessage(
-                            createOpenDocumentMessage(
-                              `${outputRoot}/implementation-artifacts/${story.key}.md`
-                            )
-                          )
-                        }
+                        onClick={createDocumentLinkHandler(
+                          vscodeApi,
+                          `${outputRoot}/implementation-artifacts/${story.key}.md`
+                        )}
                       >
                         <span className="flex items-center gap-1 truncate">
                           {story.resolvedStatus === 'done' && (
