@@ -18,17 +18,18 @@ describe('Dashboard', () => {
     useDashboardStore.setState({ loading: false, errors: [] });
   });
 
-  test('renders RefreshButton in loaded state', () => {
+  test('renders HeaderToolbar in loaded state', () => {
     useDashboardStore.setState({ loading: false });
     render(<Dashboard />);
     expect(screen.getByTestId('dashboard-content')).toBeInTheDocument();
-    expect(screen.getByTestId('refresh-button')).toBeInTheDocument();
+    expect(screen.getByTestId('help-icon')).toBeInTheDocument();
+    expect(screen.getByTestId('overflow-menu-button')).toBeInTheDocument();
   });
 
-  test('renders RefreshButton in loading state', () => {
+  test('renders HeaderToolbarSkeleton in loading state', () => {
     useDashboardStore.setState({ loading: true });
     render(<Dashboard />);
     expect(screen.getByTestId('dashboard-loading')).toBeInTheDocument();
-    expect(screen.getByTestId('refresh-button')).toBeInTheDocument();
+    expect(screen.getByTestId('header-toolbar-skeleton')).toBeInTheDocument();
   });
 });

@@ -7,5 +7,5 @@ export {
   NextActionRecommendation,
   NextActionRecommendationSkeleton,
 } from './next-action-recommendation';
-export { RefreshButton } from './refresh-button';
+export { HeaderToolbar, HeaderToolbarSkeleton } from './header-toolbar';
 export { CTAButtons, CTAButtonsSkeleton } from './cta-buttons';

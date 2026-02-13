@@ -9,7 +9,8 @@ import {
   ActiveStoryCardSkeleton,
   NextActionRecommendation,
   NextActionRecommendationSkeleton,
-  RefreshButton,
+  HeaderToolbar,
+  HeaderToolbarSkeleton,
   CTAButtons,
   CTAButtonsSkeleton,
 } from './components';
@@ -33,7 +34,7 @@ export function Dashboard(): React.ReactElement {
       <div data-testid="dashboard-loading" className="flex flex-col gap-4 p-4">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
-          <RefreshButton />
+          <HeaderToolbarSkeleton />
         </div>
         <SprintStatusSkeleton />
         <EpicListSkeleton />
@@ -48,7 +49,7 @@ export function Dashboard(): React.ReactElement {
     <div data-testid="dashboard-content" className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-[var(--vscode-foreground)]">BMAD Dashboard</h1>
-        <RefreshButton />
+        <HeaderToolbar />
       </div>
       <SprintStatus />
       <EpicList />
