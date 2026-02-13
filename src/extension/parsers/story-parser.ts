@@ -42,6 +42,7 @@ const FILENAME_KEY_REGEX = /^(\d+)-(\d+)-(.+)\.md$/;
 function toKebabCase(title: string): string {
   return title
     .toLowerCase()
+    .replace(/&/g, 'and') // Convert & to and
     .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
     .replace(/\s+/g, '-') // Spaces to dashes
     .replace(/-+/g, '-') // Collapse multiple dashes

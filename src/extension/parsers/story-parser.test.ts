@@ -648,7 +648,7 @@ As a user, I want special character support, So that titles work.
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.title).toBe('Parser with Special (chars) & "quotes"');
-      expect(result.data.key).toBe('1-1-parser-with-special-chars-quotes');
+      expect(result.data.key).toBe('1-1-parser-with-special-chars-and-quotes');
     }
   });
 

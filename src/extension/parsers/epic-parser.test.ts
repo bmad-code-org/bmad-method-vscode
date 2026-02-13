@@ -332,8 +332,27 @@ So that it works.
 
       expect(result.success).toBe(true);
       if (result.success) {
-        // Special characters removed, spaces to dashes
-        expect(result.data.stories[0].key).toBe('1-1-handle-special-characters-like-and');
+        // Special characters removed, & converted to and, spaces to dashes
+        expect(result.data.stories[0].key).toBe('1-1-handle-special-characters-like-and-and');
+      }
+    });
+
+    it('converts & to and in story key', () => {
+      const content = `## Epic 5: UX Polish
+
+Description.
+
+### Story 5.3: Overflow Menu & Help Icon
+
+As a developer,
+I want overflow menu,
+So that actions are organized.
+`;
+      const result = parseEpic(content);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.stories[0].key).toBe('5-3-overflow-menu-and-help-icon');
       }
     });
   });
