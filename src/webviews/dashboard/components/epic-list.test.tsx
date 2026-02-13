@@ -76,6 +76,11 @@ const mockEpicsWithStories: Epic[] = [
   },
 ];
 
+/** Helper to reveal done epics by clicking the toggle */
+function showCompletedEpics(): void {
+  fireEvent.click(screen.getByTestId('toggle-done-epics'));
+}
+
 describe('EpicList', () => {
   beforeEach(() => {
     mockPostMessage.mockClear();
@@ -89,8 +94,18 @@ describe('EpicList', () => {
     });
   });
 
-  test('renders all epics from sprint status development_status', () => {
+  test('renders non-done epics by default (done epics hidden)', () => {
     render(<EpicList />);
+    // Epic 2 (in-progress) and Epic 3 (backlog) visible
+    expect(screen.getByText('Epic 2')).toBeInTheDocument();
+    expect(screen.getByText('Epic 3')).toBeInTheDocument();
+    // Epic 1 (done) should be hidden
+    expect(screen.queryByText('Epic 1')).not.toBeInTheDocument();
+  });
+
+  test('renders all epics after showing completed', () => {
+    render(<EpicList />);
+    showCompletedEpics();
     expect(screen.getByText('Epic 1')).toBeInTheDocument();
     expect(screen.getByText('Epic 2')).toBeInTheDocument();
     expect(screen.getByText('Epic 3')).toBeInTheDocument();
@@ -98,6 +113,7 @@ describe('EpicList', () => {
 
   test('renders correct story completion counts per epic', () => {
     render(<EpicList />);
+    showCompletedEpics();
     // Epic 1: 4/4 done, Epic 2: 2/3, Epic 3: 0/1
     expect(screen.getByText('4/4')).toBeInTheDocument();
     expect(screen.getByText('2/3')).toBeInTheDocument();
@@ -112,6 +128,7 @@ describe('EpicList', () => {
 
   test('does not highlight non-in-progress epics', () => {
     render(<EpicList />);
+    showCompletedEpics();
     const epic1 = screen.getByTestId('epic-item-1');
     const epic3 = screen.getByTestId('epic-item-3');
     expect(epic1.className).not.toContain('border-l-2');
@@ -144,6 +161,8 @@ describe('EpicList', () => {
       outputRoot: '_bmad-output',
     });
     render(<EpicList />);
+    // Show done epics first so we can click Project Foundation (epic 1, done)
+    showCompletedEpics();
     // Click should toggle expand, not send OPEN_DOCUMENT
     fireEvent.click(screen.getByText('Project Foundation'));
     expect(mockPostMessage).not.toHaveBeenCalled();
@@ -153,7 +172,8 @@ describe('EpicList', () => {
 
   test('shift+clicking epic title sends OPEN_DOCUMENT with forceTextEditor true', () => {
     render(<EpicList />);
-    fireEvent.click(screen.getByText('Epic 1'), { shiftKey: true });
+    // Use Epic 2 (not done, visible by default)
+    fireEvent.click(screen.getByText('Epic 2'), { shiftKey: true });
     expect(mockPostMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'OPEN_DOCUMENT',
@@ -164,6 +184,7 @@ describe('EpicList', () => {
 
   test('handles epics with all stories done (shows Done status)', () => {
     render(<EpicList />);
+    showCompletedEpics();
     // Epic 1 is 'done' status
     const epic1 = screen.getByTestId('epic-item-1');
     expect(epic1).toHaveTextContent('Done');
@@ -213,6 +234,7 @@ describe('EpicList', () => {
       loading: false,
     });
     render(<EpicList />);
+    showCompletedEpics();
     expect(screen.getByText('Project Foundation & Detection')).toBeInTheDocument();
     // Epics without data still fall back to "Epic N"
     expect(screen.getByText('Epic 2')).toBeInTheDocument();
@@ -260,6 +282,7 @@ describe('EpicList expand/collapse', () => {
 
   test('clicking an epic toggles the expanded state and shows stories', () => {
     render(<EpicList />);
+    showCompletedEpics();
     // Initially no stories visible
     expect(screen.queryByText('Project Initialization')).not.toBeInTheDocument();
     // Click to expand
@@ -286,6 +309,7 @@ describe('EpicList expand/collapse', () => {
 
   test('clicking a story title sends OPEN_DOCUMENT message with correct story file path', () => {
     render(<EpicList />);
+    showCompletedEpics();
     fireEvent.click(screen.getByText('Project Foundation'));
     fireEvent.click(screen.getByText('Project Initialization'));
     expect(mockPostMessage).toHaveBeenCalledWith({
@@ -299,6 +323,7 @@ describe('EpicList expand/collapse', () => {
 
   test('expanded epic shows chevron-down, collapsed shows chevron-right', () => {
     render(<EpicList />);
+    showCompletedEpics();
     const epicButton = screen.getByText('Project Foundation').closest('button')!;
     // Collapsed: should have ChevronRight icon (path starts with m9 18)
     const collapsedSvg = epicButton.querySelector('svg')!;
@@ -326,6 +351,7 @@ describe('EpicList expand/collapse', () => {
 
   test('multiple epics can be expanded independently', () => {
     render(<EpicList />);
+    showCompletedEpics();
     // Expand epic 1
     fireEvent.click(screen.getByText('Project Foundation'));
     expect(screen.getByText('Project Initialization')).toBeInTheDocument();
@@ -339,6 +365,7 @@ describe('EpicList expand/collapse', () => {
 
   test('aria-expanded attribute correctly reflects expand state', () => {
     render(<EpicList />);
+    showCompletedEpics();
     const epicButton = screen.getByText('Project Foundation').closest('button')!;
     expect(epicButton.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(epicButton);
@@ -367,6 +394,7 @@ describe('EpicList expand/collapse', () => {
 
   test('done stories show line-through styling and check icon', () => {
     render(<EpicList />);
+    showCompletedEpics();
     fireEvent.click(screen.getByText('Project Foundation'));
     // All stories in epic 1 are done — check the first story's title span
     const storyTitle = screen.getByText('Project Initialization');
@@ -395,6 +423,7 @@ describe('EpicList expand/collapse', () => {
 
   test('story list container has accessible role and label', () => {
     render(<EpicList />);
+    showCompletedEpics();
     fireEvent.click(screen.getByText('Project Foundation'));
     const storiesContainer = screen.getByTestId('epic-1-stories');
     expect(storiesContainer.getAttribute('role')).toBe('group');
@@ -429,6 +458,94 @@ describe('EpicList expand/collapse', () => {
     expect(epic3).toHaveTextContent('0/1');
     // But expanded story list shows empty state (from epic data)
     expect(screen.getByText('No stories found')).toBeInTheDocument();
+  });
+});
+
+describe('EpicList done epic filtering', () => {
+  beforeEach(() => {
+    mockPostMessage.mockClear();
+    useDashboardStore.setState({
+      sprint: mockSprintStatus,
+      epics: mockEpicsWithStories,
+      currentStory: null,
+      errors: [],
+      loading: false,
+      outputRoot: '_bmad-output',
+    });
+  });
+
+  test('done epics are hidden by default', () => {
+    render(<EpicList />);
+    // Epic 1 is done — should not be visible
+    expect(screen.queryByTestId('epic-item-1')).not.toBeInTheDocument();
+    // Non-done epics should be visible
+    expect(screen.getByTestId('epic-item-2')).toBeInTheDocument();
+    expect(screen.getByTestId('epic-item-3')).toBeInTheDocument();
+  });
+
+  test('toggle button shows "Show completed (N)" with count of done epics', () => {
+    render(<EpicList />);
+    const toggle = screen.getByTestId('toggle-done-epics');
+    expect(toggle).toHaveTextContent('Show completed (1)');
+  });
+
+  test('clicking toggle reveals done epics with muted styling', () => {
+    render(<EpicList />);
+    showCompletedEpics();
+    const epic1 = screen.getByTestId('epic-item-1');
+    expect(epic1).toBeInTheDocument();
+    expect(epic1.className).toContain('text-[var(--vscode-disabledForeground)]');
+  });
+
+  test('clicking toggle again hides done epics', () => {
+    render(<EpicList />);
+    showCompletedEpics();
+    expect(screen.getByTestId('epic-item-1')).toBeInTheDocument();
+    // Click again to hide
+    fireEvent.click(screen.getByTestId('toggle-done-epics'));
+    expect(screen.queryByTestId('epic-item-1')).not.toBeInTheDocument();
+  });
+
+  test('toggle text changes to "Hide completed" when done epics are shown', () => {
+    render(<EpicList />);
+    showCompletedEpics();
+    expect(screen.getByTestId('toggle-done-epics')).toHaveTextContent('Hide completed');
+  });
+
+  test('scroll container has max-height constraint', () => {
+    render(<EpicList />);
+    const scrollContainer = screen.getByTestId('epic-list-scroll-container');
+    expect(scrollContainer.className).toContain('max-h-[280px]');
+    expect(scrollContainer.className).toContain('overflow-y-auto');
+  });
+
+  test('toggle and scroll container have correct data-testid attributes', () => {
+    render(<EpicList />);
+    expect(screen.getByTestId('toggle-done-epics')).toBeInTheDocument();
+    expect(screen.getByTestId('epic-list-scroll-container')).toBeInTheDocument();
+  });
+
+  test('no toggle renders when zero done epics exist', () => {
+    useDashboardStore.setState({
+      sprint: {
+        ...mockSprintStatus,
+        development_status: {
+          'epic-1': 'in-progress',
+          '1-1-story': 'backlog',
+          'epic-2': 'backlog',
+          '2-1-story': 'backlog',
+        },
+      },
+      loading: false,
+    });
+    render(<EpicList />);
+    expect(screen.queryByTestId('toggle-done-epics')).not.toBeInTheDocument();
+  });
+
+  test('toggle has appropriate aria-label', () => {
+    render(<EpicList />);
+    const toggle = screen.getByTestId('toggle-done-epics');
+    expect(toggle.getAttribute('aria-label')).toBe('Show 1 completed epics');
   });
 });
 

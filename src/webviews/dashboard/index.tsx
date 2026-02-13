@@ -13,6 +13,8 @@ import {
   HeaderToolbarSkeleton,
   CTAButtons,
   CTAButtonsSkeleton,
+  AboutSection,
+  AboutSectionSkeleton,
 } from './components';
 import { useMessageHandler } from './hooks';
 import { useLoading } from './store';
@@ -41,6 +43,7 @@ export function Dashboard(): React.ReactElement {
         <ActiveStoryCardSkeleton />
         <NextActionRecommendationSkeleton />
         <CTAButtonsSkeleton />
+        <AboutSectionSkeleton />
       </div>
     );
   }
@@ -57,6 +60,7 @@ export function Dashboard(): React.ReactElement {
       <NextActionRecommendation />
       <CTAButtons />
       <PlanningArtifactLinks />
+      <AboutSection />
     </div>
   );
 }

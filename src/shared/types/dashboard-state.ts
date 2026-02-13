@@ -6,6 +6,7 @@ import type { Epic } from './epic';
 import type { Story } from './story';
 import type { ParseError } from './parse-result';
 import type { AvailableWorkflow } from './workflow';
+import type { BmadMetadata } from './bmad-metadata';
 
 /**
  * Aggregated dashboard state sent from extension to webview
@@ -26,6 +27,8 @@ export interface DashboardState {
   outputRoot: string | null;
   /** Available workflows based on current project state */
   workflows: AvailableWorkflow[];
+  /** BMAD installation metadata (null if manifest not found) */
+  bmadMetadata: BmadMetadata | null;
 }
 
 /**
@@ -40,5 +43,6 @@ export function createInitialDashboardState(): DashboardState {
     loading: true,
     outputRoot: null,
     workflows: [],
+    bmadMetadata: null,
   };
 }

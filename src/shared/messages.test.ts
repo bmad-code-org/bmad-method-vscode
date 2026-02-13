@@ -51,6 +51,7 @@ describe('ToWebview message type guards', () => {
     loading: false,
     outputRoot: null,
     workflows: [],
+    bmadMetadata: null,
   };
 
   describe('isStateUpdateMessage', () => {
@@ -245,6 +246,7 @@ describe('Message factory functions', () => {
         loading: true,
         outputRoot: null,
         workflows: [],
+        bmadMetadata: null,
       };
       const message = createStateUpdateMessage(state);
       expect(message.type).toBe('STATE_UPDATE');
@@ -328,6 +330,7 @@ describe('Discriminated union type narrowing', () => {
       loading: false,
       outputRoot: null,
       workflows: [],
+      bmadMetadata: null,
     };
 
     function handleToWebview(message: ToWebview): string {

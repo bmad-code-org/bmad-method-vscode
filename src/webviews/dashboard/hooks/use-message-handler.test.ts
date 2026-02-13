@@ -46,6 +46,7 @@ describe('useMessageHandler', () => {
       loading: false,
       outputRoot: null,
       workflows: [],
+      bmadMetadata: null,
     };
 
     window.dispatchEvent(

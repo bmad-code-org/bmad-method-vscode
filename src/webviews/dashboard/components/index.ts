@@ -9,3 +9,4 @@ export {
 } from './next-action-recommendation';
 export { HeaderToolbar, HeaderToolbarSkeleton } from './header-toolbar';
 export { CTAButtons, CTAButtonsSkeleton } from './cta-buttons';
+export { AboutSection, AboutSectionSkeleton } from './about-section';

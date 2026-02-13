@@ -944,4 +944,68 @@ tracking_system: file-system
       manager.dispose();
     });
   });
+
+  suite('Manifest Parsing', () => {
+    const validManifestYaml = `
+installation:
+  version: 6.0.0-Beta.7
+  installDate: 2026-01-26T10:36:25.989Z
+  lastUpdated: 2026-02-06T10:56:23.659Z
+modules:
+  - name: core
+    version: 6.0.0-Beta.7
+    source: built-in
+  - name: bmm
+    version: 6.0.0-Beta.7
+    source: built-in
+ides:
+  - claude-code
+`;
+
+    test('parseManifest populates bmadMetadata in state', async () => {
+      const paths = createMockPaths();
+      mockDetector.getBmadPaths.returns(paths);
+
+      const manager = createTestableManager(
+        createReadFileMock({
+          'manifest.yaml': validManifestYaml,
+        })
+      );
+      await manager.initialize();
+
+      assert.ok(manager.state.bmadMetadata);
+      assert.strictEqual(manager.state.bmadMetadata.version, '6.0.0-Beta.7');
+      assert.strictEqual(manager.state.bmadMetadata.lastUpdated, '2026-02-06T10:56:23.659Z');
+      assert.strictEqual(manager.state.bmadMetadata.modules.length, 2);
+      assert.strictEqual(manager.state.bmadMetadata.modules[0].name, 'core');
+      assert.strictEqual(manager.state.bmadMetadata.modules[1].name, 'bmm');
+      manager.dispose();
+    });
+
+    test('missing manifest sets bmadMetadata to null', async () => {
+      const paths = createMockPaths();
+      mockDetector.getBmadPaths.returns(paths);
+
+      const manager = createTestableManager(createReadFileMock({}));
+      await manager.initialize();
+
+      assert.strictEqual(manager.state.bmadMetadata, null);
+      manager.dispose();
+    });
+
+    test('malformed manifest YAML sets bmadMetadata to null', async () => {
+      const paths = createMockPaths();
+      mockDetector.getBmadPaths.returns(paths);
+
+      const manager = createTestableManager(
+        createReadFileMock({
+          'manifest.yaml': '{{{{invalid yaml content!!!!',
+        })
+      );
+      await manager.initialize();
+
+      assert.strictEqual(manager.state.bmadMetadata, null);
+      manager.dispose();
+    });
+  });
 });

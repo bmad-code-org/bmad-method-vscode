@@ -9,6 +9,7 @@ import {
   useLoading,
   useOutputRoot,
   useWorkflows,
+  useBmadMetadata,
 } from './store';
 import { createInitialDashboardState } from '@shared/types';
 import type { DashboardState } from '@shared/types';
@@ -58,6 +59,7 @@ describe('useDashboardStore', () => {
         loading: false,
         outputRoot: '_bmad-output',
         workflows: [],
+        bmadMetadata: null,
       };
 
       useDashboardStore.getState().updateState(newState);
@@ -91,6 +93,7 @@ describe('useDashboardStore', () => {
         loading: false,
         outputRoot: '_bmad-output',
         workflows: [],
+        bmadMetadata: null,
       };
 
       const secondState: DashboardState = {
@@ -101,6 +104,7 @@ describe('useDashboardStore', () => {
         loading: true,
         outputRoot: null,
         workflows: [],
+        bmadMetadata: null,
       };
 
       useDashboardStore.getState().updateState(firstState);
@@ -182,6 +186,11 @@ describe('useDashboardStore', () => {
       const { result } = renderHook(() => useWorkflows());
       expect(result.current).toEqual([]);
     });
+
+    it('useBmadMetadata returns bmadMetadata slice', () => {
+      const { result } = renderHook(() => useBmadMetadata());
+      expect(result.current).toBeNull();
+    });
   });
 
   describe('workflows state', () => {
@@ -241,6 +250,7 @@ describe('useDashboardStore', () => {
         loading: false,
         outputRoot: null,
         workflows: [],
+        bmadMetadata: null,
       };
 
       useDashboardStore.getState().updateState(stateWithoutWorkflows);

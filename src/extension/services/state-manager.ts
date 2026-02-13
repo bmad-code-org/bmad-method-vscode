@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { BmadDetector } from './bmad-detector';
+import * as yaml from 'js-yaml';
+import { BmadDetector, BmadPaths } from './bmad-detector';
 import { FileWatcher, FileChangeEvent, FileWatcherError } from './file-watcher';
 import type { WorkflowDiscoveryService } from './workflow-discovery';
 import { parseSprintStatus, parseEpics, parseStory } from '../parsers';
@@ -138,6 +139,9 @@ export class StateManager implements vscode.Disposable {
 
     // Parse stories
     await this.parseStories(paths.outputRoot);
+
+    // Parse BMAD manifest metadata
+    await this.parseManifest(paths);
 
     // Determine current story from sprint status
     this.determineCurrentStory();
@@ -290,6 +294,39 @@ export class StateManager implements vscode.Disposable {
       if (result.partial && 'key' in result.partial && result.partial.key) {
         this._parsedStories.set(result.partial.key, result.partial as Story);
       }
+    }
+  }
+
+  /**
+   * Parse BMAD manifest.yaml for installation metadata.
+   */
+  private async parseManifest(paths: BmadPaths): Promise<void> {
+    const manifestPath = vscode.Uri.joinPath(paths.bmadRoot, '_config', 'manifest.yaml');
+    const content = await this.readFile(manifestPath);
+    if (content === null) {
+      this._state = { ...this._state, bmadMetadata: null };
+      return;
+    }
+    try {
+      const raw = yaml.load(content) as Record<string, unknown>;
+      const installation = raw?.installation as Record<string, unknown> | undefined;
+      const modules = (raw?.modules as Array<Record<string, unknown>>) ?? [];
+      const str = (val: unknown, fallback = ''): string =>
+        typeof val === 'string' ? val : typeof val === 'number' ? String(val) : fallback;
+      this._state = {
+        ...this._state,
+        bmadMetadata: {
+          version: str(installation?.version, 'Unknown'),
+          lastUpdated: str(installation?.lastUpdated),
+          modules: modules.map((m) => ({
+            name: str(m.name),
+            version: str(m.version),
+            source: str(m.source),
+          })),
+        },
+      };
+    } catch {
+      this._state = { ...this._state, bmadMetadata: null };
     }
   }
 
