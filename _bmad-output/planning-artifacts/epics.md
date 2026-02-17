@@ -136,31 +136,31 @@ This document provides the complete epic and story breakdown for bmad-extension,
 
 ### FR Coverage Map
 
-| FR   | Epic   | Description                          |
-| ---- | ------ | ------------------------------------ |
-| FR1  | Epic 3 | View current sprint status           |
-| FR2  | Epic 3 | View epic list with completion       |
-| FR3  | Epic 3 | View active epic with story progress |
-| FR4  | Epic 3 | View active story with task progress |
-| FR5  | Epic 3 | Identify next recommended action     |
-| FR6  | Epic 2 | Parse sprint-status.yaml             |
-| FR7  | Epic 2 | Parse epic files                     |
-| FR8  | Epic 2 | Parse story files                    |
-| FR9  | Epic 1 | Detect BMAD project                  |
-| FR10 | Epic 2 | Handle malformed files gracefully    |
-| FR11 | Epic 2 | Display parsing warnings/errors      |
-| FR12 | Epic 4 | One-click workflow launch            |
-| FR13 | Epic 4 | Copy command to clipboard            |
-| FR14 | Epic 4 | Context-sensitive workflow options   |
-| FR15 | Epic 4 | Determine available workflows        |
-| FR16 | Deferred | View planning artifacts (moved to Phase 2)   |
-| FR17 | Deferred | Render markdown formatting (moved to Phase 2) |
-| FR18 | Deferred | Render Mermaid diagrams (moved to Phase 2)    |
-| FR19 | Deferred | Syntax-highlighted code blocks (Phase 2)      |
+| FR   | Epic     | Description                                             |
+| ---- | -------- | ------------------------------------------------------- |
+| FR1  | Epic 3   | View current sprint status                              |
+| FR2  | Epic 3   | View epic list with completion                          |
+| FR3  | Epic 3   | View active epic with story progress                    |
+| FR4  | Epic 3   | View active story with task progress                    |
+| FR5  | Epic 3   | Identify next recommended action                        |
+| FR6  | Epic 2   | Parse sprint-status.yaml                                |
+| FR7  | Epic 2   | Parse epic files                                        |
+| FR8  | Epic 2   | Parse story files                                       |
+| FR9  | Epic 1   | Detect BMAD project                                     |
+| FR10 | Epic 2   | Handle malformed files gracefully                       |
+| FR11 | Epic 2   | Display parsing warnings/errors                         |
+| FR12 | Epic 4   | One-click workflow launch                               |
+| FR13 | Epic 4   | Copy command to clipboard                               |
+| FR14 | Epic 4   | Context-sensitive workflow options                      |
+| FR15 | Epic 4   | Determine available workflows                           |
+| FR16 | Deferred | View planning artifacts (moved to Phase 2)              |
+| FR17 | Deferred | Render markdown formatting (moved to Phase 2)           |
+| FR18 | Deferred | Render Mermaid diagrams (moved to Phase 2)              |
+| FR19 | Deferred | Syntax-highlighted code blocks (Phase 2)                |
 | FR20 | Epic 5   | Navigate dashboard to document (partial: doc tree view) |
-| FR21 | Epic 1 | Auto-activation on BMAD detection    |
-| FR22 | Epic 1 | No activation in non-BMAD workspaces |
-| FR23 | Epic 3 | Manual refresh capability            |
+| FR21 | Epic 1   | Auto-activation on BMAD detection                       |
+| FR22 | Epic 1   | No activation in non-BMAD workspaces                    |
+| FR23 | Epic 3   | Manual refresh capability                               |
 
 ## Epic List
 

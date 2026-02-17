@@ -71,12 +71,14 @@ Validate the traceability chain from Executive Summary → Success Criteria → 
 5. Extract Product Scope (in-scope items)
 
 **Validate chains:**
+
 - Executive Summary → Success Criteria: Does vision align with defined success?
 - Success Criteria → User Journeys: Are success criteria supported by user journeys?
 - User Journeys → Functional Requirements: Does each FR trace back to a user journey?
 - Scope → FRs: Do MVP scope FRs align with in-scope items?
 
 **Identify orphans:**
+
 - FRs not traceable to any user journey or business objective
 - Success criteria not supported by user journeys
 - User journeys without supporting FRs
@@ -90,6 +92,7 @@ Return structured findings with chain status and orphan list."
 If Task tool unavailable, perform analysis directly:
 
 **Step 1: Extract key elements**
+
 - Executive Summary: Note vision, goals, objectives
 - Success Criteria: List all criteria
 - User Journeys: List user types and their flows
@@ -97,25 +100,30 @@ If Task tool unavailable, perform analysis directly:
 - Product Scope: List in-scope items
 
 **Step 2: Validate Executive Summary → Success Criteria**
+
 - Does Executive Summary mention the success dimensions?
 - Are Success Criteria aligned with vision?
 - Note any misalignment
 
 **Step 3: Validate Success Criteria → User Journeys**
+
 - For each success criterion, is there a user journey that achieves it?
 - Note success criteria without supporting journeys
 
 **Step 4: Validate User Journeys → FRs**
+
 - For each user journey/flow, are there FRs that enable it?
 - List FRs with no clear user journey origin
 - Note orphan FRs (requirements without traceable source)
 
 **Step 5: Validate Scope → FR Alignment**
+
 - Does MVP scope align with essential FRs?
 - Are in-scope items supported by FRs?
 - Note misalignments
 
 **Step 6: Build traceability matrix**
+
 - Map each FR to its source (journey or business objective)
 - Note orphan FRs
 - Identify broken chains
@@ -123,12 +131,14 @@ If Task tool unavailable, perform analysis directly:
 ### 3. Tally Traceability Issues
 
 **Broken chains:**
+
 - Executive Summary → Success Criteria gaps: count
 - Success Criteria → User Journeys gaps: count
 - User Journeys → FRs gaps: count
 - Scope → FR misalignments: count
 
 **Orphan elements:**
+
 - Orphan FRs (no traceable source): count
 - Unsupported success criteria: count
 - User journeys without FRs: count

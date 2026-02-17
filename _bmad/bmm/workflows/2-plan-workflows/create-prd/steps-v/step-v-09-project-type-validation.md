@@ -67,6 +67,7 @@ Load and read the complete file at:
 `{projectTypesData}` (../data/project-types.csv)
 
 This CSV contains:
+
 - Detection signals for each project type
 - Required sections for each project type
 - Skip/excluded sections for each project type
@@ -77,9 +78,11 @@ Internalize this data - it drives what sections must be present or absent for ea
 ### 2. Extract Project Type Classification
 
 From PRD frontmatter, extract:
+
 - `classification.projectType` - what type of project is this?
 
 **Common project types:**
+
 - api_backend
 - web_app
 - mobile_app
@@ -104,6 +107,7 @@ These MUST be present in the PRD
 These MUST NOT be present in the PRD
 
 **Example mappings from CSV:**
+
 - api_backend: Required=[endpoint_specs, auth_model, data_schemas], Skip=[ux_ui, visual_design]
 - mobile_app: Required=[platform_reqs, device_permissions, offline_mode], Skip=[desktop_features, cli_commands]
 - cli_tool: Required=[command_structure, output_formats, config_schema], Skip=[visual_design, ux_principles, touch_interactions]
@@ -114,34 +118,42 @@ These MUST NOT be present in the PRD
 **Based on project type, determine:**
 
 **api_backend:**
+
 - Required: Endpoint Specs, Auth Model, Data Schemas, API Versioning
 - Excluded: UX/UI sections, mobile-specific sections
 
 **web_app:**
+
 - Required: User Journeys, UX/UI Requirements, Responsive Design
 - Excluded: None typically
 
 **mobile_app:**
+
 - Required: Mobile UX, Platform specifics (iOS/Android), Offline mode
 - Excluded: Desktop-specific sections
 
 **desktop_app:**
+
 - Required: Desktop UX, Platform specifics (Windows/Mac/Linux)
 - Excluded: Mobile-specific sections
 
 **data_pipeline:**
+
 - Required: Data Sources, Data Transformation, Data Sinks, Error Handling
 - Excluded: UX/UI sections
 
 **ml_system:**
+
 - Required: Model Requirements, Training Data, Inference Requirements, Model Performance
 - Excluded: UX/UI sections (unless ML UI)
 
 **library_sdk:**
+
 - Required: API Surface, Usage Examples, Integration Guide
 - Excluded: UX/UI sections, deployment sections
 
 **infrastructure:**
+
 - Required: Infrastructure Components, Deployment, Monitoring, Scaling
 - Excluded: Feature requirements (this is infrastructure, not product)
 
@@ -158,12 +170,14 @@ For each: Is it present in PRD? Is it adequately documented?
 For each: Is it absent from PRD? (Should not be present)
 
 Build compliance table showing:
+
 - Required sections: [Present/Missing/Incomplete]
 - Excluded sections: [Absent/Present] (Present = violation)
 
 Return compliance table with findings."
 
 **Graceful degradation (if no Task tool):**
+
 - Manually check PRD for required sections
 - Manually check PRD for excluded sections
 - Build compliance table
@@ -171,14 +185,17 @@ Return compliance table with findings."
 ### 5. Build Compliance Table
 
 **Required sections check:**
+
 - For each required section: Present / Missing / Incomplete
 - Count: Required sections present vs total required
 
 **Excluded sections check:**
+
 - For each excluded section: Absent / Present (violation)
 - Count: Excluded sections present (violations)
 
 **Total compliance score:**
+
 - Required: {present}/{total}
 - Excluded violations: {count}
 

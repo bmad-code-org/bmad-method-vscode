@@ -121,7 +121,7 @@ so that I can understand epic progress at the story level, not just top-level co
 
 ```typescript
 export interface EpicStoryEntry {
-  key: string;        // e.g., "1-1-project-initialization"
+  key: string; // e.g., "1-1-project-initialization"
   title: string;
   description?: string;
   status?: 'backlog' | 'ready-for-dev' | 'in-progress' | 'review' | 'done';
@@ -149,7 +149,7 @@ lucide-react v0.563.0 is already installed. Icons accept standard SVG props: `si
 const [expandedEpics, setExpandedEpics] = useState<Set<number>>(new Set());
 
 const toggleEpic = useCallback((epicNum: number) => {
-  setExpandedEpics(prev => {
+  setExpandedEpics((prev) => {
     const next = new Set(prev);
     if (next.has(epicNum)) {
       next.delete(epicNum);
@@ -165,13 +165,13 @@ This allows multiple epics to be expanded simultaneously. Uses `Set` for O(1) lo
 
 **Story Status Display Mapping:**
 
-| Status | Visual | Color Variable |
-|--------|--------|---------------|
-| `done` | Checkmark icon or "Done" label | `--vscode-testing-iconPassed` (green) |
-| `in-progress` | "In Progress" label | `--vscode-textLink-foreground` (blue) |
-| `review` | "Review" label | `--vscode-charts-orange` or `--vscode-editorWarning-foreground` |
-| `ready-for-dev` | "Ready" label | `--vscode-descriptionForeground` (muted) |
-| `backlog` | "Backlog" label | `--vscode-descriptionForeground` (muted) |
+| Status          | Visual                         | Color Variable                                                  |
+| --------------- | ------------------------------ | --------------------------------------------------------------- |
+| `done`          | Checkmark icon or "Done" label | `--vscode-testing-iconPassed` (green)                           |
+| `in-progress`   | "In Progress" label            | `--vscode-textLink-foreground` (blue)                           |
+| `review`        | "Review" label                 | `--vscode-charts-orange` or `--vscode-editorWarning-foreground` |
+| `ready-for-dev` | "Ready" label                  | `--vscode-descriptionForeground` (muted)                        |
+| `backlog`       | "Backlog" label                | `--vscode-descriptionForeground` (muted)                        |
 
 **Story File Path Resolution:**
 
@@ -179,13 +179,13 @@ Story files live at `{outputRoot}/implementation-artifacts/{story.key}.md`. The 
 
 ### Library & Framework Requirements
 
-| Library | Version | Purpose |
-|---------|---------|---------|
-| React | 19.2.4 | Component framework, useState, useCallback hooks |
-| Zustand | 5.0.10 | State management (existing store, selector hooks) |
-| lucide-react | 0.563.0 | ChevronRight, ChevronDown, Check icons |
-| Tailwind CSS | v4 | Utility-first styling with VS Code theme variables |
-| clsx + tailwind-merge | installed | `cn()` utility for conditional class merging |
+| Library               | Version   | Purpose                                            |
+| --------------------- | --------- | -------------------------------------------------- |
+| React                 | 19.2.4    | Component framework, useState, useCallback hooks   |
+| Zustand               | 5.0.10    | State management (existing store, selector hooks)  |
+| lucide-react          | 0.563.0   | ChevronRight, ChevronDown, Check icons             |
+| Tailwind CSS          | v4        | Utility-first styling with VS Code theme variables |
+| clsx + tailwind-merge | installed | `cn()` utility for conditional class merging       |
 
 **No new dependencies needed.** All libraries are already installed.
 
@@ -193,21 +193,21 @@ Story files live at `{outputRoot}/implementation-artifacts/{story.key}.md`. The 
 
 **Files to MODIFY:**
 
-| File | Changes |
-|------|---------|
-| `src/webviews/dashboard/components/epic-list.tsx` | Add expand/collapse state, chevron icons, story list rendering |
-| `src/webviews/dashboard/components/epic-list.test.tsx` | Add tests for expand/collapse, story display, story click |
+| File                                                   | Changes                                                        |
+| ------------------------------------------------------ | -------------------------------------------------------------- |
+| `src/webviews/dashboard/components/epic-list.tsx`      | Add expand/collapse state, chevron icons, story list rendering |
+| `src/webviews/dashboard/components/epic-list.test.tsx` | Add tests for expand/collapse, story display, story click      |
 
 **Files to NOT MODIFY (read-only reference):**
 
-| File | Why Referenced |
-|------|--------------|
-| `src/shared/types/epic.ts` | `Epic`, `EpicStoryEntry` interfaces |
-| `src/shared/types/sprint-status.ts` | `StoryStatusValue`, `DevelopmentStatusValue` types, `isStoryKey()` |
-| `src/shared/messages.ts` | `createOpenDocumentMessage()` factory |
-| `src/webviews/dashboard/store.ts` | `useSprint()`, `useEpics()`, `useOutputRoot()` selector hooks |
-| `src/webviews/shared/utils/cn.ts` | `cn()` class merging utility |
-| `src/webviews/dashboard/components/index.ts` | Barrel export (already exports EpicList) |
+| File                                         | Why Referenced                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------ |
+| `src/shared/types/epic.ts`                   | `Epic`, `EpicStoryEntry` interfaces                                |
+| `src/shared/types/sprint-status.ts`          | `StoryStatusValue`, `DevelopmentStatusValue` types, `isStoryKey()` |
+| `src/shared/messages.ts`                     | `createOpenDocumentMessage()` factory                              |
+| `src/webviews/dashboard/store.ts`            | `useSprint()`, `useEpics()`, `useOutputRoot()` selector hooks      |
+| `src/webviews/shared/utils/cn.ts`            | `cn()` class merging utility                                       |
+| `src/webviews/dashboard/components/index.ts` | Barrel export (already exports EpicList)                           |
 
 **Files to NOT Create:** No new files needed. This is a modification to an existing component.
 
@@ -266,12 +266,14 @@ const mockEpicsWithStories: Epic[] = [
 ### Previous Story Intelligence
 
 **From Story 4.4 (Copy Command to Clipboard) - Most Recent:**
+
 - 431 tests passing (328 Vitest + 103 Mocha)
 - All verification passed: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`
 - Code review applied fixes to test data accuracy and added coverage for edge cases
 - lucide-react icons used successfully (Copy icon in CTA buttons)
 
 **From Story 3.3 (Epic List with Completion Status) - Original Implementation:**
+
 - Created the `EpicList` component being modified in this story
 - Established `deriveEpicSummaries()` pattern
 - `EpicSummary` interface derives from `sprint.development_status`
@@ -279,11 +281,13 @@ const mockEpicsWithStories: Epic[] = [
 - Current test count for this file: 13 tests
 
 **From Story 3.4 (Active Story Card with Task Progress):**
+
 - Established story status visual patterns
 - Used `StoryStatusValue` type for status display
 - Story file path pattern: `{key}.md` in implementation-artifacts
 
 **Git Intelligence:**
+
 - Commit pattern: `feat: 5-1-epic-detail-view-with-story-lists`
 - Build validation: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`
 - Recent commits are clean, linear progression
@@ -291,6 +295,7 @@ const mockEpicsWithStories: Epic[] = [
 ### Key Existing Code Reference
 
 **Current `epic-list.tsx` structure (184 lines):**
+
 - `deriveEpicSummaries()` — builds EpicSummary[] from sprint.development_status
 - `getEpicTitle()` — looks up epic title from epicsData
 - `getStatusLabel()` — maps status to display string
@@ -300,6 +305,7 @@ const mockEpicsWithStories: Epic[] = [
 **The expand/collapse logic should be added TO the existing `EpicList` component.** Do NOT create a separate component for the story list — keep it inline within the epic list item rendering for simplicity.
 
 **Current epic item structure:**
+
 ```tsx
 <div key={summary.key} className="flex flex-col gap-1 rounded px-2 py-1.5">
   <div className="flex items-center justify-between">
@@ -314,6 +320,7 @@ const mockEpicsWithStories: Epic[] = [
 ### Design Decision: Epic Title Click Behavior
 
 Currently clicking an epic title opens `epics.md`. This behavior changes:
+
 - **Click** (no modifier): Toggle expand/collapse of the story list
 - **Shift+click**: Open `epics.md` in text editor (preserves existing shift+click behavior)
 

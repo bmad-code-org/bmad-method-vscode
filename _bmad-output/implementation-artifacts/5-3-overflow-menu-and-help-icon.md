@@ -100,6 +100,7 @@ The help icon and overflow menu are tightly coupled (both live in the header too
 Use `useState<boolean>` for open/closed + `useRef<HTMLDivElement>` for click-outside detection. This is the same local-state pattern used in `epic-list.tsx` (expandedEpics with `useState<Set<number>>`). Do NOT install a headless UI library — keep deps minimal.
 
 **Click-Outside Pattern:**
+
 ```typescript
 const menuRef = useRef<HTMLDivElement>(null);
 useEffect(() => {
@@ -115,6 +116,7 @@ useEffect(() => {
 ```
 
 **Escape Key Pattern:**
+
 ```typescript
 useEffect(() => {
   if (!isOpen) return;
@@ -127,11 +129,13 @@ useEffect(() => {
 ```
 
 **Icons from lucide-react (already installed v0.563.0):**
+
 - Help icon: `HelpCircle` (renders as "?" in a circle)
 - Overflow menu: `EllipsisVertical` (renders as vertical "...")
 - Refresh: `RefreshCw` (for menu item icon, optional)
 
 **Message Protocol — All message types already exist, NO new types needed:**
+
 - `createCopyCommandMessage('bmad help')` — for help icon click
 - `createRefreshMessage()` — for Refresh menu item
 - `createExecuteWorkflowMessage(workflow.command)` — for workflow menu items
@@ -143,15 +147,18 @@ Show ALL workflows from `useWorkflows()` in the overflow menu (both primary and 
 Position the dropdown absolutely, anchored to the overflow button. Use `absolute right-0 top-full mt-1` to drop below the button aligned to the right edge. Apply `z-10` to ensure it renders above other content.
 
 **Menu Styling (VS Code-native feel):**
+
 ```
 bg-[var(--vscode-menu-background)]
 border border-[var(--vscode-menu-border)]
 text-[var(--vscode-menu-foreground)]
 shadow-md rounded
 ```
+
 Menu items on hover: `hover:bg-[var(--vscode-menu-selectionBackground)]`
 
 **Button Styling (matching existing icon buttons from story 5.2):**
+
 ```
 rounded p-1
 text-[var(--vscode-descriptionForeground)]
@@ -166,12 +173,14 @@ The epics mention "if TEA module is installed" but there is no TEA detection log
 ### Previous Story Intelligence (5.1 + 5.2)
 
 **From Story 5.1 (Epic Detail View):**
+
 - `useState<Set<number>>` for expand/collapse state management
 - `animate-expand-in` CSS keyframe already defined in `src/webviews/index.css` — reuse for menu animation
 - `useCallback` for event handlers to prevent unnecessary re-renders
 - `cn()` utility from `../../shared/utils/cn` for conditional classNames
 
 **From Story 5.2 (Next Action Enhancements):**
+
 - `actionButtonClass` constant pattern for consistent button styling
 - `useWorkflows()` selector provides `AvailableWorkflow[]` from Zustand store
 - `useVSCodeApi()` hook from `../../shared/hooks` for message posting
@@ -234,11 +243,13 @@ import { useDashboardStore } from '../store';
 **Expected commit:** `feat: 5-3-overflow-menu-and-help-icon`
 
 **Recent work context (last 3 commits):**
+
 - `1bd141e` — Story 5.1: Added epic expand/collapse with story lists, introduced `animate-expand-in` CSS keyframe, added docs/ folder
 - `5e0748d` — Story 4.4: Added copy-to-clipboard pattern with `Copy` icon from lucide-react
 - `976790e` — Story 4.3: Terminal workflow execution, created terminal execution pattern
 
 **Patterns established:**
+
 - Icon buttons use `size={12}` for inline, `size={14}` for standalone
 - All buttons have `data-testid`, `aria-label`, `title` attributes
 - Tests mock `useVSCodeApi` and set Zustand store state directly
@@ -246,15 +257,15 @@ import { useDashboardStore } from '../store';
 
 ### Library/Framework Requirements
 
-| Library | Version | Usage in This Story |
-|---|---|---|
-| React | 19.2.4 | Component framework, useState, useRef, useEffect, useCallback |
-| lucide-react | 0.563.0 | HelpCircle, EllipsisVertical, RefreshCw icons |
-| zustand | 5.0.10 | useWorkflows(), useLoading() selectors |
-| tailwindcss | v4 | Styling with VS Code CSS variables |
-| clsx + tailwind-merge | via cn() | Conditional className composition |
-| vitest | — | Test runner |
-| @testing-library/react | — | Component testing (render, screen, fireEvent) |
+| Library                | Version  | Usage in This Story                                           |
+| ---------------------- | -------- | ------------------------------------------------------------- |
+| React                  | 19.2.4   | Component framework, useState, useRef, useEffect, useCallback |
+| lucide-react           | 0.563.0  | HelpCircle, EllipsisVertical, RefreshCw icons                 |
+| zustand                | 5.0.10   | useWorkflows(), useLoading() selectors                        |
+| tailwindcss            | v4       | Styling with VS Code CSS variables                            |
+| clsx + tailwind-merge  | via cn() | Conditional className composition                             |
+| vitest                 | —        | Test runner                                                   |
+| @testing-library/react | —        | Component testing (render, screen, fireEvent)                 |
 
 **No new dependencies required.** All libraries are already installed.
 
@@ -291,11 +302,13 @@ Claude Opus 4.6
 **Findings Summary:** 0 High, 4 Medium, 3 Low
 
 **Acknowledged (no action):**
+
 - M1: Story File List incomplete — 5 files changed in git but undocumented (cta-buttons.tsx/test, next-action-recommendation.tsx/test, package.json). These belong to story 5-2 scope.
 - M2: Story 5-2 changes uncommitted and interleaved with 5-3 in working tree. 5-2 marked "done" but never committed.
 - M4: package.json name/publisher changes are out of scope and undocumented.
 
 **Fixed:**
+
 - M3: Deleted orphaned `refresh-button.tsx` and `refresh-button.test.tsx` (dead code — no longer exported or imported by any component)
 - L1: Added `Play` icon to workflow menu items for visual consistency with Refresh item
 - L2: Added `role="menu"` on dropdown container and `role="menuitem"` on all menu items (WAI-ARIA menu pattern)

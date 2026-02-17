@@ -62,16 +62,20 @@ Output markdown summary:
 ## Generated Tests
 
 ### API Tests
+
 - [x] tests/api/endpoint.spec.ts - Endpoint validation
 
 ### E2E Tests
+
 - [x] tests/e2e/feature.spec.ts - User workflow
 
 ## Coverage
+
 - API endpoints: 5/10 covered
 - UI features: 3/8 covered
 
 ## Next Steps
+
 - Run tests in CI
 - Add more edge cases as needed
 ```

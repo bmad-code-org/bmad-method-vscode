@@ -7,7 +7,7 @@ Status: done
 ## Story
 
 As a developer,
-I want reliable parsing of epic markdown files (epic-*.md),
+I want reliable parsing of epic markdown files (epic-\*.md),
 So that the extension can extract epic metadata and story lists.
 
 ## Acceptance Criteria
@@ -96,6 +96,7 @@ So that the extension can extract epic metadata and story lists.
    - WRONG: `EpicParser.ts`, `epicParser.ts`
 
 2. **Function Naming**: camelCase
+
    ```typescript
    export function parseEpic(content: string, filePath?: string): ParseResult<Epic> { ... }
    export async function parseEpicFile(filePath: string): Promise<ParseResult<Epic>> { ... }
@@ -121,12 +122,14 @@ So that the extension can extract epic metadata and story lists.
 ### Technical Specifications
 
 **Parsing Library: gray-matter**
+
 - Use `matter()` function to extract frontmatter and content
 - Returns `{ data: object, content: string }` structure
 - Handles missing frontmatter gracefully (returns empty `data` object)
 - Handles YAML frontmatter errors - catch and return ParseFailure
 
 **Expected Epic File Structure (from epics.md):**
+
 ```markdown
 ---
 stepsCompleted: [step-01, step-02, step-03]
@@ -150,6 +153,7 @@ So that type safety is enforced across extension host and webview boundaries.
 ```
 
 **Key Parsing Requirements:**
+
 - Epic number extracted from H2 heading: `## Epic N: Title` → number = N
 - Epic key generated as: `epic-${number}`
 - Story number extracted from H3 heading: `### Story N.M: Title` → key = `N-M-kebab-case-title`
@@ -166,21 +170,21 @@ interface EpicMetadata {
 }
 
 interface EpicStoryEntry {
-  key: string;           // e.g., "2-1-shared-types"
-  title: string;         // e.g., "Shared Types and Message Protocol"
-  description?: string;  // e.g., "As a developer, I want..."
-  status?: StoryStatusValue;  // From sprint-status (merged later)
+  key: string; // e.g., "2-1-shared-types"
+  title: string; // e.g., "Shared Types and Message Protocol"
+  description?: string; // e.g., "As a developer, I want..."
+  status?: StoryStatusValue; // From sprint-status (merged later)
 }
 
 interface Epic {
-  number: number;        // e.g., 2
-  key: string;           // e.g., "epic-2"
-  title: string;         // e.g., "BMAD File Parsing & State Management"
-  description: string;   // Epic description paragraph
+  number: number; // e.g., 2
+  key: string; // e.g., "epic-2"
+  title: string; // e.g., "BMAD File Parsing & State Management"
+  description: string; // Epic description paragraph
   metadata: EpicMetadata;
   stories: EpicStoryEntry[];
-  filePath: string;      // Relative path to epic file
-  status: EpicStatusValue;  // From sprint-status (merged later)
+  filePath: string; // Relative path to epic file
+  status: EpicStatusValue; // From sprint-status (merged later)
 }
 ```
 
@@ -219,10 +223,10 @@ export function parseEpic(content: string, filePath?: string): ParseResult<Epic>
     // Parse epic header: ## Epic N: Title
     const epicHeaderMatch = markdownContent.match(/^##\s+Epic\s+(\d+):\s+(.+)$/m);
     if (!epicHeaderMatch) {
-      return parseFailure(
-        'Invalid epic file: missing epic header (expected "## Epic N: Title")',
-        { metadata, filePath }
-      );
+      return parseFailure('Invalid epic file: missing epic header (expected "## Epic N: Title")', {
+        metadata,
+        filePath,
+      });
     }
 
     const epicNumber = parseInt(epicHeaderMatch[1], 10);
@@ -263,7 +267,8 @@ const EPIC_HEADER_REGEX = /^##\s+Epic\s+(\d+):\s+(.+)$/m;
 const STORY_HEADER_REGEX = /^###\s+Story\s+(\d+)\.(\d+):\s+(.+)$/gm;
 
 // User story pattern: As a [role], I want [action], so that [benefit]
-const USER_STORY_REGEX = /As\s+(?:a|an)\s+([^,]+),\s*\n?I\s+want\s+([^,]+),\s*\n?(?:so\s+that|So\s+that)\s+([^.]+)/i;
+const USER_STORY_REGEX =
+  /As\s+(?:a|an)\s+([^,]+),\s*\n?I\s+want\s+([^,]+),\s*\n?(?:so\s+that|So\s+that)\s+([^.]+)/i;
 ```
 
 ### Project Structure for Story 2.3
@@ -284,6 +289,7 @@ src/extension/parsers/
 **Test File Location**: `src/extension/parsers/epic-parser.test.ts` (co-located)
 
 **Fixture Pattern (based on actual epics.md structure):**
+
 ```typescript
 import { describe, it, expect } from 'vitest';
 import { parseEpic, parseEpicFile } from './epic-parser';
@@ -374,6 +380,7 @@ Some content.
 7. **js-yaml Date handling**: Be aware gray-matter uses js-yaml internally for YAML parsing
 
 **Stack Versions (from Story 2.2):**
+
 - TypeScript 5.9.3
 - Vitest 4.0.18
 - pnpm (package manager)
@@ -382,6 +389,7 @@ Some content.
 ### Git Intelligence
 
 **Recent Commits:**
+
 ```
 209ed1d feat: 2-2-sprint-status-parser
 6e2123e feat: 2-1-shared-types-and-message-protocol
@@ -393,6 +401,7 @@ Some content.
 ### Epic 2 Context
 
 This is Story 2.3 in Epic 2 (BMAD File Parsing & State Management). The parser created here will be used by:
+
 - Story 2.6: State Manager (aggregates parsed epics into DashboardState)
 - Epic 3: Dashboard State Visibility (displays epic list and progress)
 
@@ -410,6 +419,7 @@ pnpm add -D @types/gray-matter
 ### Error Message Guidelines
 
 Follow architecture pattern for error messages:
+
 - Sentence case, user-friendly
 - Include context: "Invalid epic file: missing epic header (expected '## Epic N: Title')"
 - Never expose stack traces to UI
@@ -418,19 +428,17 @@ Follow architecture pattern for error messages:
 ### Graceful Degradation (NFR7)
 
 When partial data is available, return it:
+
 ```typescript
 // If frontmatter is valid but markdown parsing fails:
-return parseFailure(
-  'Failed to parse story headings: invalid format',
-  {
-    number: epicNumber,
-    key: `epic-${epicNumber}`,
-    title: epicTitle,
-    metadata,
-    filePath,
-    // stories omitted - that's what failed
-  }
-);
+return parseFailure('Failed to parse story headings: invalid format', {
+  number: epicNumber,
+  key: `epic-${epicNumber}`,
+  title: epicTitle,
+  metadata,
+  filePath,
+  // stories omitted - that's what failed
+});
 ```
 
 This allows the dashboard to show "Epic 2: BMAD File Parsing" even if story list parsing failed.
@@ -438,6 +446,7 @@ This allows the dashboard to show "Epic 2: BMAD File Parsing" even if story list
 ### kebab-case Title Conversion
 
 For generating story keys from titles:
+
 ```typescript
 /**
  * Convert title to kebab-case key
@@ -447,9 +456,9 @@ function toKebabCase(title: string): string {
   return title
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
-    .replace(/\s+/g, '-')          // Spaces to dashes
-    .replace(/-+/g, '-')           // Collapse multiple dashes
-    .replace(/^-|-$/g, '');        // Trim leading/trailing dashes
+    .replace(/\s+/g, '-') // Spaces to dashes
+    .replace(/-+/g, '-') // Collapse multiple dashes
+    .replace(/^-|-$/g, ''); // Trim leading/trailing dashes
 }
 
 // Story key format: N-M-kebab-title
@@ -496,10 +505,12 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### File List
 
 **New Files:**
+
 - src/extension/parsers/epic-parser.ts
 - src/extension/parsers/epic-parser.test.ts
 
 **Modified Files:**
+
 - src/extension/parsers/index.ts (added epic-parser exports)
 - package.json (added gray-matter dependency)
 - pnpm-lock.yaml (updated with gray-matter and its dependencies)
@@ -510,6 +521,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 **Reviewer:** Claude Opus 4.5 (Adversarial Code Review)
 
 **Issues Found & Fixed:**
+
 1. ✅ [MEDIUM] Documented magic number -20 in story content extraction
 2. ✅ [MEDIUM] Added large file performance boundary test
 3. ✅ [MEDIUM] Standardized error message format (all parse errors use "Epic parser:" prefix)
@@ -518,6 +530,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 6. ✅ [LOW] Added JSDoc to internal helper functions (toKebabCase, extractEpicDescription, parseStoryEntries)
 
 **Verification:**
+
 - All 160+ tests passing
 - TypeScript build clean
 - ESLint clean
@@ -526,4 +539,3 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - 2026-01-29: Implemented Epic File Parser (Story 2.3) - Added parseEpic() and parseEpicFile() functions with comprehensive test coverage (29 tests)
 - 2026-01-29: Code Review Fixes - Added JSDoc documentation, documented magic number, standardized error messages, added type re-exports, added performance tests (31 tests total)
-

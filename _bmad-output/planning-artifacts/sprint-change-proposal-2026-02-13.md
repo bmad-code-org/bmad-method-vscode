@@ -38,15 +38,16 @@ The original Epic 5 (Document Viewing) defined a rich markdown rendering experie
 
 ### Epic Impact
 
-| Epic | Impact | Details |
-|------|--------|---------|
-| Epic 1-4 | None | Completed, no changes needed |
-| Epic 5 | **Complete redefinition** | Old: Document Viewing (6 stories) → New: UX Polish & Dashboard Enhancements (6 stories) |
-| Future Epics | None | No planned epics beyond Epic 5 |
+| Epic         | Impact                    | Details                                                                                 |
+| ------------ | ------------------------- | --------------------------------------------------------------------------------------- |
+| Epic 1-4     | None                      | Completed, no changes needed                                                            |
+| Epic 5       | **Complete redefinition** | Old: Document Viewing (6 stories) → New: UX Polish & Dashboard Enhancements (6 stories) |
+| Future Epics | None                      | No planned epics beyond Epic 5                                                          |
 
 ### Story Impact
 
 **Removed Stories (6):**
+
 - 5.1: Document Viewer Tab Panel Registration
 - 5.2: Dashboard to Document Navigation
 - 5.3: Basic Markdown Rendering
@@ -55,6 +56,7 @@ The original Epic 5 (Document Viewing) defined a rich markdown rendering experie
 - 5.6: Progressive Loading for Large Documents
 
 **New Stories (6):**
+
 - 5.1: Epic Detail View with Story Lists (retro #1)
 - 5.2: Next Action Enhancements (retro #4, #5)
 - 5.3: Overflow Menu & Help Icon (retro #3, #6)
@@ -64,12 +66,12 @@ The original Epic 5 (Document Viewing) defined a rich markdown rendering experie
 
 ### Artifact Conflicts
 
-| Artifact | Impact | Action Needed |
-|----------|--------|---------------|
-| **epics.md** | High | Full Epic 5 rewrite — summary, FR map, and all stories |
-| **PRD** | Medium | FR16-19 deferred to Phase 2; MVP scope note for Document Viewing |
-| **Architecture** | Low | No fundamental changes; Kanban view reuses dual-webview pattern |
-| **sprint-status.yaml** | Low | Already partially updated; story entries needed after story creation |
+| Artifact               | Impact | Action Needed                                                        |
+| ---------------------- | ------ | -------------------------------------------------------------------- |
+| **epics.md**           | High   | Full Epic 5 rewrite — summary, FR map, and all stories               |
+| **PRD**                | Medium | FR16-19 deferred to Phase 2; MVP scope note for Document Viewing     |
+| **Architecture**       | Low    | No fundamental changes; Kanban view reuses dual-webview pattern      |
+| **sprint-status.yaml** | Low    | Already partially updated; story entries needed after story creation |
 
 ### Technical Impact
 
@@ -86,6 +88,7 @@ The original Epic 5 (Document Viewing) defined a rich markdown rendering experie
 ### Selected Path: Direct Adjustment
 
 **Rationale:**
+
 - Epic 5 is in backlog status — no work started, no code to revert
 - All 10 new features build on proven patterns from Epics 1-4
 - No architectural changes required
@@ -98,9 +101,9 @@ The original Epic 5 (Document Viewing) defined a rich markdown rendering experie
 
 ### Alternatives Considered
 
-| Option | Assessment |
-|--------|-----------|
-| Rollback | Not viable — nothing to roll back |
+| Option     | Assessment                                                       |
+| ---------- | ---------------------------------------------------------------- |
+| Rollback   | Not viable — nothing to roll back                                |
 | MVP Review | Not needed — core MVP (Epics 1-4) is delivered; this enhances it |
 
 ---
@@ -110,6 +113,7 @@ The original Epic 5 (Document Viewing) defined a rich markdown rendering experie
 ### 4.1 epics.md — Epic List Summary
 
 **OLD:**
+
 ```
 ### Epic 5: Document Viewing
 
@@ -119,6 +123,7 @@ Developer can view any BMAD planning artifact with rich rendering - Mermaid diag
 ```
 
 **NEW:**
+
 ```
 ### Epic 5: UX Polish & Dashboard Enhancements
 
@@ -130,6 +135,7 @@ Developer benefits from a refined dashboard experience with epic drill-down view
 ### 4.2 epics.md — FR Coverage Map
 
 **OLD:**
+
 ```
 | FR16 | Epic 5 | View planning artifacts              |
 | FR17 | Epic 5 | Render markdown formatting           |
@@ -139,6 +145,7 @@ Developer benefits from a refined dashboard experience with epic drill-down view
 ```
 
 **NEW:**
+
 ```
 | FR16 | Deferred | View planning artifacts (moved to Phase 2)  |
 | FR17 | Deferred | Render markdown formatting (moved to Phase 2)|
@@ -160,7 +167,7 @@ Developer benefits from a refined dashboard experience with epic drill-down view
 - **Story 5.5: Keyboard Navigation & Doc Tree View** — Ctrl/Cmd+click for raw files; planning artifacts tree view
 - **Story 5.6: Kanban Board View** — Editor panel webview with story cards in status columns
 
-*(Full acceptance criteria for each story documented in the approved edit proposals and will be written to epics.md upon approval)*
+_(Full acceptance criteria for each story documented in the approved edit proposals and will be written to epics.md upon approval)_
 
 ---
 
@@ -172,12 +179,12 @@ This is a **planning artifact update** — no code changes, no backlog reorganiz
 
 ### Handoff Plan
 
-| Role | Responsibility |
-|------|---------------|
-| **Alice (PO)** | Update epics.md with new Epic 5 scope and stories |
-| **Bob (SM)** | Begin story creation workflow for Epic 5 stories |
-| **Charlie (Dev)** | Update architecture doc (parallel, per retro action item) |
-| **Development Team** | Implement Epic 5 stories once story files are created |
+| Role                 | Responsibility                                            |
+| -------------------- | --------------------------------------------------------- |
+| **Alice (PO)**       | Update epics.md with new Epic 5 scope and stories         |
+| **Bob (SM)**         | Begin story creation workflow for Epic 5 stories          |
+| **Charlie (Dev)**    | Update architecture doc (parallel, per retro action item) |
+| **Development Team** | Implement Epic 5 stories once story files are created     |
 
 ### Deliverables
 
@@ -194,4 +201,4 @@ This is a **planning artifact update** — no code changes, no backlog reorganiz
 
 ---
 
-*Sprint Change Proposal generated 2026-02-13 via Correct Course workflow*
+_Sprint Change Proposal generated 2026-02-13 via Correct Course workflow_

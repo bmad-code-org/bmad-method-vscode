@@ -58,6 +58,7 @@ Conduct project-type specific discovery using CSV-driven guidance to define tech
 "Your task: Lookup data in {projectTypesCSV}
 
 **Search criteria:**
+
 - Find row where project_type matches {{projectTypeFromStep02}}
 
 **Return format:**
@@ -67,6 +68,7 @@ project_type, key_questions, required_sections, skip_sections, innovation_signal
 **Do NOT return the entire CSV - only the matching row.**"
 
 **Graceful degradation (if Task tool unavailable):**
+
 - Load the CSV file directly
 - Find the matching row manually
 - Extract required fields:
@@ -172,12 +174,14 @@ Present the project-type content for review, then display menu:
 Display: "**Select:** [A] Advanced Elicitation [P] Party Mode [C] Continue to Scoping (Step 8 of 11)"
 
 #### Menu Handling Logic:
+
 - IF A: Read fully and follow: {advancedElicitationTask} with the current project-type content, process the enhanced technical insights that come back, ask user "Accept these improvements to the technical requirements? (y/n)", if yes update content with improvements then redisplay menu, if no keep original content then redisplay menu
 - IF P: Read fully and follow: {partyModeWorkflow} with the current project-type requirements, process the collaborative technical expertise and validation, ask user "Accept these changes to the technical requirements? (y/n)", if yes update content with improvements then redisplay menu, if no keep original content then redisplay menu
 - IF C: Append the final content to {outputFile}, update frontmatter by adding this step name to the end of the stepsCompleted array, then read fully and follow: {nextStepFile}
 - IF Any other: help user respond, then redisplay menu
 
 #### EXECUTION RULES:
+
 - ALWAYS halt and wait for user input after presenting menu
 - ONLY proceed to next step when user selects 'C'
 - After other menu items execution, return to this menu

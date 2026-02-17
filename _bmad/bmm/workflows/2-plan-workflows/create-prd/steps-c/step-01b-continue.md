@@ -71,12 +71,14 @@ Review the frontmatter to understand:
 ### 3. Determine Next Step
 
 **Simplified Next Step Logic:**
+
 1. Get the last element from the `stepsCompleted` array (this is the filename of the last completed step, e.g., "step-03-success.md")
 2. Load that step file and read its frontmatter
 3. Extract the `nextStepFile` value from the frontmatter
 4. That's the next step to load!
 
 **Example:**
+
 - If `stepsCompleted = ["step-01-init.md", "step-02-discovery.md", "step-03-success.md"]`
 - Last element is `"step-03-success.md"`
 - Load `step-03-success.md`, read its frontmatter
@@ -104,11 +106,13 @@ What would be most helpful?"
 "Welcome back {{user_name}}! I'm resuming our PRD collaboration for {{project_name}}.
 
 **Current Progress:**
+
 - Last completed: {last step filename from stepsCompleted array}
 - Next up: {nextStepFile determined from that step's frontmatter}
 - Context documents available: {len(inputDocuments)} files
 
 **Document Status:**
+
 - Current PRD document is ready with all completed sections
 - Ready to continue from where we left off
 

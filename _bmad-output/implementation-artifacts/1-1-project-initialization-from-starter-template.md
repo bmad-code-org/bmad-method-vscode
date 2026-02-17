@@ -81,6 +81,7 @@ So that I have a properly configured VS Code extension with React webview suppor
 **Source**: https://github.com/githubnext/vscode-react-webviews
 
 **Key Technologies Provided**:
+
 - React for webview UI
 - Vite for webview bundling (esbuild under the hood)
 - esbuild for extension host bundling
@@ -88,12 +89,14 @@ So that I have a properly configured VS Code extension with React webview suppor
 - TypeScript with separate configs for extension and webview contexts
 
 **What Template Provides**:
+
 - `.vscode/` launch configurations pre-configured
 - `tasks.json` waits for builds before launching
 - `css_custom_data.json` for Tailwind directive support
 - Separate tsconfig files for extension and webview
 
 **What Template Does NOT Provide** (must add in Story 1.2):
+
 - Test framework (Vitest, @vscode/test-electron)
 - Test file co-location structure
 
@@ -111,9 +114,7 @@ The `package.json` must include these VS Code extension fields:
     "vscode": "^1.85.0"
   },
   "categories": ["Other"],
-  "activationEvents": [
-    "workspaceContains:**/_bmad/**"
-  ],
+  "activationEvents": ["workspaceContains:**/_bmad/**"],
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -146,11 +147,13 @@ The `package.json` must include these VS Code extension fields:
 ### Project Structure Notes
 
 **Alignment with Architecture**:
+
 - Directory structure follows architecture document exactly
 - TypeScript boundary enforcement is critical for preventing Node.js/browser API mixing
 - Shared types location (`/src/shared/`) enables clean message protocol
 
 **Important Considerations**:
+
 - Preserve existing `_bmad/` and `_bmad-output/` directories during initialization
 - The starter template may have different default directory names - adjust to match architecture
 - Ensure `.gitignore` excludes `node_modules/`, `dist/`, `out/`, and `.vscode-test/`
@@ -158,12 +161,14 @@ The `package.json` must include these VS Code extension fields:
 ### Build Commands
 
 **Development**:
+
 ```bash
 pnpm watch          # Watches both extension and webview
 # Then F5 in VS Code to launch Extension Development Host
 ```
 
 **Production Build**:
+
 ```bash
 pnpm build          # Builds extension + webviews
 ```
@@ -171,6 +176,7 @@ pnpm build          # Builds extension + webviews
 ### VS Code Engine Compatibility
 
 **Target**: VS Code versions from past 3 months (NFR9)
+
 - As of January 2026, target `"vscode": "^1.96.0"`
 - Check VS Code release notes for API compatibility
 

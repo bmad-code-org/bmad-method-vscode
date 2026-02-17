@@ -81,14 +81,21 @@ So that the extension only activates in relevant workspaces.
    - WRONG: `BmadDetector.ts`, `bmadDetector.ts`
 
 2. **Never Throw from Service Functions**: Return typed result objects, matching the ParseResult pattern spirit
+
    ```typescript
    type DetectionResult =
      | { detected: true; bmadRoot: vscode.Uri; outputRoot: vscode.Uri | null }
-     | { detected: false; reason: 'no-workspace' | 'not-found' | 'not-directory' | 'error'; message?: string }
+     | {
+         detected: false;
+         reason: 'no-workspace' | 'not-found' | 'not-directory' | 'error';
+         message?: string;
+       };
    ```
+
    Note: `outputRoot` is `null` when `_bmad-output/` doesn't exist yet (fresh BMAD projects). Detection succeeds based on `_bmad/` alone.
 
 3. **Use `vscode.workspace.fs`** (NOT Node.js `fs` module): This ensures compatibility with remote development (WSL, SSH, Codespaces). Pattern:
+
    ```typescript
    try {
      await vscode.workspace.fs.stat(bmadUri);
@@ -121,6 +128,7 @@ So that the extension only activates in relevant workspaces.
 ```
 
 **Key VS Code APIs:**
+
 - `vscode.workspace.workspaceFolders` — array of workspace folders (may be undefined)
 - `vscode.workspace.fs.stat(uri)` — returns `FileStat` or throws `FileSystemError`
 - `vscode.Uri.joinPath(baseUri, ...pathSegments)` — construct child URIs (cross-platform safe)
@@ -129,6 +137,7 @@ So that the extension only activates in relevant workspaces.
 **Integration with extension.ts:**
 
 Current `activate()` function registers DashboardViewProvider unconditionally. Story 1.3 should:
+
 1. First call `BmadDetector.detectBmadProject()`
 2. Pass detection result to DashboardViewProvider
 3. DashboardViewProvider MUST always be registered (VS Code requires it for contributed views in `package.json`)
@@ -174,6 +183,7 @@ The `workspaceContains` activation event already prevents activation in non-BMAD
 ### Git Intelligence
 
 **Recent Commits:**
+
 ```
 3817979 chore: BMAD udpdate
 b37f122 feat: 1-2-test-framework-configuration
@@ -185,6 +195,7 @@ b37f122 feat: 1-2-test-framework-configuration
 **Commit Convention**: `feat: <story-key>` for story implementations. This story should commit as `feat: 1-3-bmad-project-detection`.
 
 **Files Created by Previous Stories:**
+
 - `src/extension/extension.ts` — will be modified in this story
 - `src/extension/services/index.ts` — placeholder, will be updated
 - `src/extension/providers/dashboard-view-provider.ts` — no changes needed
@@ -203,12 +214,14 @@ b37f122 feat: 1-2-test-framework-configuration
 ### File Structure Requirements
 
 **Files to Create:**
+
 ```
 src/extension/services/bmad-detector.ts          # NEW - BMAD detection service
 src/extension/services/bmad-detector.test.ts      # NEW - Extension host test (Mocha TDD)
 ```
 
 **Files to Modify:**
+
 ```
 src/extension/extension.ts                        # MODIFY - Add detection before registration
 src/extension/services/index.ts                   # MODIFY - Export BmadDetector
@@ -216,6 +229,7 @@ src/extension/providers/dashboard-view-provider.ts # MODIFY - Accept DetectionRe
 ```
 
 **Files NOT to Modify:**
+
 ```
 package.json                                      # activationEvents already correct
 src/extension/extension.test.ts                   # Keep existing tests passing
@@ -228,6 +242,7 @@ src/extension/extension.test.ts                   # Keep existing tests passing
 **Test File**: `src/extension/services/bmad-detector.test.ts`
 
 **Test Pattern:**
+
 ```typescript
 import { suite, test } from 'mocha';
 import * as assert from 'assert';
@@ -246,6 +261,7 @@ suite('BmadDetector', () => {
 **Test Strategy:** Tests run via @vscode/test-electron in a real VS Code instance. The test workspace (this project) already contains a `_bmad/` directory, so the happy-path test can detect it directly. For negative tests, construct a URI to a known-nonexistent path within the workspace.
 
 **Coverage Expectations:**
+
 - Happy path: `_bmad/` directory exists → detected
 - Missing: `_bmad/` directory absent → not detected
 - No workspace: `workspaceFolders` is undefined → not detected (may require mocking or conditional skip)
@@ -289,10 +305,12 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### File List
 
 **New Files:**
+
 - `src/extension/services/bmad-detector.ts` — BMAD project detection service
 - `src/extension/services/bmad-detector.test.ts` — Extension host tests for detector (6 tests)
 
 **Modified Files:**
+
 - `src/extension/extension.ts` — Integrated BmadDetector, async activate, pass detection result to provider
 - `src/extension/services/index.ts` — Updated barrel export to include BmadDetector types
 - `src/extension/providers/dashboard-view-provider.ts` — Accept DetectionResult, render "Not a BMAD project" for non-detected workspaces

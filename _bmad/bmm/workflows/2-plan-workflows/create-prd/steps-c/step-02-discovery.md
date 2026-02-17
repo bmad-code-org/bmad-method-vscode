@@ -66,6 +66,7 @@ Discover and classify the project - understand what type of product this is, wha
 ## YOUR TASK:
 
 Discover and classify the project through natural conversation:
+
 - What type of product is this? (web app, API, mobile, etc.)
 - What domain does it operate in? (healthcare, fintech, e-commerce, etc.)
 - What's the project context? (greenfield new product vs brownfield existing system)
@@ -76,6 +77,7 @@ Discover and classify the project through natural conversation:
 ### 1. Check Document State
 
 Read the frontmatter from `{outputFile}` to get document counts:
+
 - `briefCount` - Product briefs available
 - `researchCount` - Research documents available
 - `brainstormingCount` - Brainstorming docs available
@@ -84,6 +86,7 @@ Read the frontmatter from `{outputFile}` to get document counts:
 **Announce your understanding:**
 
 "From step 1, I have loaded:
+
 - Product briefs: {{briefCount}}
 - Research: {{researchCount}}
 - Brainstorming: {{brainstormingCount}}
@@ -99,6 +102,7 @@ Read the frontmatter from `{outputFile}` to get document counts:
 "Your task: Lookup data in {projectTypesCSV}
 
 **Search criteria:**
+
 - Find row where project_type matches {{detectedProjectType}}
 
 **Return format:**
@@ -111,6 +115,7 @@ project_type, detection_signals
 "Your task: Lookup data in {domainComplexityCSV}
 
 **Search criteria:**
+
 - Find row where domain matches {{detectedDomain}}
 
 **Return format:**
@@ -120,6 +125,7 @@ domain, complexity, typical_concerns, compliance_requirements
 **Do NOT return the entire CSV - only the matching row.**"
 
 **Graceful degradation (if Task tool unavailable):**
+
 - Load the CSV files directly
 - Find the matching rows manually
 - Extract required fields
@@ -132,6 +138,7 @@ domain, complexity, typical_concerns, compliance_requirements
 If the user has a product brief or project docs, acknowledge them and share your understanding. Then ask clarifying questions to deepen your understanding.
 
 If this is a greenfield project with no docs, start with open-ended discovery:
+
 - What problem does this solve?
 - Who's it for?
 - What excites you about building this?
@@ -139,6 +146,7 @@ If this is a greenfield project with no docs, start with open-ended discovery:
 **Listen for classification signals:**
 
 As the user describes their product, match against:
+
 - **Project type signals** (API, mobile, SaaS, etc.)
 - **Domain signals** (healthcare, fintech, education, etc.)
 - **Complexity indicators** (regulated industries, novel technology, etc.)
@@ -148,6 +156,7 @@ As the user describes their product, match against:
 Once you have enough understanding, share your classification:
 
 "I'm hearing this as:
+
 - **Project Type:** {{detectedType}}
 - **Domain:** {{detectedDomain}}
 - **Complexity:** {{complexityLevel}}
@@ -159,12 +168,13 @@ Let the user confirm or refine your classification.
 ### 5. Save Classification to Frontmatter
 
 When user selects 'C', update frontmatter with classification:
+
 ```yaml
 classification:
-  projectType: {{projectType}}
-  domain: {{domain}}
-  complexity: {{complexityLevel}}
-  projectContext: {{greenfield|brownfield}}
+  projectType: { { projectType } }
+  domain: { { domain } }
+  complexity: { { complexityLevel } }
+  projectContext: { { greenfield|brownfield } }
 ```
 
 ### N. Present MENU OPTIONS
@@ -185,12 +195,14 @@ Present the project classification for review, then display menu:
 Display: "**Select:** [A] Advanced Elicitation [P] Party Mode [C] Continue to Product Vision (Step 2b of 13)"
 
 #### Menu Handling Logic:
+
 - IF A: Read fully and follow: {advancedElicitationTask} with the current classification, process the enhanced insights that come back, ask user if they accept the improvements, if yes update classification then redisplay menu, if no keep original classification then redisplay menu
 - IF P: Read fully and follow: {partyModeWorkflow} with the current classification, process the collaborative insights, ask user if they accept the changes, if yes update classification then redisplay menu, if no keep original classification then redisplay menu
 - IF C: Save classification to {outputFile} frontmatter, add this step name to the end of stepsCompleted array, then read fully and follow: {nextStepFile}
 - IF Any other: help user respond, then redisplay menu
 
 #### EXECUTION RULES:
+
 - ALWAYS halt and wait for user input after presenting menu
 - ONLY proceed to next step when user selects 'C'
 - After other menu items execution, return to this menu

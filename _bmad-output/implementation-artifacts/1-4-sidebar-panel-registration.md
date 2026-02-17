@@ -73,6 +73,7 @@ So that the extension has a visible presence in BMAD workspaces.
    - WRONG: `Placeholder.tsx`, `PlaceholderComponent.tsx`
 
 2. **Component Naming**: PascalCase for React components
+
    ```typescript
    // file: src/webviews/dashboard/components/placeholder.tsx
    export function Placeholder() { ... }
@@ -88,6 +89,7 @@ So that the extension has a visible presence in BMAD workspaces.
    - This story only requires Vitest tests (webview component)
 
 5. **VS Code Theme Integration**: Use CSS custom properties, NOT hardcoded colors
+
    ```css
    /* CORRECT */
    color: var(--vscode-foreground);
@@ -101,6 +103,7 @@ So that the extension has a visible presence in BMAD workspaces.
 ### Technical Specifications
 
 **Project Structure for Webview:**
+
 ```
 src/webviews/
 ├── dashboard/
@@ -113,6 +116,7 @@ src/webviews/
 
 **Vite Build Output:**
 The `vite.config.ts` should be configured to output:
+
 - `out/webview/index.js` - bundled JS
 - `out/webview/index.css` - bundled CSS
 
@@ -120,6 +124,7 @@ The `DashboardViewProvider` already references these paths in `getHtmlForWebview
 
 **VS Code Theme CSS Variables:**
 Key variables to use:
+
 - `--vscode-foreground` - Primary text color
 - `--vscode-descriptionForeground` - Secondary/muted text
 - `--vscode-editor-background` - Background color
@@ -128,6 +133,7 @@ Key variables to use:
 - `--vscode-focusBorder` - Focus indicator color
 
 **Placeholder Content Spec:**
+
 ```
 BMAD Dashboard
 --------------
@@ -162,6 +168,7 @@ Coming in future stories...
 4. **Current State**: If you run the extension now in a BMAD workspace, it will fail silently because `out/webview/index.js` doesn't exist yet. This story creates the webview content.
 
 **Stack Versions (Story 1.1):**
+
 - React 19.2.4, React-DOM 19.2.0
 - Zustand 5.0.10
 - Tailwind CSS 4.1.18 (CSS-first configuration)
@@ -170,6 +177,7 @@ Coming in future stories...
 
 **Tailwind CSS v4 Note:**
 Tailwind v4 uses CSS-first configuration (no `tailwind.config.js`). Configure via CSS:
+
 ```css
 @import 'tailwindcss';
 /* Custom theme extensions go here */
@@ -178,21 +186,25 @@ Tailwind v4 uses CSS-first configuration (no `tailwind.config.js`). Configure vi
 ### Existing Code Context
 
 **`src/extension/providers/dashboard-view-provider.ts`:**
+
 - Line 64-66: References `out/webview/index.js` and `out/webview/index.css`
 - Line 72-88: Returns HTML that loads React webview when BMAD detected
 - No changes needed to this file for Story 1.4
 
 **`src/webviews/` directory:**
+
 - May have placeholder files from Story 1.1 initialization
 - Need to verify what exists and complete the webview setup
 
 **`vite.config.ts`:**
+
 - Should be configured for webview bundling
 - Verify output goes to `out/webview/`
 
 ### File Structure Requirements
 
 **Files to Create:**
+
 ```
 src/webviews/dashboard/components/placeholder.tsx      # NEW - Placeholder React component
 src/webviews/dashboard/components/placeholder.test.tsx # NEW - Vitest test
@@ -200,6 +212,7 @@ vitest.setup.ts                                        # NEW - Test setup with t
 ```
 
 **Files to Verify/Modify:**
+
 ```
 src/webviews/dashboard/index.tsx                       # MODIFY - Import and render Placeholder
 src/webviews/index.tsx                                 # Entry point (imports dashboard)
@@ -211,6 +224,7 @@ vite.config.ts                                         # VERIFY - Output to out/
 The `DashboardViewProvider` generates the HTML shell dynamically with CSP headers.
 
 **Files NOT to Modify:**
+
 ```
 src/extension/providers/dashboard-view-provider.ts    # Already configured correctly
 src/extension/extension.ts                            # No changes needed
@@ -224,6 +238,7 @@ package.json                                          # No new dependencies need
 **Test File**: `src/webviews/dashboard/components/placeholder.test.tsx`
 
 **Test Pattern:**
+
 ```typescript
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -238,6 +253,7 @@ describe('Placeholder', () => {
 ```
 
 **Note:** May need to add `@testing-library/react` if not already present:
+
 ```bash
 pnpm add -D @testing-library/react @testing-library/jest-dom
 ```
@@ -247,6 +263,7 @@ pnpm add -D @testing-library/react @testing-library/jest-dom
 ### Git Intelligence
 
 **Recent Commits:**
+
 ```
 cb6456f feat: 1-3-bmad-project-detection
 3817979 chore: BMAD udpdate
@@ -257,6 +274,7 @@ b37f122 feat: 1-2-test-framework-configuration
 **Commit Convention**: `feat: 1-4-sidebar-panel-registration`
 
 **Files Modified by Story 1.3:**
+
 - `src/extension/extension.ts` - Added async detection
 - `src/extension/providers/dashboard-view-provider.ts` - Added DetectionResult handling
 - `src/extension/services/bmad-detector.ts` - New detector service
@@ -327,11 +345,13 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### File List
 
 **New Files:**
+
 - src/webviews/dashboard/components/placeholder.tsx
 - src/webviews/dashboard/components/placeholder.test.tsx
 - vitest.setup.ts
 
 **Modified Files:**
+
 - src/webviews/dashboard/index.tsx
 - src/webviews/dashboard/components/index.ts
 - vitest.config.ts
@@ -348,12 +368,12 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Issues Found & Fixed
 
-| # | Severity | Issue | Resolution |
-|---|----------|-------|------------|
-| 1 | MEDIUM | `pnpm-lock.yaml` missing from File List | Added to documentation |
-| 2 | LOW→FIXED | Tailwind CSS scanning `_bmad/` docs causing build warning | Added `source(none)` + explicit `@source` paths in index.css |
-| 3 | MEDIUM | Redundant default export in placeholder.tsx | Removed `export default Placeholder` |
-| 4 | MEDIUM | Story docs claimed `index.css`/`index.html` in dashboard folder | Corrected documentation to match actual structure |
+| #   | Severity  | Issue                                                           | Resolution                                                   |
+| --- | --------- | --------------------------------------------------------------- | ------------------------------------------------------------ |
+| 1   | MEDIUM    | `pnpm-lock.yaml` missing from File List                         | Added to documentation                                       |
+| 2   | LOW→FIXED | Tailwind CSS scanning `_bmad/` docs causing build warning       | Added `source(none)` + explicit `@source` paths in index.css |
+| 3   | MEDIUM    | Redundant default export in placeholder.tsx                     | Removed `export default Placeholder`                         |
+| 4   | MEDIUM    | Story docs claimed `index.css`/`index.html` in dashboard folder | Corrected documentation to match actual structure            |
 
 ### Validation Results
 
@@ -374,4 +394,3 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - 2026-01-28: Implemented placeholder component with VS Code theme integration, comprehensive tests, and test infrastructure improvements
 - 2026-01-28: Code review completed - fixed 4 issues (documentation, redundant export, Tailwind config)
-

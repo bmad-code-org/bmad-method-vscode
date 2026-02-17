@@ -1,5 +1,18 @@
 ---
-stepsCompleted: [step-01-init, step-02-discovery, step-03-success, step-04-journeys, step-05-domain, step-06-innovation, step-07-project-type, step-08-scoping, step-09-functional, step-10-nonfunctional, step-11-polish]
+stepsCompleted:
+  [
+    step-01-init,
+    step-02-discovery,
+    step-03-success,
+    step-04-journeys,
+    step-05-domain,
+    step-06-innovation,
+    step-07-project-type,
+    step-08-scoping,
+    step-09-functional,
+    step-10-nonfunctional,
+    step-11-polish,
+  ]
 inputDocuments:
   - '_bmad-output/brainstorming/brainstorming-session-2026-01-26.md'
 workflowType: 'prd'
@@ -27,6 +40,7 @@ classification:
 **Problem:** BMAD developers waste time hunting through output files, remembering workflow commands, and re-orienting after breaks. Project state is trapped in scattered files rather than visible at a glance.
 
 **Solution:** A "GPS for BMAD" - a sidebar dashboard that parses BMAD artifacts and shows:
+
 - Current project state (sprint, epic, story progress)
 - Context-sensitive workflow actions (one-click launch)
 - Rich markdown viewing (Mermaid, tables, syntax highlighting)
@@ -62,6 +76,7 @@ classification:
 **Primary User Journey:** Alex (Mid-Sprint Developer) - resume work, see state, launch next workflow
 
 **Must-Have Capabilities:**
+
 1. **BMAD File Parsing** - Defensive parsing of sprint-status.yaml, epics, stories
 2. **Workflow State Display** - Visual, scannable view of current project state
 3. **CTA Buttons** - Context-sensitive action buttons for available workflows
@@ -82,11 +97,11 @@ classification:
 
 ### Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| BMAD schema variations | Graceful degradation, loose parsing |
-| Performance impact | Start with FileSystemWatcher, fall back to polling |
-| Scope creep | Solo developer → strict MVP scope |
+| Risk                   | Mitigation                                         |
+| ---------------------- | -------------------------------------------------- |
+| BMAD schema variations | Graceful degradation, loose parsing                |
+| Performance impact     | Start with FileSystemWatcher, fall back to polling |
+| Scope creep            | Solo developer → strict MVP scope                  |
 
 ## User Journeys
 
@@ -97,6 +112,7 @@ Alex is a solo developer with 2 hours before their day job. Yesterday they finis
 **Opening Scene:** Alex opens VS Code. They vaguely remember where they left off but can't recall which story was next.
 
 **Rising Action:** The BMAD dashboard loads automatically. Alex sees:
+
 - Current epic: "User Authentication" (3/5 stories complete)
 - Last completed: Story 2.3 - "Password Reset Flow" ✓
 - Next up: Story 2.4 - "Session Management"
@@ -113,6 +129,7 @@ Sam took a week off and remembers very little about Epic 3.
 **Opening Scene:** Sam opens the project, anxious about re-orientation time.
 
 **Rising Action:** The dashboard shows:
+
 - Sprint progress: Epic 2 complete, Epic 3 in progress (2/4 stories)
 - Current story: Story 3.2 - "API Rate Limiting" (4/7 tasks done)
 
@@ -134,35 +151,39 @@ Jordan is joining an existing BMAD project.
 
 ### Journey-to-Capability Mapping
 
-| Capability | Journeys |
-|------------|----------|
-| State visibility (epic/story progress) | Alex, Sam, Jordan |
-| Quick actions (one-click workflow launch) | Alex |
-| Document access (rich markdown rendering) | Sam, Jordan |
-| At-a-glance comprehension (visual progress) | All |
+| Capability                                  | Journeys          |
+| ------------------------------------------- | ----------------- |
+| State visibility (epic/story progress)      | Alex, Sam, Jordan |
+| Quick actions (one-click workflow launch)   | Alex              |
+| Document access (rich markdown rendering)   | Sam, Jordan       |
+| At-a-glance comprehension (visual progress) | All               |
 
 ## VS Code Extension Requirements
 
 ### Technical Architecture
 
 **Extension Activation**
+
 - Activation event: `workspaceContains:**/_bmad/**` or BMAD config presence
 - Single activation per workspace window (single-context model)
 - No activation in non-BMAD workspaces
 - Target: VS Code versions from past 3 months
 
 **Webview Implementation**
+
 - Framework: React
 - Hosted in VS Code sidebar panel
 - Communication: VS Code Webview API message passing
 
 **BMAD File Parsing**
+
 - Parse `sprint-status.yaml` for workflow state
 - Parse epic files (`epic-*.md`) for progress tracking
 - Parse story files for task-level detail
 - Graceful degradation: Show "unknown state" for unparseable files
 
 **File Watching**
+
 - Primary: VS Code FileSystemWatcher on BMAD artifact directories
 - Fallback: Polling if FSW proves too resource-intensive
 - Priority: Minimal CPU/memory impact

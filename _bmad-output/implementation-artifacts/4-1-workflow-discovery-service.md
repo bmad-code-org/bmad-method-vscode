@@ -27,16 +27,15 @@ So that only relevant actions are displayed.
 3. **State-Based Workflow Mapping**
    - **Given** the workflow state mapping:
 
-   | Project State | Available Workflows |
-   |---------------|---------------------|
-   | No sprint-status.yaml exists | `sprint-planning` |
-   | Sprint active, no stories started | `create-story` |
-   | Story status: ready-for-dev | `dev-story` |
-   | Story status: in-progress | `dev-story` (continue) |
-   | Story status: review | `code-review`, `create-story` |
-   | All stories in epic complete | `retrospective`, `create-story` (next epic) |
-   | Sprint complete (all done) | `retrospective` |
-
+   | Project State                     | Available Workflows                         |
+   | --------------------------------- | ------------------------------------------- |
+   | No sprint-status.yaml exists      | `sprint-planning`                           |
+   | Sprint active, no stories started | `create-story`                              |
+   | Story status: ready-for-dev       | `dev-story`                                 |
+   | Story status: in-progress         | `dev-story` (continue)                      |
+   | Story status: review              | `code-review`, `create-story`               |
+   | All stories in epic complete      | `retrospective`, `create-story` (next epic) |
+   | Sprint complete (all done)        | `retrospective`                             |
    - **When** workflows are discovered
    - **Then** the available workflows match this state mapping
 
@@ -144,6 +143,7 @@ So that only relevant actions are displayed.
    - WRONG: `WorkflowDiscovery.ts`, `workflowDiscovery.ts`
 
 2. **Component/Class Naming**: PascalCase
+
    ```typescript
    export class WorkflowDiscoveryService implements vscode.Disposable { ... }
    ```
@@ -163,6 +163,7 @@ So that only relevant actions are displayed.
    - Follow `StateManager.readFile()` and `StateManager.readDirectory()` patterns
 
 7. **Zustand Store**: Extend existing store, use selector hooks
+
    ```typescript
    export const useWorkflows = () => useDashboardStore((s) => s.workflows);
    ```
@@ -174,6 +175,7 @@ So that only relevant actions are displayed.
    - Co-locate tests next to source
 
 9. **Disposable Pattern**: Implement `vscode.Disposable` for all services
+
    ```typescript
    dispose(): void {
      for (const d of this.disposables) {
@@ -261,7 +263,7 @@ const WORKFLOW_DEFINITIONS: Record<string, Omit<AvailableWorkflow, 'isPrimary'>>
     command: 'claude /bmad-bmm-code-review',
     description: 'Run code review on completed story',
   },
-  'retrospective': {
+  retrospective: {
     id: 'retrospective',
     name: 'Retrospective',
     command: 'claude /bmad-bmm-retrospective',
@@ -283,7 +285,7 @@ const WORKFLOW_FOLDER_MAP: Record<string, string> = {
   'create-story': 'create-story',
   'dev-story': 'dev-story',
   'code-review': 'code-review',
-  'retrospective': 'retrospective',
+  retrospective: 'retrospective',
   'correct-course': 'correct-course',
 };
 
@@ -357,9 +359,7 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
     this.installedWorkflows = null;
   }
 
-  protected async readDirectory(
-    uri: vscode.Uri
-  ): Promise<[string, vscode.FileType][]> {
+  protected async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
     try {
       return await vscode.workspace.fs.readDirectory(uri);
     } catch {
@@ -455,31 +455,33 @@ export const useWorkflows = () => useDashboardStore((s) => s.workflows);
 
 ### Key Existing Code Locations
 
-| Purpose | File | Key Exports/APIs |
-|---------|------|-----------------|
-| BMAD detector | `src/extension/services/bmad-detector.ts` | `BmadDetector`, `getBmadPaths()` |
-| State manager | `src/extension/services/state-manager.ts` | `StateManager`, `onStateChange`, `state` |
-| File watcher | `src/extension/services/file-watcher.ts` | `FileWatcher` |
-| Dashboard provider | `src/extension/providers/dashboard-view-provider.ts` | `DashboardViewProvider` |
-| Extension entry | `src/extension/extension.ts` | `activate()` |
-| Service barrel | `src/extension/services/index.ts` | Re-exports all services |
-| Dashboard state type | `src/shared/types/dashboard-state.ts` | `DashboardState`, `createInitialDashboardState()` |
-| Sprint status types | `src/shared/types/sprint-status.ts` | `SprintStatus`, `isStoryKey()`, `isEpicKey()`, status type guards |
-| Story types | `src/shared/types/story.ts` | `Story`, `StoryStatusValue` |
-| Types barrel | `src/shared/types/index.ts` | Re-exports all shared types |
-| Message protocol | `src/shared/messages.ts` | `ToWebviewType`, `createStateUpdateMessage()` |
-| Zustand store | `src/webviews/dashboard/store.ts` | `useDashboardStore`, `useWorkflows` (to add) |
-| Next action utility | `src/webviews/dashboard/utils/get-next-action.ts` | `getNextAction()` - reference for state logic |
-| Commands barrel | `src/extension/commands/index.ts` | Currently empty placeholder |
+| Purpose              | File                                                 | Key Exports/APIs                                                  |
+| -------------------- | ---------------------------------------------------- | ----------------------------------------------------------------- |
+| BMAD detector        | `src/extension/services/bmad-detector.ts`            | `BmadDetector`, `getBmadPaths()`                                  |
+| State manager        | `src/extension/services/state-manager.ts`            | `StateManager`, `onStateChange`, `state`                          |
+| File watcher         | `src/extension/services/file-watcher.ts`             | `FileWatcher`                                                     |
+| Dashboard provider   | `src/extension/providers/dashboard-view-provider.ts` | `DashboardViewProvider`                                           |
+| Extension entry      | `src/extension/extension.ts`                         | `activate()`                                                      |
+| Service barrel       | `src/extension/services/index.ts`                    | Re-exports all services                                           |
+| Dashboard state type | `src/shared/types/dashboard-state.ts`                | `DashboardState`, `createInitialDashboardState()`                 |
+| Sprint status types  | `src/shared/types/sprint-status.ts`                  | `SprintStatus`, `isStoryKey()`, `isEpicKey()`, status type guards |
+| Story types          | `src/shared/types/story.ts`                          | `Story`, `StoryStatusValue`                                       |
+| Types barrel         | `src/shared/types/index.ts`                          | Re-exports all shared types                                       |
+| Message protocol     | `src/shared/messages.ts`                             | `ToWebviewType`, `createStateUpdateMessage()`                     |
+| Zustand store        | `src/webviews/dashboard/store.ts`                    | `useDashboardStore`, `useWorkflows` (to add)                      |
+| Next action utility  | `src/webviews/dashboard/utils/get-next-action.ts`    | `getNextAction()` - reference for state logic                     |
+| Commands barrel      | `src/extension/commands/index.ts`                    | Currently empty placeholder                                       |
 
 ### Project Structure Notes
 
 **Files to Create:**
+
 - `src/shared/types/workflow.ts` - AvailableWorkflow interface
 - `src/extension/services/workflow-discovery.ts` - WorkflowDiscoveryService class
 - `src/extension/services/workflow-discovery.test.ts` - Service unit tests
 
 **Files to Modify:**
+
 - `src/shared/types/dashboard-state.ts` - Add `workflows` field to DashboardState
 - `src/shared/types/index.ts` - Export new workflow types
 - `src/extension/services/state-manager.ts` - Integrate WorkflowDiscoveryService
@@ -488,12 +490,14 @@ export const useWorkflows = () => useDashboardStore((s) => s.workflows);
 - `src/webviews/dashboard/store.ts` - Add workflows state and selector
 
 **Files to NOT Modify (read-only references):**
+
 - `src/shared/messages.ts` - No new message types needed; workflows travel via existing `STATE_UPDATE`
 - `src/extension/providers/dashboard-view-provider.ts` - No changes needed; already sends `STATE_UPDATE`
 - `src/webviews/dashboard/hooks/use-message-handler.ts` - No changes needed; already processes `STATE_UPDATE`
 - `src/webviews/dashboard/utils/get-next-action.ts` - Reference only for state logic patterns
 
 **Dependencies (all already installed - NO new packages):**
+
 - `vscode` ^1.96.0 (for `workspace.fs`, `FileType`, `Disposable`, `Uri`)
 - `react` ^19.2.0
 - `zustand` ^5.0.0
@@ -522,6 +526,7 @@ export const useWorkflows = () => useDashboardStore((s) => s.workflows);
 ### Previous Story Intelligence
 
 **From Story 3.6 (Manual Refresh Command) - FINAL story in Epic 3:**
+
 - 305 tests total using Vitest + Mocha
 - All validation gates passed: typecheck, lint, test, build
 - Dashboard renders components in order: Header (title + RefreshButton) > SprintStatus > EpicList > ActiveStoryCard > NextActionRecommendation > PlanningArtifactLinks
@@ -533,21 +538,25 @@ export const useWorkflows = () => useDashboardStore((s) => s.workflows);
 - Components use `data-testid` for test targeting
 
 **From Story 3.5 (Next Action Recommendation):**
+
 - `get-next-action.ts` contains the state analysis logic that this story's workflow discovery should parallel
 - The `NextAction` type includes `type`, `label`, `description`, `storyKey` - similar to `AvailableWorkflow`
 - State analysis pattern: check sprint → check currentStory status → analyze development_status entries → compute result
 
 **From Story 2.6 (State Manager):**
+
 - StateManager uses `protected readFile()` and `protected readDirectory()` methods for testability
 - Test pattern: Create `TestableStateManager` subclass that overrides protected methods
 - Mock pattern for BmadDetector and FileWatcher: `sinon.createSandbox()`, `sinon.SinonStubbedInstance`
 - State changes fire `onStateChange` event
 
 **From Story 2.5 (File Watcher):**
+
 - Services implement `vscode.Disposable` with disposables array pattern
 - `vscode.workspace.fs` used instead of Node.js `fs` for remote dev compatibility
 
 **Git Intelligence:**
+
 - Recent commits follow `feat: N-N-story-name` pattern
 - All stories pass typecheck, lint, test, build before commit
 - Epic 3 (Dashboard State Visibility) is complete - Epic 4 starts now
@@ -557,15 +566,15 @@ export const useWorkflows = () => useDashboardStore((s) => s.workflows);
 
 The following BMAD implementation workflows exist in `_bmad/bmm/workflows/4-implementation/`:
 
-| Folder Name | Workflow ID | CLI Command |
-|-------------|-------------|-------------|
+| Folder Name       | Workflow ID     | CLI Command                        |
+| ----------------- | --------------- | ---------------------------------- |
 | `sprint-planning` | sprint-planning | `claude /bmad-bmm-sprint-planning` |
-| `create-story` | create-story | `claude /bmad-bmm-create-story` |
-| `dev-story` | dev-story | `claude /bmad-bmm-dev-story` |
-| `code-review` | code-review | `claude /bmad-bmm-code-review` |
-| `retrospective` | retrospective | `claude /bmad-bmm-retrospective` |
-| `correct-course` | correct-course | `claude /bmad-bmm-correct-course` |
-| `sprint-status` | sprint-status | `claude /bmad-bmm-sprint-status` |
+| `create-story`    | create-story    | `claude /bmad-bmm-create-story`    |
+| `dev-story`       | dev-story       | `claude /bmad-bmm-dev-story`       |
+| `code-review`     | code-review     | `claude /bmad-bmm-code-review`     |
+| `retrospective`   | retrospective   | `claude /bmad-bmm-retrospective`   |
+| `correct-course`  | correct-course  | `claude /bmad-bmm-correct-course`  |
+| `sprint-status`   | sprint-status   | `claude /bmad-bmm-sprint-status`   |
 
 Note: The `sprint-status` workflow is a status display utility and may or may not be relevant to offer as a CTA action. Consider including it as a secondary action or omitting it in favor of the dashboard's built-in display.
 
@@ -600,11 +609,13 @@ Claude Opus 4.6
 ### File List
 
 **New Files:**
+
 - src/shared/types/workflow.ts
 - src/extension/services/workflow-discovery.ts
 - src/extension/services/workflow-discovery.test.ts
 
 **Modified Files:**
+
 - src/shared/types/dashboard-state.ts
 - src/shared/types/index.ts
 - src/extension/services/state-manager.ts
@@ -615,7 +626,7 @@ Claude Opus 4.6
 - src/webviews/dashboard/store.test.ts
 - src/shared/messages.test.ts
 - src/webviews/dashboard/hooks/use-message-handler.test.ts
-- _bmad-output/implementation-artifacts/sprint-status.yaml
+- \_bmad-output/implementation-artifacts/sprint-status.yaml
 
 ## Change Log
 

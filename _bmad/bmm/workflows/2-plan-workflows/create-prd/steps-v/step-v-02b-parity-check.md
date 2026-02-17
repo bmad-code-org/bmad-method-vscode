@@ -62,33 +62,39 @@ Analyze non-standard PRD and identify gaps to achieve BMAD PRD parity, presentin
 For each of the 6 BMAD PRD core sections, analyze:
 
 **Executive Summary:**
+
 - Does PRD have vision/overview?
 - Is problem statement clear?
 - Are target users identified?
 - Gap: [What's missing or incomplete]
 
 **Success Criteria:**
+
 - Are measurable goals defined?
 - Is success clearly defined?
 - Gap: [What's missing or incomplete]
 
 **Product Scope:**
+
 - Is scope clearly defined?
 - Are in-scope items listed?
 - Are out-of-scope items listed?
 - Gap: [What's missing or incomplete]
 
 **User Journeys:**
+
 - Are user types/personas identified?
 - Are user flows documented?
 - Gap: [What's missing or incomplete]
 
 **Functional Requirements:**
+
 - Are features/capabilities listed?
 - Are requirements structured?
 - Gap: [What's missing or incomplete]
 
 **Non-Functional Requirements:**
+
 - Are quality attributes defined?
 - Are performance/security/etc. requirements documented?
 - Gap: [What's missing or incomplete]
@@ -98,11 +104,13 @@ For each of the 6 BMAD PRD core sections, analyze:
 For each missing or incomplete section, estimate:
 
 **Effort Level:**
+
 - Minimal - Section exists but needs minor enhancements
 - Moderate - Section missing but content exists elsewhere in PRD
 - Significant - Section missing, requires new content creation
 
 **Total Parity Effort:**
+
 - Based on individual section estimates
 - Classify overall: Quick / Moderate / Substantial effort
 
@@ -116,31 +124,37 @@ Append to validation report:
 ### Section-by-Section Gap Analysis
 
 **Executive Summary:**
+
 - Status: [Present/Missing/Incomplete]
 - Gap: [specific gap description]
 - Effort to Complete: [Minimal/Moderate/Significant]
 
 **Success Criteria:**
+
 - Status: [Present/Missing/Incomplete]
 - Gap: [specific gap description]
 - Effort to Complete: [Minimal/Moderate/Significant]
 
 **Product Scope:**
+
 - Status: [Present/Missing/Incomplete]
 - Gap: [specific gap description]
 - Effort to Complete: [Minimal/Moderate/Significant]
 
 **User Journeys:**
+
 - Status: [Present/Missing/Incomplete]
 - Gap: [specific gap description]
 - Effort to Complete: [Minimal/Moderate/Significant]
 
 **Functional Requirements:**
+
 - Status: [Present/Missing/Incomplete]
 - Gap: [specific gap description]
 - Effort to Complete: [Minimal/Moderate/Significant]
 
 **Non-Functional Requirements:**
+
 - Status: [Present/Missing/Incomplete]
 - Gap: [specific gap description]
 - Effort to Complete: [Minimal/Moderate/Significant]

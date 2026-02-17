@@ -123,6 +123,7 @@ so that I can launch my next workflow instantly without scanning through all act
 The `NextAction.type` values (`dev-story`, `create-story`, `code-review`, `retrospective`, `sprint-planning`, `sprint-complete`) map 1:1 to `AvailableWorkflow.id` values used by `WorkflowDiscoveryService`. The primary workflow is always the one that matches the current next action.
 
 **Implementation Approach:**
+
 1. `useWorkflows()` returns the `AvailableWorkflow[]` array from the Zustand store
 2. The primary workflow is: `workflows.find(w => w.isPrimary)`
 3. This gives us the `.command` string (e.g., `/bmad-bmm-dev-story`) needed for execute/copy
@@ -131,6 +132,7 @@ The `NextAction.type` values (`dev-story`, `create-story`, `code-review`, `retro
 **Why this works:** The `WorkflowDiscoveryService.computeWorkflowCandidates()` uses the EXACT same state analysis logic as `getNextAction()` — both check `currentStory.status`, `development_status` entries, etc. The primary workflow's `id` will always correspond to the next action's `type` (except for `sprint-complete` which has no matching workflow).
 
 **Data Flow:**
+
 ```
 Extension Host: WorkflowDiscoveryService → STATE_UPDATE → Webview Store (workflows[])
 Webview: useWorkflows() → find(isPrimary) → primaryWorkflow.command
@@ -141,6 +143,7 @@ NextAction Copy → postMessage(COPY_COMMAND) → Extension Host → Clipboard
 **Component Layout Change:**
 
 Before (current):
+
 ```
 [Next Action]
   🚀 Continue Story 3.5          ← informational only
@@ -152,6 +155,7 @@ Before (current):
 ```
 
 After (this story):
+
 ```
 [Next Action]
   🚀 Continue Story 3.5  [▶][📋] ← NOW actionable with play/copy
@@ -162,6 +166,7 @@ After (this story):
 ```
 
 **Icon Usage (lucide-react):**
+
 ```typescript
 import { Play, Copy } from 'lucide-react';
 // Play: execute next action in terminal
@@ -191,13 +196,13 @@ The play and copy buttons should be placed INLINE with the action label row, to 
 
 ### Library & Framework Requirements
 
-| Library | Version | Purpose |
-|---------|---------|---------|
-| React | 19.2.4 | Component framework, useState, useCallback hooks |
-| Zustand | 5.0.10 | State management (existing store, useWorkflows selector) |
-| lucide-react | 0.563.0 | Play, Copy icons (Copy already in cta-buttons) |
-| Tailwind CSS | v4 | Utility-first styling with VS Code theme variables |
-| clsx + tailwind-merge | installed | `cn()` utility for conditional class merging |
+| Library               | Version   | Purpose                                                  |
+| --------------------- | --------- | -------------------------------------------------------- |
+| React                 | 19.2.4    | Component framework, useState, useCallback hooks         |
+| Zustand               | 5.0.10    | State management (existing store, useWorkflows selector) |
+| lucide-react          | 0.563.0   | Play, Copy icons (Copy already in cta-buttons)           |
+| Tailwind CSS          | v4        | Utility-first styling with VS Code theme variables       |
+| clsx + tailwind-merge | installed | `cn()` utility for conditional class merging             |
 
 **No new dependencies needed.** All libraries are already installed.
 
@@ -205,25 +210,25 @@ The play and copy buttons should be placed INLINE with the action label row, to 
 
 **Files to MODIFY:**
 
-| File | Changes |
-|------|---------|
-| `src/webviews/dashboard/components/next-action-recommendation.tsx` | Add Play/Copy icon buttons with execute/copy handlers using workflows |
+| File                                                                    | Changes                                                                         |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `src/webviews/dashboard/components/next-action-recommendation.tsx`      | Add Play/Copy icon buttons with execute/copy handlers using workflows           |
 | `src/webviews/dashboard/components/next-action-recommendation.test.tsx` | Add tests for play/copy buttons, message sending, graceful no-workflow handling |
-| `src/webviews/dashboard/components/cta-buttons.tsx` | Change heading "Actions" → "Other Actions", filter out primary workflow |
-| `src/webviews/dashboard/components/cta-buttons.test.tsx` | Update heading test, add primary-filtered tests |
+| `src/webviews/dashboard/components/cta-buttons.tsx`                     | Change heading "Actions" → "Other Actions", filter out primary workflow         |
+| `src/webviews/dashboard/components/cta-buttons.test.tsx`                | Update heading test, add primary-filtered tests                                 |
 
 **Files to NOT MODIFY (read-only reference):**
 
-| File | Why Referenced |
-|------|--------------|
-| `src/shared/messages.ts` | `createExecuteWorkflowMessage()`, `createCopyCommandMessage()` factory functions |
-| `src/shared/types/workflow.ts` | `AvailableWorkflow` interface with `isPrimary`, `command` |
-| `src/webviews/dashboard/store.ts` | `useWorkflows()`, `useSprint()`, `useCurrentStory()` selector hooks |
-| `src/webviews/dashboard/utils/get-next-action.ts` | `getNextAction()` utility, `NextAction` type — no changes needed |
-| `src/webviews/shared/hooks/use-vscode-api.ts` | `useVSCodeApi()` hook for `postMessage` |
-| `src/webviews/shared/utils/cn.ts` | `cn()` class merging utility |
-| `src/webviews/dashboard/components/index.ts` | Barrel export (already exports all needed components) |
-| `src/extension/services/workflow-discovery.ts` | Reference for understanding workflow ID ↔ command mapping |
+| File                                              | Why Referenced                                                                   |
+| ------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `src/shared/messages.ts`                          | `createExecuteWorkflowMessage()`, `createCopyCommandMessage()` factory functions |
+| `src/shared/types/workflow.ts`                    | `AvailableWorkflow` interface with `isPrimary`, `command`                        |
+| `src/webviews/dashboard/store.ts`                 | `useWorkflows()`, `useSprint()`, `useCurrentStory()` selector hooks              |
+| `src/webviews/dashboard/utils/get-next-action.ts` | `getNextAction()` utility, `NextAction` type — no changes needed                 |
+| `src/webviews/shared/hooks/use-vscode-api.ts`     | `useVSCodeApi()` hook for `postMessage`                                          |
+| `src/webviews/shared/utils/cn.ts`                 | `cn()` class merging utility                                                     |
+| `src/webviews/dashboard/components/index.ts`      | Barrel export (already exports all needed components)                            |
+| `src/extension/services/workflow-discovery.ts`    | Reference for understanding workflow ID ↔ command mapping                        |
 
 **Files to NOT Create:** No new files needed. This is purely modifications to two existing components.
 
@@ -232,6 +237,7 @@ The play and copy buttons should be placed INLINE with the action label row, to 
 **Test File 1:** `src/webviews/dashboard/components/next-action-recommendation.test.tsx` (existing, extend)
 
 **New Mock Required:**
+
 ```typescript
 const mockPostMessage = vi.fn();
 vi.mock('../../shared/hooks', () => ({
@@ -240,6 +246,7 @@ vi.mock('../../shared/hooks', () => ({
 ```
 
 **New Mock Data Required:**
+
 ```typescript
 const mockPrimaryWorkflow: AvailableWorkflow = {
   id: 'dev-story',
@@ -283,6 +290,7 @@ const mockSecondaryWorkflow: AvailableWorkflow = {
 ### Previous Story Intelligence
 
 **From Story 5.1 (Epic Detail View with Story Lists) — Most Recent:**
+
 - 336+ Vitest tests passing (29 in epic-list alone)
 - All verification passed: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`
 - Expand/collapse pattern with `useState<Set<number>>` — different pattern from this story
@@ -290,23 +298,27 @@ const mockSecondaryWorkflow: AvailableWorkflow = {
 - `cn()` utility used for conditional styling — same pattern applies here
 
 **From Story 4.4 (Copy Command to Clipboard) — CTA Button Patterns:**
+
 - Copy icon button pattern established in `cta-buttons.tsx`
 - `useVSCodeApi().postMessage()` pattern with factory functions
 - `data-testid` naming: `cta-execute-{id}`, `cta-copy-{id}`
 - Test mock pattern: `vi.mock('../../shared/hooks', ...)`
 
 **From Story 4.2 (Context-Sensitive CTA Buttons) — Workflow Integration:**
+
 - `useWorkflows()` selector hook established
 - `AvailableWorkflow.isPrimary` flag determines primary vs secondary styling
 - Workflow state computed by `WorkflowDiscoveryService` and sent via `STATE_UPDATE`
 
 **From Story 3.5 (Next Action Recommendation) — Original Implementation:**
+
 - Created the `NextActionRecommendation` component being modified
 - `getNextAction()` utility computes recommendations from sprint/story state
 - Action types map 1:1 to workflow IDs (by design, same state analysis logic)
 - 10 existing tests (8 component + 2 skeleton)
 
 **Git Intelligence:**
+
 - Commit pattern: `feat: 5-1-epic-detail-view-with-story-lists`
 - Build validation: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`
 - Recent commits are clean, linear progression through Epic 5
@@ -315,12 +327,14 @@ const mockSecondaryWorkflow: AvailableWorkflow = {
 ### Key Existing Code Reference
 
 **Current `next-action-recommendation.tsx` structure (62 lines):**
+
 - `actionIcons` — maps NextAction.type to emoji
 - `NextActionRecommendationSkeleton` — loading skeleton
 - `NextActionRecommendation` — main component using `useSprint()`, `useCurrentStory()`, `getNextAction()`
 - Currently purely informational — NO buttons, NO vscodeApi usage
 
 **Current `cta-buttons.tsx` structure (89 lines):**
+
 - `CTAButtonsSkeleton` — loading skeleton
 - `CTAButtons` — renders ALL workflows (primary + secondary) with execute/copy buttons
 - Uses `useWorkflows()`, `useVSCodeApi()`, `createExecuteWorkflowMessage`, `createCopyCommandMessage`

@@ -23,22 +23,23 @@ When working on BMAD-managed projects, developers need to frequently check sprin
 
 ## Tech Stack Summary
 
-| Category | Technology |
-|---|---|
-| Platform | VS Code Extension API (^1.96.0) |
-| Language | TypeScript 5.9 (strict mode) |
-| UI Framework | React 19 + React Compiler |
-| State Management | Zustand 5 |
-| Styling | Tailwind CSS 4 |
-| Extension Bundler | esbuild |
-| Webview Bundler | Vite 7 |
-| Testing | Vitest + Testing Library + @vscode/test-electron |
-| Package Manager | pnpm 10 |
-| License | MIT |
+| Category          | Technology                                       |
+| ----------------- | ------------------------------------------------ |
+| Platform          | VS Code Extension API (^1.96.0)                  |
+| Language          | TypeScript 5.9 (strict mode)                     |
+| UI Framework      | React 19 + React Compiler                        |
+| State Management  | Zustand 5                                        |
+| Styling           | Tailwind CSS 4                                   |
+| Extension Bundler | esbuild                                          |
+| Webview Bundler   | Vite 7                                           |
+| Testing           | Vitest + Testing Library + @vscode/test-electron |
+| Package Manager   | pnpm 10                                          |
+| License           | MIT                                              |
 
 ## Architecture Type
 
 **Dual-Context VS Code Extension** — Monolith repository with three internal layers:
+
 1. Extension Host (Node.js) — File watching, parsing, state management
 2. Webview (Browser) — React dashboard UI
 3. Shared — Cross-context types and typed message protocol

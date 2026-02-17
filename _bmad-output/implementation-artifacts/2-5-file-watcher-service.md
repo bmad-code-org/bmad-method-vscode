@@ -70,7 +70,7 @@ So that the dashboard can auto-update when files change.
   - [x] 5.1: Track watcher state: 'stopped' | 'starting' | 'running' | 'error'
   - [x] 5.2: Expose `state` property for status queries
   - [x] 5.3: Prevent double-start (idempotent start() calls)
-  - [x] 5.4: Handle case where `outputRoot` is null (no _bmad-output/ directory)
+  - [x] 5.4: Handle case where `outputRoot` is null (no \_bmad-output/ directory)
   - [x] 5.5: Re-initialize watcher if outputRoot becomes available later
 
 - [x] Task 6: Write Comprehensive Unit Tests (AC: #1, #2, #3, #4)
@@ -106,6 +106,7 @@ So that the dashboard can auto-update when files change.
    - WRONG: `FileWatcher.ts`, `fileWatcher.ts`
 
 2. **Class/Function Naming**: PascalCase for classes, camelCase for functions
+
    ```typescript
    export class FileWatcher implements vscode.Disposable { ... }
    public start(): void { ... }
@@ -120,6 +121,7 @@ So that the dashboard can auto-update when files change.
    - See existing `BmadDetector` service for reference pattern
 
 5. **Event Emitter Pattern**: Use VS Code's `EventEmitter` class
+
    ```typescript
    import * as vscode from 'vscode';
 
@@ -128,12 +130,13 @@ So that the dashboard can auto-update when files change.
    ```
 
 6. **Disposable Pattern**: Implement `vscode.Disposable` interface
+
    ```typescript
    export class FileWatcher implements vscode.Disposable {
      private disposables: vscode.Disposable[] = [];
 
      public dispose(): void {
-       this.disposables.forEach(d => d.dispose());
+       this.disposables.forEach((d) => d.dispose());
        this.disposables = [];
      }
    }
@@ -150,9 +153,15 @@ const watcher = vscode.workspace.createFileSystemWatcher(
 );
 
 // Subscribe to events
-watcher.onDidCreate(uri => { /* handle create */ });
-watcher.onDidChange(uri => { /* handle change */ });
-watcher.onDidDelete(uri => { /* handle delete */ });
+watcher.onDidCreate((uri) => {
+  /* handle create */
+});
+watcher.onDidChange((uri) => {
+  /* handle change */
+});
+watcher.onDidDelete((uri) => {
+  /* handle delete */
+});
 
 // Dispose when done
 watcher.dispose();
@@ -207,7 +216,7 @@ try {
   this._state = 'error';
   this._onError.fire({
     message: `Failed to create file watcher: ${err instanceof Error ? err.message : 'Unknown error'}`,
-    recoverable: true
+    recoverable: true,
   });
 }
 ```
@@ -215,13 +224,16 @@ try {
 ### Project Structure Notes
 
 **Files to Create:**
+
 - `src/extension/services/file-watcher.ts` - Main service implementation
 - `src/extension/services/file-watcher.test.ts` - Unit tests
 
 **Files to Modify:**
+
 - `src/extension/services/index.ts` - Add exports
 
 **Dependencies:**
+
 - `BmadDetector` service (already exists) - provides `outputRoot` path
 - No new npm packages required - uses VS Code API only
 
@@ -238,6 +250,7 @@ try {
 ### Previous Story Intelligence
 
 **From Story 2.4 (Story File Parser):**
+
 - Use existing patterns from `BmadDetector` service as reference
 - Services implement `vscode.Disposable` for proper cleanup
 - Never throw exceptions - use event-based error reporting
@@ -245,17 +258,20 @@ try {
 - 31 tests provided comprehensive coverage - aim for similar thoroughness
 
 **Git Commit Patterns:**
+
 - Recent commits follow `feat: X.Y: Story Title` format
 - Files changed: implementation + tests + barrel exports + story status
 
 ### Integration Points
 
 **Downstream Consumers (Story 2.6: State Manager):**
+
 - State Manager will subscribe to `onDidChange` event
 - Will use `affectedPaths` to selectively re-parse changed files
 - Will use `isHealthy()` to show degraded state in UI
 
 **Initialization Flow:**
+
 ```
 Extension activates
   → BmadDetector.detectBmadProject()

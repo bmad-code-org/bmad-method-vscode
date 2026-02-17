@@ -101,6 +101,7 @@ So that the extension can extract tasks and completion status.
    - WRONG: `StoryParser.ts`, `storyParser.ts`
 
 2. **Function Naming**: camelCase
+
    ```typescript
    export function parseStory(content: string, filePath?: string): ParseResult<Story> { ... }
    export async function parseStoryFile(filePath: string): Promise<ParseResult<Story>> { ... }
@@ -117,13 +118,20 @@ So that the extension can extract tasks and completion status.
 
 5. **Import Shared Types**:
    ```typescript
-   import type { Story, StoryTask, StorySubtask, AcceptanceCriterion, ParseResult } from '@shared/types';
+   import type {
+     Story,
+     StoryTask,
+     StorySubtask,
+     AcceptanceCriterion,
+     ParseResult,
+   } from '@shared/types';
    import { parseSuccess, parseFailure } from '@shared/types';
    ```
 
 ### Technical Specifications
 
 **Parsing Library: gray-matter (already installed)**
+
 - Use `matter()` function to extract frontmatter and content
 - Returns `{ data: object, content: string }` structure
 - Note: Story files may NOT have frontmatter - handle gracefully
@@ -166,7 +174,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - src/extension/parsers/story-parser.ts (NEW) - Story file parser implementation
 - src/extension/parsers/story-parser.test.ts (NEW) - 31 unit tests
 - src/extension/parsers/index.ts (MODIFIED) - Added story-parser exports
-- _bmad-output/implementation-artifacts/sprint-status.yaml (MODIFIED) - Story status updated to review
+- \_bmad-output/implementation-artifacts/sprint-status.yaml (MODIFIED) - Story status updated to review
 
 ## Senior Developer Review (AI)
 
@@ -175,22 +183,26 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 **Outcome:** APPROVED with fixes applied
 
 ### Findings Summary
+
 - **HIGH Issues:** 0
 - **MEDIUM Issues:** 3 (all fixed)
 - **LOW Issues:** 4 (documented for future consideration)
 
 ### Issues Fixed
+
 1. **M1 - Undocumented File Change:** Added `sprint-status.yaml` to File List
 2. **M2 - Missing EACCES Test:** Added test case for permission denied error handling path
 3. **M3 - Regex State Issues:** Refactored `extractAcceptanceCriteria()` to use `matchAll()` instead of `exec()` with global regex, eliminating `lastIndex` state management concerns
 
 ### Low Priority Items (Not Fixed)
+
 - L1: Minor error message casing inconsistency ("Failed" vs lowercase)
 - L2: Inline test fixtures instead of external fixture files (acceptable for current size)
 - L3: JSDoc "never throws" could be more prominent
 - L4: User story regex requires trailing period (edge case)
 
 ### Verification
+
 - All 192 tests pass (1 new test added)
 - TypeScript compilation: OK
 - ESLint: OK
@@ -198,7 +210,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ## Change Log
 
-| Date | Change | Author |
-|------|--------|--------|
+| Date       | Change                                                                                 | Author          |
+| ---------- | -------------------------------------------------------------------------------------- | --------------- |
 | 2026-02-02 | Code review: Fixed 3 medium issues (missing file list entry, EACCES test, regex state) | Claude Opus 4.5 |
-| 2026-02-02 | Implemented story file parser with comprehensive test coverage | Claude Opus 4.5 |
+| 2026-02-02 | Implemented story file parser with comprehensive test coverage                         | Claude Opus 4.5 |

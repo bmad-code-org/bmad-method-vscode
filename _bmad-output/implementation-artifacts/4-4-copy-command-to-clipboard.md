@@ -99,6 +99,7 @@ so that I can paste it into an existing terminal or use it elsewhere.
    - `pnpm build`, `pnpm test`, `pnpm lint`, `pnpm typecheck`
 
 3. **Error Pattern**: Never throw from extension host handlers - wrap in try/catch, show error message to user
+
    ```typescript
    private async copyCommand(command: string): Promise<void> {
      try {
@@ -176,6 +177,7 @@ const handleCopy = useCallback(
 ```
 
 **Command Flow:**
+
 1. Webview CTA copy button click -> `handleCopy(workflow)` callback fires
 2. `createCopyCommandMessage(workflow.command)` creates typed message with raw slash command
 3. `vscodeApi.postMessage()` sends message to extension host
@@ -187,17 +189,17 @@ const handleCopy = useCallback(
 
 ### Key Existing Code Locations
 
-| Purpose | File | Key Exports/APIs |
-|---------|------|-----------------|
-| Clipboard handler | `src/extension/providers/dashboard-view-provider.ts` | `copyCommand()` method |
-| Message handler | `src/extension/providers/dashboard-view-provider.ts` | `handleMessage()` - COPY_COMMAND case |
-| Message type | `src/shared/messages.ts` | `ToExtensionType.COPY_COMMAND`, `CopyCommandMessage` |
-| Message factory | `src/shared/messages.ts` | `createCopyCommandMessage()` |
-| Type guard | `src/shared/messages.ts` | `isCopyCommandMessage()` |
-| Copy button UI | `src/webviews/dashboard/components/cta-buttons.tsx` | Copy icon button with handleCopy callback |
-| Workflow types | `src/shared/types/workflow.ts` | `AvailableWorkflow` (command field stores slash command only) |
-| DashboardProvider tests | `src/extension/providers/dashboard-view-provider.test.ts` | Clipboard test suite |
-| CTA buttons tests | `src/webviews/dashboard/components/cta-buttons.test.tsx` | Copy button rendering and message tests |
+| Purpose                 | File                                                      | Key Exports/APIs                                              |
+| ----------------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
+| Clipboard handler       | `src/extension/providers/dashboard-view-provider.ts`      | `copyCommand()` method                                        |
+| Message handler         | `src/extension/providers/dashboard-view-provider.ts`      | `handleMessage()` - COPY_COMMAND case                         |
+| Message type            | `src/shared/messages.ts`                                  | `ToExtensionType.COPY_COMMAND`, `CopyCommandMessage`          |
+| Message factory         | `src/shared/messages.ts`                                  | `createCopyCommandMessage()`                                  |
+| Type guard              | `src/shared/messages.ts`                                  | `isCopyCommandMessage()`                                      |
+| Copy button UI          | `src/webviews/dashboard/components/cta-buttons.tsx`       | Copy icon button with handleCopy callback                     |
+| Workflow types          | `src/shared/types/workflow.ts`                            | `AvailableWorkflow` (command field stores slash command only) |
+| DashboardProvider tests | `src/extension/providers/dashboard-view-provider.test.ts` | Clipboard test suite                                          |
+| CTA buttons tests       | `src/webviews/dashboard/components/cta-buttons.test.tsx`  | Copy button rendering and message tests                       |
 
 ### Project Structure Notes
 
@@ -206,6 +208,7 @@ const handleCopy = useCallback(
 **Files to Modify:** None expected - verify existing implementation covers all ACs.
 
 **Files to NOT Modify:**
+
 - `src/extension/providers/dashboard-view-provider.ts` - Clipboard copy already implemented
 - `src/shared/messages.ts` - COPY_COMMAND message types already defined
 - `src/shared/types/workflow.ts` - AvailableWorkflow already defined
@@ -214,6 +217,7 @@ const handleCopy = useCallback(
 - `package.json` - No new settings needed for clipboard
 
 **Dependencies (all already installed - NO new packages):**
+
 - `vscode` ^1.96.0 (clipboard, notification APIs)
 - `lucide-react` (Copy icon already used in CTA buttons)
 
@@ -235,6 +239,7 @@ const handleCopy = useCallback(
 **From Story 4.3 (Terminal Workflow Execution) - Direct Predecessor:**
 
 Story 4.3 was also a verification-only story (all functionality from 4.2). Key learnings:
+
 - All 425 tests pass (326 Vitest + 99 Mocha at start, 326 Vitest + 101 Mocha after code review fixes)
 - Code review added command validation regex (`/^\/bmad-[a-z0-9-]+$/`) to prevent command injection
 - The `copyCommand()` method does NOT apply command validation regex (it copies raw text, not executing in a shell)
@@ -244,6 +249,7 @@ Story 4.3 was also a verification-only story (all functionality from 4.2). Key l
 **From Story 4.2 (Context-Sensitive CTA Buttons) - Implementation Source:**
 
 This is the **critical predecessor** - Story 4.2 implemented ALL of Story 4.4's functionality:
+
 - `copyCommand()` async method with clipboard write, toast confirmation, and error handling
 - `COPY_COMMAND` message handler in `handleMessage()` switch
 - Copy button UI as icon-only button next to each execute button
@@ -252,6 +258,7 @@ This is the **critical predecessor** - Story 4.2 implemented ALL of Story 4.4's 
 - Total test count after 4.2: 321 Vitest + 94 Mocha = 415 tests passing
 
 **From Story 4.1 (Workflow Discovery Service):**
+
 - `AvailableWorkflow.command` stores BMAD slash command only (e.g., `/bmad-bmm-dev-story`)
 - No CLI prefix in stored commands - prefix applied only at terminal execution time
 - This means the copy operation correctly copies just the slash command
@@ -259,6 +266,7 @@ This is the **critical predecessor** - Story 4.2 implemented ALL of Story 4.4's 
 **Git Intelligence:**
 
 Recent commits show clean linear progression through Epic 4:
+
 ```
 5ed05cc feat: 4-2-context-sensitive-cta-buttons
 83f158a feat: 4-1-workflow-discovery-service
@@ -270,6 +278,7 @@ Commit message pattern: `feat: 4-4-copy-command-to-clipboard`
 ### Clipboard API Reference
 
 **vscode.env.clipboard.writeText(value: string): Thenable<void>**
+
 - Writes text to the system clipboard
 - Async operation - returns a Thenable
 - Cross-platform (Windows, macOS, Linux)
@@ -277,11 +286,13 @@ Commit message pattern: `feat: 4-4-copy-command-to-clipboard`
 - Used in `copyCommand()` method
 
 **vscode.window.showInformationMessage(message: string): Thenable<string | undefined>**
+
 - Shows a brief toast/notification in VS Code
 - Auto-dismisses after a few seconds
 - Used for "Command copied to clipboard" confirmation
 
 **vscode.window.showErrorMessage(message: string): Thenable<string | undefined>**
+
 - Shows an error toast/notification in VS Code
 - Used for "Failed to copy command to clipboard" error feedback
 
@@ -290,6 +301,7 @@ Commit message pattern: `feat: 4-4-copy-command-to-clipboard`
 The copy operation intentionally copies only the raw BMAD slash command (e.g., `/bmad-bmm-dev-story`) without the CLI prefix. This is different from the execute operation which prepends the configured `bmad.cliPrefix` (default: "claude").
 
 **Rationale:**
+
 - Users may want to paste into different CLI tools
 - The copied command is the universal BMAD identifier
 - Users can prefix with their preferred tool manually
@@ -323,11 +335,13 @@ All functionality was already implemented in Story 4.2 (Context-Sensitive CTA Bu
 ### File List
 
 Code review modified files:
+
 - `src/extension/providers/dashboard-view-provider.test.ts` — Added clipboard error handling test (AC#3 coverage)
 - `src/shared/messages.test.ts` — Corrected COPY_COMMAND test data to use raw slash commands (`/bmad-bmm-*`)
 - `src/webviews/dashboard/components/cta-buttons.test.tsx` — Added copy button rendering assertions and title attribute test
 
 Verified files (no modifications):
+
 - `src/shared/messages.ts` — COPY_COMMAND type, CopyCommandMessage interface, factory, type guard
 - `src/extension/providers/dashboard-view-provider.ts` — copyCommand() method, COPY_COMMAND handler
 - `src/webviews/dashboard/components/cta-buttons.tsx` — Copy button UI with handleCopy callback

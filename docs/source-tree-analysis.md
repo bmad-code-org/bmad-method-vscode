@@ -133,15 +133,15 @@ src/
 
 ## Critical Folders Summary
 
-| Folder | Purpose | Key Files |
-|---|---|---|
-| `src/extension/` | Extension host (Node.js process) | `extension.ts` entry point |
-| `src/extension/services/` | Core business logic services | `StateManager`, `FileWatcher`, `BmadDetector`, `WorkflowDiscovery` |
-| `src/extension/parsers/` | File format parsers (YAML, Markdown) | Sprint status, epic, story parsers |
-| `src/extension/providers/` | VS Code API integration | `DashboardViewProvider` (WebviewViewProvider) |
-| `src/shared/` | Cross-context contracts | Message protocol, shared types |
-| `src/shared/types/` | TypeScript type definitions | Domain types with type guards |
-| `src/webviews/` | Webview React application | `index.tsx` entry point |
-| `src/webviews/dashboard/` | Dashboard feature module | Store, hooks, components, utils |
-| `src/webviews/dashboard/components/` | UI components | 8 feature components + skeletons |
-| `out/` | Build artifacts | Extension CJS + Webview ESM bundles |
+| Folder                               | Purpose                              | Key Files                                                          |
+| ------------------------------------ | ------------------------------------ | ------------------------------------------------------------------ |
+| `src/extension/`                     | Extension host (Node.js process)     | `extension.ts` entry point                                         |
+| `src/extension/services/`            | Core business logic services         | `StateManager`, `FileWatcher`, `BmadDetector`, `WorkflowDiscovery` |
+| `src/extension/parsers/`             | File format parsers (YAML, Markdown) | Sprint status, epic, story parsers                                 |
+| `src/extension/providers/`           | VS Code API integration              | `DashboardViewProvider` (WebviewViewProvider)                      |
+| `src/shared/`                        | Cross-context contracts              | Message protocol, shared types                                     |
+| `src/shared/types/`                  | TypeScript type definitions          | Domain types with type guards                                      |
+| `src/webviews/`                      | Webview React application            | `index.tsx` entry point                                            |
+| `src/webviews/dashboard/`            | Dashboard feature module             | Store, hooks, components, utils                                    |
+| `src/webviews/dashboard/components/` | UI components                        | 8 feature components + skeletons                                   |
+| `out/`                               | Build artifacts                      | Extension CJS + Webview ESM bundles                                |

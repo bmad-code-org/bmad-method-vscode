@@ -2,11 +2,11 @@
 
 ## Prerequisites
 
-| Requirement | Version | Purpose |
-|---|---|---|
-| Node.js | 22+ (LTS) | Runtime for extension host and build tools |
-| pnpm | 10.26.2 | Package manager (enforced via `packageManager` field) |
-| VS Code | 1.96.0+ | Extension host runtime |
+| Requirement | Version   | Purpose                                               |
+| ----------- | --------- | ----------------------------------------------------- |
+| Node.js     | 22+ (LTS) | Runtime for extension host and build tools            |
+| pnpm        | 10.26.2   | Package manager (enforced via `packageManager` field) |
+| VS Code     | 1.96.0+   | Extension host runtime                                |
 
 ## Quick Start
 
@@ -77,11 +77,11 @@ pnpm watch
 
 The project uses a composite TypeScript setup:
 
-| Config | Target | Context | Module |
-|---|---|---|---|
-| `tsconfig.json` | — | Root references only | — |
-| `tsconfig.extension.json` | ES2022 | Node.js (extension host) | Node16 |
-| `tsconfig.webview.json` | ES2022 | Browser (webview) | ESNext/Bundler |
+| Config                    | Target | Context                  | Module         |
+| ------------------------- | ------ | ------------------------ | -------------- |
+| `tsconfig.json`           | —      | Root references only     | —              |
+| `tsconfig.extension.json` | ES2022 | Node.js (extension host) | Node16         |
+| `tsconfig.webview.json`   | ES2022 | Browser (webview)        | ESNext/Bundler |
 
 Both configs share `src/shared/` and enforce strict mode.
 

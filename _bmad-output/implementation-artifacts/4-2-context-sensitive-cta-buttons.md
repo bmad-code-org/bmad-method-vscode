@@ -141,6 +141,7 @@ So that I see the most relevant actions for my current situation.
    - WRONG: `CTAButtons.tsx`, `ctaButtons.tsx`
 
 2. **Component/Function Naming**: PascalCase for components, camelCase for functions
+
    ```typescript
    export function CTAButtons(): React.ReactElement { ... }
    export function CTAButtonsSkeleton(): React.ReactElement { ... }
@@ -154,6 +155,7 @@ So that I see the most relevant actions for my current situation.
    - Do NOT send raw message objects - use the factory functions
 
 5. **Error Pattern**: Never throw from extension host handlers - wrap in try/catch, show error message to user
+
    ```typescript
    private async executeWorkflow(command: string): Promise<void> {
      try { ... } catch { void vscode.window.showErrorMessage('Failed to execute workflow'); }
@@ -335,33 +337,36 @@ import { CTAButtons, CTAButtonsSkeleton } from './components';
 
 ### Key Existing Code Locations
 
-| Purpose | File | Key Exports/APIs |
-|---------|------|-----------------|
-| Workflow types | `src/shared/types/workflow.ts` | `AvailableWorkflow` |
-| Dashboard state | `src/shared/types/dashboard-state.ts` | `DashboardState` (has `workflows: AvailableWorkflow[]`) |
-| Message factories | `src/shared/messages.ts` | `createExecuteWorkflowMessage()`, `createCopyCommandMessage()` |
-| Message types | `src/shared/messages.ts` | `ToExtensionType.EXECUTE_WORKFLOW`, `ToExtensionType.COPY_COMMAND` |
-| Zustand store | `src/webviews/dashboard/store.ts` | `useWorkflows()` selector |
-| VS Code API hook | `src/webviews/shared/hooks/use-vscode-api.ts` | `useVSCodeApi()` |
+| Purpose            | File                                                 | Key Exports/APIs                                                               |
+| ------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Workflow types     | `src/shared/types/workflow.ts`                       | `AvailableWorkflow`                                                            |
+| Dashboard state    | `src/shared/types/dashboard-state.ts`                | `DashboardState` (has `workflows: AvailableWorkflow[]`)                        |
+| Message factories  | `src/shared/messages.ts`                             | `createExecuteWorkflowMessage()`, `createCopyCommandMessage()`                 |
+| Message types      | `src/shared/messages.ts`                             | `ToExtensionType.EXECUTE_WORKFLOW`, `ToExtensionType.COPY_COMMAND`             |
+| Zustand store      | `src/webviews/dashboard/store.ts`                    | `useWorkflows()` selector                                                      |
+| VS Code API hook   | `src/webviews/shared/hooks/use-vscode-api.ts`        | `useVSCodeApi()`                                                               |
 | Dashboard provider | `src/extension/providers/dashboard-view-provider.ts` | `handleMessage()` - lines 91-94 have EXECUTE_WORKFLOW/COPY_COMMAND placeholder |
-| Dashboard layout | `src/webviews/dashboard/index.tsx` | Component render order |
-| Components barrel | `src/webviews/dashboard/components/index.ts` | All component exports |
-| Class utility | `src/webviews/shared/utils/cn.ts` | `cn()` - clsx + tailwind-merge |
-| Extension entry | `src/extension/extension.ts` | `activate()` - no changes needed |
-| Workflow discovery | `src/extension/services/workflow-discovery.ts` | `WorkflowDiscoveryService` - already integrated |
+| Dashboard layout   | `src/webviews/dashboard/index.tsx`                   | Component render order                                                         |
+| Components barrel  | `src/webviews/dashboard/components/index.ts`         | All component exports                                                          |
+| Class utility      | `src/webviews/shared/utils/cn.ts`                    | `cn()` - clsx + tailwind-merge                                                 |
+| Extension entry    | `src/extension/extension.ts`                         | `activate()` - no changes needed                                               |
+| Workflow discovery | `src/extension/services/workflow-discovery.ts`       | `WorkflowDiscoveryService` - already integrated                                |
 
 ### Project Structure Notes
 
 **Files to Create:**
+
 - `src/webviews/dashboard/components/cta-buttons.tsx` - CTAButtons + CTAButtonsSkeleton components
 - `src/webviews/dashboard/components/cta-buttons.test.tsx` - Component tests
 
 **Files to Modify:**
+
 - `src/webviews/dashboard/components/index.ts` - Add CTAButtons/CTAButtonsSkeleton exports
 - `src/webviews/dashboard/index.tsx` - Add CTAButtons to dashboard layout
 - `src/extension/providers/dashboard-view-provider.ts` - Implement EXECUTE_WORKFLOW and COPY_COMMAND handlers
 
 **Files to NOT Modify:**
+
 - `src/shared/messages.ts` - Factory functions already exist
 - `src/shared/types/workflow.ts` - AvailableWorkflow already defined
 - `src/shared/types/dashboard-state.ts` - workflows field already present
@@ -371,6 +376,7 @@ import { CTAButtons, CTAButtonsSkeleton } from './components';
 - `src/extension/extension.ts` - No changes needed
 
 **Dependencies (all already installed - NO new packages):**
+
 - `react` ^19.2.0
 - `zustand` ^5.0.0
 - `clsx` ^2.1.1 + `tailwind-merge` ^3.4.0 (for `cn()`)
@@ -405,6 +411,7 @@ import { CTAButtons, CTAButtonsSkeleton } from './components';
 ### Previous Story Intelligence
 
 **From Story 4.1 (Workflow Discovery Service) - Direct Predecessor:**
+
 - `AvailableWorkflow` interface with `id`, `name`, `command`, `description`, `isPrimary` fields
 - `useWorkflows()` selector hook already in Zustand store
 - Workflows populate via `STATE_UPDATE` message - no separate message type
@@ -413,20 +420,24 @@ import { CTAButtons, CTAButtonsSkeleton } from './components';
 - WorkflowDiscoveryService provides state-based mapping: no sprint = sprint-planning, backlog = create-story, ready-for-dev = dev-story, etc.
 
 **From Story 3.6 (Manual Refresh Command):**
+
 - `RefreshButton` component demonstrates the `useVSCodeApi()` + `postMessage()` pattern
 - Uses `cn()` for conditional styling
 - Button accessibility: `type="button"`, `aria-label`, `title`, `disabled` state
 
 **From Story 3.5 (Next Action Recommendation):**
+
 - Section heading pattern: `<h2 className="text-xs font-semibold tracking-wide text-[var(--vscode-descriptionForeground)] uppercase">`
 - Component section wrapper: `<section data-testid="..." className="flex flex-col gap-2">`
 - Skeleton pattern: `animate-pulse` with `bg-[var(--vscode-editor-inactiveSelectionBackground)]`
 
 **From Story 3.4 (Active Story Card):**
+
 - data-testid naming: lowercase kebab-case descriptors
 - `React.ReactElement` return type
 
 **Git Intelligence:**
+
 - Commit pattern: `feat: 4-2-context-sensitive-cta-buttons`
 - All stories pass: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`
 - Current test count: 399 (309 Vitest + 90 Mocha)
@@ -434,25 +445,30 @@ import { CTAButtons, CTAButtonsSkeleton } from './components';
 ### Terminal API Notes
 
 **vscode.window.createTerminal():**
+
 - Creates a new terminal in VS Code's terminal panel
 - Accepts `TerminalOptions` with `name` property
 - Terminal persists until explicitly disposed or user closes it
 
 **vscode.window.terminals:**
+
 - Read-only array of currently active terminals
 - Use `.find()` to locate existing "BMAD" terminal
 - Terminal may be disposed externally - always verify it exists
 
 **terminal.sendText(text):**
+
 - Sends text to the terminal's underlying process
 - Automatically appends newline (press Enter) by default
 - Works with user's configured default shell (NFR10)
 
 **terminal.show():**
+
 - Brings terminal panel to focus
 - Shows the specific terminal tab if multiple terminals exist
 
 **vscode.env.clipboard.writeText(text):**
+
 - Returns `Thenable<void>` (async)
 - Always use await or void for the return value
 
@@ -482,11 +498,13 @@ Claude Opus 4.6
 ### File List
 
 **New Files:**
+
 - src/webviews/dashboard/components/cta-buttons.tsx
 - src/webviews/dashboard/components/cta-buttons.test.tsx
 - src/extension/providers/dashboard-view-provider.test.ts
 
 **Modified Files:**
+
 - src/webviews/dashboard/components/index.ts
 - src/webviews/dashboard/index.tsx
 - src/extension/providers/dashboard-view-provider.ts

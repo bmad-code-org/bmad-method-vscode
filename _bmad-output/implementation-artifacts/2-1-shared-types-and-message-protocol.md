@@ -75,16 +75,18 @@ So that type safety is enforced across extension host and webview boundaries.
    - WRONG: `SprintStatus.ts`, `ParseResult.ts`
 
 2. **Type/Interface Naming**: PascalCase
+
    ```typescript
    export interface SprintStatus { ... }
    export type ParseResult<T> = { ... }
    ```
 
 3. **Message Type Constants**: SCREAMING_SNAKE_CASE
+
    ```typescript
-   type: 'STATE_UPDATE'
-   type: 'OPEN_DOCUMENT'
-   type: 'EXECUTE_WORKFLOW'
+   type: 'STATE_UPDATE';
+   type: 'OPEN_DOCUMENT';
+   type: 'EXECUTE_WORKFLOW';
    ```
 
 4. **Package Manager**: Use `pnpm` (NOT npm)
@@ -97,18 +99,21 @@ So that type safety is enforced across extension host and webview boundaries.
 ### Technical Specifications
 
 **ParseResult<T> Pattern (Architecture Doc Section: Error Handling):**
+
 ```typescript
 type ParseResult<T> =
   | { success: true; data: T }
-  | { success: false; error: string; partial?: Partial<T> }
+  | { success: false; error: string; partial?: Partial<T> };
 ```
 
 This discriminated union enables:
+
 - Type narrowing after checking `success` property
 - Partial data recovery for graceful degradation (NFR7)
 - No exceptions in parsing code (NFR5)
 
 **DashboardState Interface (Architecture Doc Section: State Management):**
+
 ```typescript
 interface DashboardState {
   sprint: SprintStatus | null;
@@ -122,25 +127,28 @@ interface DashboardState {
 **Message Protocol (Architecture Doc Section: Message Protocol):**
 
 Extension → Webview (ToWebview):
+
 ```typescript
 type ToWebview =
   | { type: 'STATE_UPDATE'; payload: DashboardState }
   | { type: 'DOCUMENT_CONTENT'; payload: { path: string; content: string; frontmatter: unknown } }
-  | { type: 'ERROR'; payload: { message: string; recoverable: boolean } }
+  | { type: 'ERROR'; payload: { message: string; recoverable: boolean } };
 ```
 
 Webview → Extension (ToExtension):
+
 ```typescript
 type ToExtension =
   | { type: 'OPEN_DOCUMENT'; payload: { path: string } }
   | { type: 'EXECUTE_WORKFLOW'; payload: { command: string } }
   | { type: 'COPY_COMMAND'; payload: { command: string } }
-  | { type: 'REFRESH' }
+  | { type: 'REFRESH' };
 ```
 
 ### BMAD File Structures to Model
 
 **sprint-status.yaml Structure:**
+
 ```yaml
 generated: 2026-01-27
 project: bmad-extension
@@ -156,6 +164,7 @@ development_status:
 ```
 
 Key fields for SprintStatus interface:
+
 - `generated`: Date string
 - `project`: Project name
 - `project_key`: Unique identifier
@@ -164,12 +173,15 @@ Key fields for SprintStatus interface:
 - `development_status`: Record<string, EpicStatus | StoryStatus>
 
 **Epic Status Values:**
+
 - `backlog`, `in-progress`, `done`
 
 **Story Status Values:**
+
 - `backlog`, `ready-for-dev`, `in-progress`, `review`, `done`
 
-**Epic File Frontmatter (epic-*.md):**
+**Epic File Frontmatter (epic-\*.md):**
+
 ```yaml
 ---
 stepsCompleted: [...]
@@ -178,11 +190,13 @@ inputDocuments: [...]
 ```
 
 The epic content itself contains:
+
 - Epic title (H2 heading)
 - Epic description
 - Story list with acceptance criteria
 
 **Story File Frontmatter:**
+
 ```yaml
 ---
 status: ready-for-dev | in-progress | review | done
@@ -190,6 +204,7 @@ status: ready-for-dev | in-progress | review | done
 ```
 
 Story content contains:
+
 - User story statement
 - Acceptance criteria
 - Tasks with checkbox completion status `- [ ]` or `- [x]`
@@ -228,6 +243,7 @@ src/shared/
 4. **Package Manager**: Project uses pnpm exclusively
 
 **Stack Versions (from Story 1.4):**
+
 - TypeScript 5.9.3
 - React 19.2.4
 - Zustand 5.0.10
@@ -235,10 +251,15 @@ src/shared/
 
 **Existing DetectionResult Pattern (from bmad-detector.ts):**
 The existing code uses a discriminated union pattern that should be consistent with ParseResult:
+
 ```typescript
 export type DetectionResult =
   | { detected: true; bmadRoot: vscode.Uri; outputRoot: vscode.Uri | null }
-  | { detected: false; reason: 'no-workspace' | 'not-found' | 'not-directory' | 'error'; message?: string };
+  | {
+      detected: false;
+      reason: 'no-workspace' | 'not-found' | 'not-directory' | 'error';
+      message?: string;
+    };
 ```
 
 This validates the discriminated union approach is already used in the codebase.
@@ -246,6 +267,7 @@ This validates the discriminated union approach is already used in the codebase.
 ### Git Intelligence
 
 **Recent Commits:**
+
 ```
 76f3a5f feat: 1-4-sidebar-panel-registration
 cb6456f feat: 1-3-bmad-project-detection
@@ -259,6 +281,7 @@ b37f122 feat: 1-2-test-framework-configuration
 ### Epic 2 Context
 
 This is the **first story in Epic 2** (BMAD File Parsing & State Management). The types created here will be used by:
+
 - Story 2.2: Sprint Status Parser (uses SprintStatus, ParseResult)
 - Story 2.3: Epic File Parser (uses Epic, ParseResult)
 - Story 2.4: Story File Parser (uses Story, ParseResult)
@@ -274,6 +297,7 @@ This is the **first story in Epic 2** (BMAD File Parsing & State Management). Th
 **Test Focus**: Type guards and discriminated union narrowing
 
 **Example Test Pattern:**
+
 ```typescript
 import { describe, it, expect } from 'vitest';
 import type { ParseResult } from './parse-result';
@@ -301,6 +325,7 @@ describe('ParseResult type guards', () => {
 ### File Structure Requirements
 
 **Files to Create:**
+
 ```
 src/shared/types/sprint-status.ts      # SprintStatus, EpicStatusValue, StoryStatusValue
 src/shared/types/epic.ts               # Epic, EpicMetadata
@@ -312,12 +337,14 @@ src/shared/messages.test.ts            # Message type guard tests
 ```
 
 **Files to Modify:**
+
 ```
 src/shared/types/index.ts              # Update barrel exports
 src/shared/messages.ts                 # Replace placeholder with full protocol
 ```
 
 **Files NOT to Modify:**
+
 ```
 src/extension/**/*                     # No extension code changes
 src/webviews/**/*                      # No webview code changes
@@ -327,6 +354,7 @@ package.json                           # No new dependencies needed
 ### Implementation Notes
 
 **Type Safety Priority**: This story establishes the type foundation for the entire Epic 2 parsing system. The types MUST be:
+
 - Accurate to actual BMAD file structures
 - Flexible enough to handle schema variations (graceful degradation)
 - Include `partial` field in ParseResult for partial data recovery
@@ -378,6 +406,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### File List
 
 **Files Created:**
+
 - src/shared/types/sprint-status.ts
 - src/shared/types/sprint-status.test.ts
 - src/shared/types/epic.ts
@@ -389,6 +418,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - src/shared/messages.test.ts
 
 **Files Modified:**
+
 - src/shared/types/index.ts (updated barrel exports)
 - src/shared/messages.ts (replaced placeholder with full message protocol)
 
@@ -409,12 +439,12 @@ All acceptance criteria verified as implemented. Code review identified 1 HIGH, 
 
 ### Issues Found and Resolved
 
-| ID | Severity | Issue | Resolution |
-|----|----------|-------|------------|
-| H1 | HIGH | Barrel export re-exported messages, creating architectural coupling | Removed `export * from '../messages'` from types/index.ts |
-| M2 | MEDIUM | Type guard JSDoc was misleading about semantic behavior | Added clarifying JSDoc explaining guards check validity, not identity |
-| M3 | MEDIUM | Missing tests for sprint-status type guards (6 functions untested) | Added sprint-status.test.ts with 20 tests |
-| M4 | MEDIUM | Missing tests for calculateStoryProgress | Added story.test.ts with 9 tests |
+| ID  | Severity | Issue                                                               | Resolution                                                            |
+| --- | -------- | ------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| H1  | HIGH     | Barrel export re-exported messages, creating architectural coupling | Removed `export * from '../messages'` from types/index.ts             |
+| M2  | MEDIUM   | Type guard JSDoc was misleading about semantic behavior             | Added clarifying JSDoc explaining guards check validity, not identity |
+| M3  | MEDIUM   | Missing tests for sprint-status type guards (6 functions untested)  | Added sprint-status.test.ts with 20 tests                             |
+| M4  | MEDIUM   | Missing tests for calculateStoryProgress                            | Added story.test.ts with 9 tests                                      |
 
 ### Test Coverage After Review
 
@@ -430,4 +460,3 @@ pnpm test    → 84 passed (6 test files)
 pnpm typecheck → extension ✓, webview ✓
 pnpm lint    → 0 errors
 ```
-

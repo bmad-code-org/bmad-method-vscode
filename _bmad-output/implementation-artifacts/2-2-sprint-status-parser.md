@@ -85,6 +85,7 @@ So that the extension can extract workflow state for dashboard display.
    - WRONG: `SprintStatus.ts`, `sprintStatus.ts`
 
 2. **Function Naming**: camelCase
+
    ```typescript
    export function parseSprintStatus(content: string): ParseResult<SprintStatus> { ... }
    export async function parseSprintStatusFile(filePath: string): Promise<ParseResult<SprintStatus>> { ... }
@@ -104,17 +105,25 @@ So that the extension can extract workflow state for dashboard display.
 5. **Import Shared Types**:
    ```typescript
    import type { SprintStatus, ParseResult } from '@shared/types';
-   import { parseSuccess, parseFailure, isEpicKey, isStoryKey, isRetrospectiveKey } from '@shared/types';
+   import {
+     parseSuccess,
+     parseFailure,
+     isEpicKey,
+     isStoryKey,
+     isRetrospectiveKey,
+   } from '@shared/types';
    ```
 
 ### Technical Specifications
 
 **Parsing Library: js-yaml**
+
 - Use `yaml.load()` for parsing (NOT `yaml.safeLoad()` which is deprecated)
 - Wrap in try/catch to handle YAML syntax errors
 - Returns `unknown` type - must validate and type-narrow
 
 **Expected SprintStatus Structure (from sprint-status.yaml):**
+
 ```yaml
 generated: 2026-01-27
 project: bmad-extension
@@ -136,6 +145,7 @@ development_status:
 ```
 
 **Type Guards Available from Story 2.1:**
+
 ```typescript
 // Key pattern validators
 isEpicKey(key: string): boolean       // matches 'epic-N'
@@ -159,7 +169,13 @@ isParseFailure<T>(result): result is ParseFailure<T>
 ```typescript
 import yaml from 'js-yaml';
 import type { SprintStatus, ParseResult } from '@shared/types';
-import { parseSuccess, parseFailure, isEpicKey, isStoryKey, isRetrospectiveKey } from '@shared/types';
+import {
+  parseSuccess,
+  parseFailure,
+  isEpicKey,
+  isStoryKey,
+  isRetrospectiveKey,
+} from '@shared/types';
 
 /**
  * Parse sprint-status.yaml content into SprintStatus
@@ -179,7 +195,6 @@ export function parseSprintStatus(content: string): ParseResult<SprintStatus> {
 
     // Extract and validate fields...
     // Return parseSuccess(sprintStatus) or parseFailure(error, partial)
-
   } catch (error) {
     // Handle YAML syntax errors
     const message = error instanceof Error ? error.message : 'Unknown error';
@@ -204,6 +219,7 @@ src/extension/parsers/
 **Test File Location**: `src/extension/parsers/sprint-status.test.ts` (co-located)
 
 **Fixture Pattern**:
+
 ```typescript
 import { describe, it, expect } from 'vitest';
 import { parseSprintStatus } from './sprint-status';
@@ -254,6 +270,7 @@ describe('parseSprintStatus', () => {
 4. **TypeScript Boundary**: Parser is in extension context - can import from `@shared/types` but NOT from `src/webviews/`
 
 **Stack Versions (from Story 2.1):**
+
 - TypeScript 5.9.3
 - Vitest 4.0.18
 - pnpm (package manager)
@@ -261,6 +278,7 @@ describe('parseSprintStatus', () => {
 ### Git Intelligence
 
 **Recent Commits:**
+
 ```
 76f3a5f feat: 1-4-sidebar-panel-registration
 cb6456f feat: 1-3-bmad-project-detection
@@ -273,6 +291,7 @@ b37f122 feat: 1-2-test-framework-configuration
 ### Epic 2 Context
 
 This is Story 2.2 in Epic 2 (BMAD File Parsing & State Management). The parser created here will be used by:
+
 - Story 2.5: File Watcher Service (triggers re-parse on file changes)
 - Story 2.6: State Manager (aggregates parsed data into DashboardState)
 
@@ -290,6 +309,7 @@ pnpm add -D @types/js-yaml
 ### Error Message Guidelines
 
 Follow architecture pattern for error messages:
+
 - Sentence case, user-friendly
 - Include context: "Failed to parse sprint-status.yaml: missing required field 'project'"
 - Never expose stack traces to UI
@@ -298,19 +318,17 @@ Follow architecture pattern for error messages:
 ### Graceful Degradation (NFR7)
 
 When partial data is available, return it:
+
 ```typescript
 // If development_status is malformed but header fields are valid:
-return parseFailure(
-  'Invalid development_status: expected object',
-  {
-    generated: raw.generated,
-    project: raw.project,
-    project_key: raw.project_key,
-    tracking_system: raw.tracking_system,
-    story_location: raw.story_location,
-    // development_status omitted - that's what failed
-  }
-);
+return parseFailure('Invalid development_status: expected object', {
+  generated: raw.generated,
+  project: raw.project,
+  project_key: raw.project_key,
+  tracking_system: raw.tracking_system,
+  story_location: raw.story_location,
+  // development_status omitted - that's what failed
+});
 ```
 
 This allows the dashboard to show "Project: bmad-extension" even if story status parsing failed.
@@ -344,28 +362,29 @@ None - implementation proceeded without issues.
 - Partial data extraction implemented - returns valid fields even when some validation fails
 - 45 unit tests covering all acceptance criteria scenarios (increased from 36 after code review)
 - Updated vitest.config.ts to include parser tests (extension/parsers uses Vitest, not @vscode/test-electron)
-- Added path aliases to tsconfig.extension.json for @shared/* imports
+- Added path aliases to tsconfig.extension.json for @shared/\* imports
 - All 129 project tests pass, lint passes, build passes
 
 ### File List
 
 **New Files:**
+
 - src/extension/parsers/sprint-status.ts - Sprint status YAML parser implementation
 - src/extension/parsers/sprint-status.test.ts - 45 comprehensive unit tests
 
 **Modified Files:**
+
 - src/extension/parsers/index.ts - Updated barrel export with parser functions
 - src/shared/types/sprint-status.ts - Updated type guards to accept string input for flexible validation
 - package.json - Added js-yaml dependency
 - pnpm-lock.yaml - Lock file updated
-- tsconfig.extension.json - Added baseUrl and @shared/* path alias
+- tsconfig.extension.json - Added baseUrl and @shared/\* path alias
 - vitest.config.ts - Updated to include extension/parsers tests
-- _bmad-output/implementation-artifacts/sprint-status.yaml - Status updated to review
+- \_bmad-output/implementation-artifacts/sprint-status.yaml - Status updated to review
 
 ## Change Log
 
-| Date | Change | Author |
-|------|--------|--------|
+| Date       | Change                                                                                                               | Author          |
+| ---------- | -------------------------------------------------------------------------------------------------------------------- | --------------- |
 | 2026-01-29 | Code review fixes: Updated type guards to accept string, added 9 new tests for file reading and interleaved comments | Claude Opus 4.5 |
-| 2026-01-29 | Story implementation complete - Sprint status parser with full validation and 36 tests | Claude Opus 4.5 |
-
+| 2026-01-29 | Story implementation complete - Sprint status parser with full validation and 36 tests                               | Claude Opus 4.5 |

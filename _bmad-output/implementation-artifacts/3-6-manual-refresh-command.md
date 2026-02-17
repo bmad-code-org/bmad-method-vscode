@@ -92,6 +92,7 @@ So that I can recover from errors or force a re-sync.
    - WRONG: `RefreshButton.tsx`
 
 2. **Component Naming**: PascalCase for components
+
    ```typescript
    export function RefreshButton(): React.ReactElement { ... }
    ```
@@ -113,6 +114,7 @@ So that I can recover from errors or force a re-sync.
    - `opacity-50` and `cursor-not-allowed` for disabled state
 
 6. **Zustand Store Usage**: Use existing selector hooks
+
    ```typescript
    import { useLoading } from '../store';
    // DO NOT create a new store
@@ -161,11 +163,13 @@ export function RefreshButton(): React.ReactElement {
 **Dashboard Layout Integration:**
 
 The button should be placed as a header row above the component stack. The dashboard currently renders in vertical stack order:
+
 ```
 SprintStatus > EpicList > ActiveStoryCard > NextActionRecommendation > PlanningArtifactLinks
 ```
 
 Add a header row with title + refresh button:
+
 ```
 [Dashboard Header: "BMAD Dashboard" + RefreshButton] > SprintStatus > EpicList > ...
 ```
@@ -173,6 +177,7 @@ Add a header row with title + refresh button:
 The RefreshButton should be rendered in BOTH the loading and loaded branches (it must always be visible so users can trigger refresh even during loading or error states).
 
 **Message Flow (already implemented):**
+
 ```
 RefreshButton click
   → vscodeApi.postMessage(createRefreshMessage())
@@ -187,28 +192,31 @@ RefreshButton click
 
 **Key Existing Code Locations:**
 
-| Purpose | File | Key Exports/APIs |
-|---------|------|-----------------|
-| REFRESH message factory | `src/shared/messages.ts` | `createRefreshMessage()` |
-| VS Code API hook | `src/webviews/shared/hooks/use-vscode-api.ts` | `useVSCodeApi()` |
-| Dashboard store | `src/webviews/dashboard/store.ts` | `useLoading()` |
-| Dashboard entry | `src/webviews/dashboard/index.tsx` | Dashboard component |
-| Component barrel | `src/webviews/dashboard/components/index.ts` | All component exports |
-| cn utility | `src/webviews/shared/utils/cn.ts` | `cn()` |
-| Button pattern reference | `src/webviews/dashboard/components/planning-artifact-links.tsx` | Text button styling |
-| Active story button pattern | `src/webviews/dashboard/components/active-story-card.tsx` | Clickable button styling |
+| Purpose                     | File                                                            | Key Exports/APIs         |
+| --------------------------- | --------------------------------------------------------------- | ------------------------ |
+| REFRESH message factory     | `src/shared/messages.ts`                                        | `createRefreshMessage()` |
+| VS Code API hook            | `src/webviews/shared/hooks/use-vscode-api.ts`                   | `useVSCodeApi()`         |
+| Dashboard store             | `src/webviews/dashboard/store.ts`                               | `useLoading()`           |
+| Dashboard entry             | `src/webviews/dashboard/index.tsx`                              | Dashboard component      |
+| Component barrel            | `src/webviews/dashboard/components/index.ts`                    | All component exports    |
+| cn utility                  | `src/webviews/shared/utils/cn.ts`                               | `cn()`                   |
+| Button pattern reference    | `src/webviews/dashboard/components/planning-artifact-links.tsx` | Text button styling      |
+| Active story button pattern | `src/webviews/dashboard/components/active-story-card.tsx`       | Clickable button styling |
 
 ### Project Structure Notes
 
 **Files to Create:**
+
 - `src/webviews/dashboard/components/refresh-button.tsx` - RefreshButton component
 - `src/webviews/dashboard/components/refresh-button.test.tsx` - Component tests
 
 **Files to Modify:**
+
 - `src/webviews/dashboard/components/index.ts` - Add RefreshButton export
 - `src/webviews/dashboard/index.tsx` - Wire RefreshButton into dashboard layout header
 
 **Files to NOT Modify (read-only references):**
+
 - `src/shared/messages.ts` - REFRESH message already exists, use `createRefreshMessage()`
 - `src/extension/extension.ts` - `bmad.refresh` command already registered
 - `src/extension/providers/dashboard-view-provider.ts` - REFRESH handling already implemented
@@ -217,6 +225,7 @@ RefreshButton click
 - `package.json` - `bmad.refresh` command already in contributes.commands
 
 **Dependencies (all already installed - NO new packages):**
+
 - `react` 19.2.0
 - `zustand` ^5.0.0
 - `clsx` (for cn utility)
@@ -245,6 +254,7 @@ RefreshButton click
 ### Previous Story Intelligence
 
 **From Story 3.5 (Next Action Recommendation):**
+
 - 295 tests total across all stories using Vitest
 - All validation gates passed: typecheck, lint, test, build
 - Dashboard renders components in order: SprintStatus > EpicList > ActiveStoryCard > NextActionRecommendation > PlanningArtifactLinks
@@ -254,20 +264,24 @@ RefreshButton click
 - Components use `data-testid` attributes for test targeting
 
 **From Story 3.4 (Active Story Card):**
+
 - Mock pattern for `useVSCodeApi`: mock the module at `../../shared/hooks/use-vscode-api`
 - Button click tests: `fireEvent.click()` + `expect(mockPostMessage).toHaveBeenCalledWith()`
 - 17 tests added in that story (260 total at that point)
 
 **From Story 3.2 (Sprint Status Display):**
+
 - Dashboard owns loading orchestration - components check their own `loading` prop or store selector
 - Remove dead exports from barrel file
 - Test ALL conditional render paths
 
 **From Story 3.1 (Dashboard Zustand Store):**
+
 - Store state set directly in tests via `useDashboardStore.setState()`
 - Avoid dead code in components
 
 **Git Intelligence:**
+
 - Recent commits: `feat: 3-5-next-action-recommendation`, `feat: 3-4-active-story-card-with-task-progress`, etc.
 - Package manager: `pnpm`
 - Last 5 commits are all Epic 3 stories (3.1-3.5)

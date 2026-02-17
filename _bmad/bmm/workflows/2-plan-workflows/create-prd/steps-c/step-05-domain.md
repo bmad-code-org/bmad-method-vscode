@@ -63,6 +63,7 @@ For complex domains only that have a mapping in {domainComplexityCSV}, explore d
 ## YOUR TASK:
 
 For complex domains, explore what makes this domain special:
+
 - **Compliance requirements** - regulations, standards, certifications
 - **Technical constraints** - security, privacy, integration requirements
 - **Domain patterns** - common patterns, best practices, anti-patterns
@@ -81,6 +82,7 @@ For complex domains, explore what makes this domain special:
 
 Offer to skip:
 "The domain complexity from our discovery is low. We may not need deep domain-specific requirements. Would you like to:
+
 - [C] Skip this step and move to Innovation
 - [D] Do domain exploration anyway"
 
@@ -95,6 +97,7 @@ Proceed with domain exploration.
 "Your task: Lookup data in {domainComplexityCSV}
 
 **Search criteria:**
+
 - Find row where domain matches {{domainFromStep02}}
 
 **Return format:**
@@ -104,6 +107,7 @@ domain, complexity, typical_concerns, compliance_requirements
 **Do NOT return the entire CSV - only the matching row.**"
 
 **Graceful degradation (if Task tool unavailable):**
+
 - Load the CSV file directly
 - Find the matching row manually
 - Extract required fields
@@ -114,12 +118,14 @@ domain, complexity, typical_concerns, compliance_requirements
 **Start with what you know:**
 
 Acknowledge the domain and explore what makes it complex:
+
 - What regulations apply? (HIPAA, PCI-DSS, GDPR, SOX, etc.)
 - What standards matter? (ISO, NIST, domain-specific standards)
 - What certifications are needed? (security, privacy, domain-specific)
 - What integrations are required? (EMR systems, payment processors, etc.)
 
 **Explore technical constraints:**
+
 - Security requirements (encryption, audit logs, access control)
 - Privacy requirements (data handling, consent, retention)
 - Performance requirements (real-time, batch, latency)
@@ -131,15 +137,19 @@ Acknowledge the domain and explore what makes it complex:
 
 ```markdown
 ### Compliance & Regulatory
+
 - [Specific requirements]
 
 ### Technical Constraints
+
 - [Security, privacy, performance needs]
 
 ### Integration Requirements
+
 - [Required systems and data flows]
 
 ### Risk Mitigations
+
 - [Domain-specific risks and how to address them]
 ```
 
@@ -154,12 +164,14 @@ Acknowledge the domain and explore what makes it complex:
 Display: "**Select:** [A] Advanced Elicitation [P] Party Mode [C] Continue - Save and Proceed to Innovation (Step 6 of 13)"
 
 #### Menu Handling Logic:
+
 - IF A: Read fully and follow: {advancedElicitationTask}, and when finished redisplay the menu
 - IF P: Read fully and follow: {partyModeWorkflow}, and when finished redisplay the menu
 - IF C: Save content to {outputFile}, update frontmatter, then read fully and follow: {nextStepFile}
 - IF Any other comments or queries: help user respond then [Redisplay Menu Options](#n-present-menu-options)
 
 #### EXECUTION RULES:
+
 - ALWAYS halt and wait for user input after presenting menu
 - ONLY proceed to next step when user selects 'C'
 - After other menu items execution, return to this menu

@@ -134,6 +134,7 @@ so that I can see project metadata at a glance and navigate epics cleanly in lar
 The BMAD manifest lives at `_bmad/_config/manifest.yaml` (relative to workspace root). The `StateManager` already has `this.bmadDetector.getBmadPaths().bmadRoot` which resolves to the `_bmad/` directory. The manifest path is `vscode.Uri.joinPath(bmadRoot, '_config', 'manifest.yaml')`. Parse it with `js-yaml` (already a dependency) in the extension host, add the result to `DashboardState`, and it flows automatically to the webview via the existing `STATE_UPDATE` → `updateState()` → Zustand pipeline.
 
 **Manifest YAML Structure (real file at `_bmad/_config/manifest.yaml`):**
+
 ```yaml
 installation:
   version: 6.0.0-Beta.7
@@ -151,6 +152,7 @@ ides:
 ```
 
 **BmadMetadata Type (new file: `src/shared/types/bmad-metadata.ts`):**
+
 ```typescript
 export interface BmadModule {
   name: string;
@@ -166,17 +168,21 @@ export interface BmadMetadata {
 ```
 
 **Date Formatting — Use native `Date.toLocaleDateString()` in the component:**
+
 ```typescript
 const formatDate = (isoDate: string): string => {
   try {
     return new Date(isoDate).toLocaleDateString('en-US', {
-      year: 'numeric', month: 'short', day: 'numeric'
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   } catch {
     return 'Unknown';
   }
 };
 ```
+
 Do NOT add a date library (dayjs, date-fns, etc.). Native API is sufficient.
 
 **About Section Placement:**
@@ -184,12 +190,14 @@ Place it at the bottom of the dashboard, after `PlanningArtifactLinks` and befor
 
 **About Section UI Pattern — Compact info display:**
 Use a small section header "About" in uppercase muted text (like "Other Actions" in `cta-buttons.tsx`), then a few lines of key-value pairs:
+
 ```
 ABOUT
 Version: 6.0.0-Beta.7
 Updated: Feb 6, 2026
 Modules: core, bmm
 ```
+
 Use `text-xs` for the content, `var(--vscode-descriptionForeground)` for labels, `var(--vscode-foreground)` for values.
 
 **Epic List — Hide Done Epics Pattern:**
@@ -198,20 +206,21 @@ Add a local `useState<boolean>(true)` for `hideDoneEpics`. Filter the `summaries
 ```typescript
 const [hideDoneEpics, setHideDoneEpics] = useState(true);
 const doneCount = summaries.filter((s) => s.status === 'done').length;
-const visibleSummaries = hideDoneEpics
-  ? summaries.filter((s) => s.status !== 'done')
-  : summaries;
+const visibleSummaries = hideDoneEpics ? summaries.filter((s) => s.status !== 'done') : summaries;
 ```
 
 **Epic List — Toggle Button Pattern:**
 Place below the epic items, as a small text button (not a full button). Pattern:
+
 ```
 [Show completed (4)] or [Hide completed]
 ```
+
 Use the same muted text styling as "Other Actions" header. Use `cursor-pointer hover:text-[var(--vscode-foreground)]` for interaction feedback.
 
 **Epic List — Scrolling:**
 Wrap the epic items (not the header or toggle) in a scrollable container:
+
 ```typescript
 <div
   data-testid="epic-list-scroll-container"
@@ -220,6 +229,7 @@ Wrap the epic items (not the header or toggle) in a scrollable container:
   {/* Epic items here */}
 </div>
 ```
+
 The `280px` approximates ~5 compact epic items (each ~56px including padding/margins). Adjust if needed during implementation. The VS Code scrollbar styling from `index.css` (`::-webkit-scrollbar`) will apply automatically.
 
 **StateManager — Where to call parseManifest:**
@@ -271,6 +281,7 @@ All libraries are already installed: `js-yaml` (YAML parsing), `react` (componen
 ### Previous Story Intelligence (5.1, 5.2, 5.3)
 
 **From Story 5.1 (Epic Detail View):**
+
 - `useState<Set<number>>` for expand/collapse state management in `epic-list.tsx`
 - `animate-expand-in` CSS keyframe already defined in `src/webviews/index.css` — reuse for toggle animations
 - `useCallback` for event handlers to prevent unnecessary re-renders
@@ -278,12 +289,14 @@ All libraries are already installed: `js-yaml` (YAML parsing), `react` (componen
 - Shift+click on epic title opens raw file in text editor
 
 **From Story 5.2 (Next Action Enhancements):**
+
 - `actionButtonClass` constant pattern for consistent button styling
 - Icon button pattern with `size={12}` for inline icons
 - `useVSCodeApi()` hook from `../../shared/hooks` for message posting
 - Test mock pattern: `vi.mock('../../shared/hooks', ...)` + `useDashboardStore.setState()`
 
 **From Story 5.3 (Overflow Menu & Help Icon):**
+
 - `HeaderToolbar` component replaced `RefreshButton` in dashboard header
 - Click-outside dismiss pattern with `useRef` + `mousedown` listener
 - `refresh-button.tsx` and its test were deleted (dead code cleanup)
@@ -292,6 +305,7 @@ All libraries are already installed: `js-yaml` (YAML parsing), `react` (componen
 - Review fixes: added ARIA menu roles, added workflow item icons
 
 **Key Testing Patterns (from all Epic 5 stories):**
+
 ```typescript
 // Mock setup
 vi.mock('../../shared/hooks', () => ({
@@ -317,16 +331,19 @@ expect(screen.getByTestId('about-section')).toBeInTheDocument();
 **Expected commit:** `feat: 5-4-about-section-and-epic-list-ux`
 
 **Recent work context (last 3 commits):**
+
 - `2bf8e5f` — Fix: name parsing (parser fixes)
 - `487ddc7` — Story 5.3: Overflow menu & help icon (HeaderToolbar component)
 - `5dfc037` — Story 5.2: Next action enhancements (play/copy icons on next action)
 
 **Files changed in last 3 commits (20 files, 1272 insertions):**
+
 - New: `header-toolbar.tsx`, `header-toolbar.test.tsx`, story docs
 - Modified: `cta-buttons.tsx/test`, `next-action-recommendation.tsx/test`, `epic-parser.ts/test`, `story-parser.ts/test`, `index.ts` (barrel), `dashboard/index.tsx/test`
 - Deleted: `refresh-button.tsx`, `refresh-button.test.tsx`
 
 **Patterns established:**
+
 - Icon buttons use `size={12}` for inline, `size={14}` for standalone
 - All buttons have `data-testid`, `aria-label`, `title` attributes
 - Tests mock `useVSCodeApi` and set Zustand store state directly
@@ -335,11 +352,13 @@ expect(screen.getByTestId('about-section')).toBeInTheDocument();
 ### Project Structure Notes
 
 **New files:**
+
 - `src/shared/types/bmad-metadata.ts` — New type file for BmadMetadata and BmadModule interfaces
 - `src/webviews/dashboard/components/about-section.tsx` — New component with skeleton
 - `src/webviews/dashboard/components/about-section.test.tsx` — Co-located test
 
 **Modified files:**
+
 - `src/shared/types/index.ts` — Add `export * from './bmad-metadata'`
 - `src/shared/types/dashboard-state.ts` — Add `bmadMetadata: BmadMetadata | null` to interface and initial state
 - `src/webviews/dashboard/store.ts` — Add `bmadMetadata` to `updateState()` spread + new selector
@@ -393,15 +412,15 @@ import React, { useState, useCallback } from 'react';
 
 ### Library/Framework Requirements
 
-| Library | Version | Usage in This Story |
-|---|---|---|
-| React | ^19.2.0 | Component framework, useState |
-| js-yaml | ^4.1.1 | Parse manifest.yaml in StateManager |
-| zustand | ^5.0.0 | useBmadMetadata() selector |
-| tailwindcss | ^4.1.0 | Styling with VS Code CSS variables |
-| clsx + tailwind-merge | via cn() | Conditional className composition |
-| vitest | ^4.0.18 | Test runner |
-| @testing-library/react | ^16.3.2 | Component testing (render, screen, fireEvent) |
+| Library                | Version  | Usage in This Story                           |
+| ---------------------- | -------- | --------------------------------------------- |
+| React                  | ^19.2.0  | Component framework, useState                 |
+| js-yaml                | ^4.1.1   | Parse manifest.yaml in StateManager           |
+| zustand                | ^5.0.0   | useBmadMetadata() selector                    |
+| tailwindcss            | ^4.1.0   | Styling with VS Code CSS variables            |
+| clsx + tailwind-merge  | via cn() | Conditional className composition             |
+| vitest                 | ^4.0.18  | Test runner                                   |
+| @testing-library/react | ^16.3.2  | Component testing (render, screen, fireEvent) |
 
 **No new dependencies required.** All libraries are already installed.
 
@@ -439,11 +458,13 @@ No issues encountered during implementation.
 ### File List
 
 **New files:**
+
 - src/shared/types/bmad-metadata.ts
 - src/webviews/dashboard/components/about-section.tsx
 - src/webviews/dashboard/components/about-section.test.tsx
 
 **Modified files:**
+
 - src/shared/types/index.ts
 - src/shared/types/dashboard-state.ts
 - src/shared/messages.test.ts

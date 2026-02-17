@@ -91,6 +91,7 @@ So that I can immediately start working without typing commands.
    - `pnpm build`, `pnpm test`, `pnpm lint`, `pnpm typecheck`
 
 3. **Error Pattern**: Never throw from extension host handlers - wrap in try/catch, show error message to user
+
    ```typescript
    private executeWorkflow(command: string): void {
      try { ... } catch { void vscode.window.showErrorMessage('Failed to execute workflow command'); }
@@ -155,6 +156,7 @@ case ToExtensionType.EXECUTE_WORKFLOW:
 ```
 
 **Command Flow:**
+
 1. Webview CTA button click → `vscodeApi.postMessage(createExecuteWorkflowMessage(workflow.command))`
 2. `workflow.command` = `/bmad-bmm-dev-story` (BMAD slash command only, no CLI prefix)
 3. Extension host receives `EXECUTE_WORKFLOW` message with `{ command: '/bmad-bmm-dev-story' }`
@@ -164,19 +166,19 @@ case ToExtensionType.EXECUTE_WORKFLOW:
 
 ### Key Existing Code Locations
 
-| Purpose | File | Key Exports/APIs |
-|---------|------|-----------------|
-| Terminal execution | `src/extension/providers/dashboard-view-provider.ts` | `executeWorkflow()` method (line 129) |
-| Clipboard copy | `src/extension/providers/dashboard-view-provider.ts` | `copyCommand()` method (line 149) |
-| Message handler | `src/extension/providers/dashboard-view-provider.ts` | `handleMessage()` (line 78) |
-| Terminal name constant | `src/extension/providers/dashboard-view-provider.ts` | `TERMINAL_NAME = 'BMAD'` (line 12) |
-| Message types | `src/shared/messages.ts` | `ToExtensionType.EXECUTE_WORKFLOW`, `ExecuteWorkflowMessage` |
-| Message factory | `src/shared/messages.ts` | `createExecuteWorkflowMessage()` |
-| Workflow types | `src/shared/types/workflow.ts` | `AvailableWorkflow` (command field stores slash command only) |
-| CLI prefix setting | `package.json` | `bmad.cliPrefix` (default: "claude") |
-| CTA buttons | `src/webviews/dashboard/components/cta-buttons.tsx` | `CTAButtons` component (calls execute/copy) |
-| Workflow discovery | `src/extension/services/workflow-discovery.ts` | `WORKFLOW_DEFINITIONS` (commands without CLI prefix) |
-| DashboardProvider tests | `src/extension/providers/dashboard-view-provider.test.ts` | Terminal and clipboard test suites |
+| Purpose                 | File                                                      | Key Exports/APIs                                              |
+| ----------------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
+| Terminal execution      | `src/extension/providers/dashboard-view-provider.ts`      | `executeWorkflow()` method (line 129)                         |
+| Clipboard copy          | `src/extension/providers/dashboard-view-provider.ts`      | `copyCommand()` method (line 149)                             |
+| Message handler         | `src/extension/providers/dashboard-view-provider.ts`      | `handleMessage()` (line 78)                                   |
+| Terminal name constant  | `src/extension/providers/dashboard-view-provider.ts`      | `TERMINAL_NAME = 'BMAD'` (line 12)                            |
+| Message types           | `src/shared/messages.ts`                                  | `ToExtensionType.EXECUTE_WORKFLOW`, `ExecuteWorkflowMessage`  |
+| Message factory         | `src/shared/messages.ts`                                  | `createExecuteWorkflowMessage()`                              |
+| Workflow types          | `src/shared/types/workflow.ts`                            | `AvailableWorkflow` (command field stores slash command only) |
+| CLI prefix setting      | `package.json`                                            | `bmad.cliPrefix` (default: "claude")                          |
+| CTA buttons             | `src/webviews/dashboard/components/cta-buttons.tsx`       | `CTAButtons` component (calls execute/copy)                   |
+| Workflow discovery      | `src/extension/services/workflow-discovery.ts`            | `WORKFLOW_DEFINITIONS` (commands without CLI prefix)          |
+| DashboardProvider tests | `src/extension/providers/dashboard-view-provider.test.ts` | Terminal and clipboard test suites                            |
 
 ### Project Structure Notes
 
@@ -185,6 +187,7 @@ case ToExtensionType.EXECUTE_WORKFLOW:
 **Files to Modify:** None expected - verify existing implementation covers all ACs.
 
 **Files to NOT Modify:**
+
 - `src/extension/providers/dashboard-view-provider.ts` - Terminal execution already implemented
 - `src/shared/messages.ts` - Message types already defined
 - `src/shared/types/workflow.ts` - AvailableWorkflow already defined
@@ -193,6 +196,7 @@ case ToExtensionType.EXECUTE_WORKFLOW:
 - `package.json` - `bmad.cliPrefix` setting already exists
 
 **Dependencies (all already installed - NO new packages):**
+
 - `vscode` ^1.96.0 (terminal, clipboard, configuration APIs)
 
 ### References
@@ -226,18 +230,21 @@ This is the **critical predecessor** - Story 4.2 already implemented ALL of Stor
 - Total test count after 4.2: 321 Vitest + 94 Mocha = 415 tests passing
 
 **Dev notes from Story 4.2:**
+
 - `vscode.env.clipboard.writeText` is non-configurable with sinon - tests use real clipboard API with readback
 - `executeWorkflow` is synchronous (no `await` needed for terminal APIs) per `@typescript-eslint/require-await` lint rule
 - Added `src/extension/providers/**/*.test.ts` to vitest exclude for Mocha/Vitest separation
 - lucide-react `Copy` icon used for copy button (replaced Unicode character for cross-platform rendering)
 
 **From Story 4.1 (Workflow Discovery Service):**
+
 - `AvailableWorkflow.command` stores BMAD slash command only (e.g., `/bmad-bmm-dev-story`)
 - `WorkflowDiscoveryService` filters workflows against installed workflows on disk
 - State-based mapping: sprint state → available workflows → CTA buttons → terminal execution
 - 399 tests passing at end of 4.1
 
 **Git Intelligence:**
+
 - Commit pattern: `feat: 4-3-terminal-workflow-execution`
 - All stories pass: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`
 - Current test count: 415 (321 Vitest + 94 Mocha) after Story 4.2
@@ -245,27 +252,32 @@ This is the **critical predecessor** - Story 4.2 already implemented ALL of Stor
 ### Terminal API Reference
 
 **vscode.window.createTerminal(name):**
+
 - Creates a new terminal in VS Code's integrated terminal panel
 - Uses the user's configured default shell (PowerShell, bash, zsh, etc.)
 - Terminal persists until explicitly disposed or user closes it
 - Returns `Terminal` object
 
 **vscode.window.terminals:**
+
 - Read-only array of currently open terminals
 - Use `.find(t => t.name === 'BMAD')` to locate existing terminal
 - Terminal may be closed externally by user
 
 **terminal.sendText(text, addNewLine?):**
+
 - Sends text string to the terminal's underlying process
 - Default: appends newline (presses Enter automatically)
 - Works with any shell the user has configured (NFR10)
 
 **terminal.show(preserveFocus?):**
+
 - Brings terminal panel to focus
 - Shows the specific terminal tab if multiple terminals exist
 - `preserveFocus: true` would keep focus in editor (not used here - we want terminal focus)
 
 **vscode.workspace.getConfiguration('bmad'):**
+
 - Returns configuration object for `bmad.*` settings
 - `.get<string>('cliPrefix', 'claude')` returns typed value with default
 

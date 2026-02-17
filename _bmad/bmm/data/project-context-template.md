@@ -23,4 +23,3 @@ Brainstorming results might feed into:
 - PRDs for detailed requirements
 - Technical Specifications for architecture plans
 - Research Activities for validation needs
-

@@ -98,6 +98,7 @@ So that I can write reliable unit and integration tests.
 ### Technical Specifications
 
 **Vitest Configuration Details:**
+
 - **Version**: Install latest stable Vitest (^4.0.0 as of January 2026)
 - **Environment**: `jsdom` for DOM simulation in webview tests
 - **Path Aliases**: Must match `vite.config.ts` aliases:
@@ -109,6 +110,7 @@ So that I can write reliable unit and integration tests.
 - **Include Pattern**: `src/**/*.test.{ts,tsx}` but EXCLUDE `src/extension/**` (those use vscode-test-electron)
 
 **@vscode/test-electron Configuration Details:**
+
 - **Version**: Install `@vscode/test-electron` (^2.5.0) and `@vscode/test-cli` (latest)
 - **Test Runner**: Mocha (standard for VS Code extension tests)
 - **Config File**: `.vscode-test.mjs` in project root
@@ -118,12 +120,14 @@ So that I can write reliable unit and integration tests.
 
 **Sample Vitest Test (`cn.test.ts`):**
 The `cn()` utility from `src/webviews/shared/utils/cn.ts` is the ideal first test target because:
+
 - It's a pure function (no side effects, no DOM, no React)
 - It already exists in the codebase
 - It validates the test infrastructure is working
 - Test cases: merging classes, handling conditionals, deduplicating Tailwind classes
 
 **Sample Extension Test (`extension.test.ts`):**
+
 - Should verify the extension can be found by its ID
 - Should verify the extension activates correctly
 - Uses `vscode.extensions.getExtension('bmad.bmad-extension')` pattern
@@ -155,6 +159,7 @@ The `cn()` utility from `src/webviews/shared/utils/cn.ts` is the ideal first tes
 ### Git Intelligence
 
 **Recent Commits:**
+
 ```
 560dade feat: 1-1-project-initialization-from-starter-template
 79dfdd7 chore: epic doc
@@ -163,6 +168,7 @@ The `cn()` utility from `src/webviews/shared/utils/cn.ts` is the ideal first tes
 ```
 
 **Key Patterns Established:**
+
 - Commit messages use conventional commits format (`feat:`, `chore:`)
 - Story-based commit naming: `feat: 1-1-project-initialization-from-starter-template`
 - All source files use kebab-case naming consistently
@@ -171,6 +177,7 @@ The `cn()` utility from `src/webviews/shared/utils/cn.ts` is the ideal first tes
 ### Latest Technology Information
 
 **Vitest 4.x (Current Stable: 4.0.17)**
+
 - Vitest 4.0 is the current major version (released recently)
 - Powered by Vite - shares configuration with `vite.config.ts` by default
 - If you want separate config, create `vitest.config.ts` (takes higher priority)
@@ -178,6 +185,7 @@ The `cn()` utility from `src/webviews/shared/utils/cn.ts` is the ideal first tes
 - Note: Vitest 4.0 added visual regression testing in Browser Mode (not needed for this story)
 
 **@vscode/test-electron (Current: 2.5.2)**
+
 - Standard VS Code extension integration test runner
 - New extensions should also consider `@vscode/test-cli` for richer execution experience
 - Test runner uses Mocha under the hood
@@ -186,6 +194,7 @@ The `cn()` utility from `src/webviews/shared/utils/cn.ts` is the ideal first tes
 - Downloads and unzips VS Code for running tests
 
 **Key Compatibility Notes:**
+
 - Vitest 4.x requires Vite 7.x (already installed: Vite 7.3.1)
 - @vscode/test-electron 2.5.x works with current VS Code versions
 - Mocha is the standard test framework for VS Code extension tests (NOT Jest, NOT Vitest)
@@ -193,6 +202,7 @@ The `cn()` utility from `src/webviews/shared/utils/cn.ts` is the ideal first tes
 ### Project Structure Notes
 
 **Files to Create:**
+
 ```
 vitest.config.ts                                    # NEW - Vitest configuration
 .vscode-test.mjs                                    # NEW - VS Code test electron config
@@ -202,6 +212,7 @@ src/extension/test/index.ts                         # NEW - Extension test runne
 ```
 
 **Files to Modify:**
+
 ```
 package.json                                        # ADD test scripts and dev dependencies
 .gitignore                                          # ADD .vscode-test/ directory exclusion
@@ -209,6 +220,7 @@ tsconfig.extension.json                             # VERIFY test files are incl
 ```
 
 **Alignment with Architecture Document:**
+
 - Architecture specifies: "Vitest for webview unit tests" and "@vscode/test-electron for extension host tests"
 - Test co-location: `*.test.ts` next to source files
 - Integration tests directory: `src/__tests__/integration/` (future stories)
@@ -270,15 +282,18 @@ No debug issues encountered.
 ### File List
 
 **New Files:**
+
 - vitest.config.ts
 - .vscode-test.mjs
 - src/webviews/shared/utils/cn.test.ts
 - src/extension/extension.test.ts
 
 **Modified Files:**
+
 - package.json (added test scripts and dev dependencies)
 - pnpm-lock.yaml (updated with new dev dependencies)
 - eslint.config.mjs (added .vscode-test/ ignore, vitest.config.ts to allowDefaultProject)
 
 **Deleted Files (Review):**
+
 - src/extension/test/index.ts (dead code - unused by @vscode/test-cli runner)

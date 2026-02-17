@@ -13,6 +13,7 @@ BMAD Dashboard is a VS Code sidebar extension that provides an interactive dashb
 3. **Shared Layer** — TypeScript types and message protocol used by both contexts
 
 This follows the standard VS Code webview extension pattern with strict context isolation enforced by:
+
 - Separate TypeScript configurations (`tsconfig.extension.json` / `tsconfig.webview.json`)
 - ESLint boundary rules preventing cross-context imports
 - Message-passing communication (no shared runtime objects)
@@ -62,37 +63,37 @@ This follows the standard VS Code webview extension pattern with strict context 
 
 ### Extension Host Services
 
-| Service | Responsibility | Key Pattern |
-|---|---|---|
-| `BmadDetector` | Detects `_bmad/` directory in workspace | Single-context model (first workspace folder only) |
-| `FileWatcher` | Monitors `_bmad-output/**/*.{yaml,md}` | 500ms debounce, batched change events |
-| `StateManager` | Aggregates parsed data into `DashboardState` | Event emitter pattern, immutable state updates |
-| `WorkflowDiscoveryService` | Recommends workflows based on state | Pure logic (no I/O after initial scan) |
-| `DashboardViewProvider` | Bridges extension ↔ webview | WebviewViewProvider, message routing |
+| Service                    | Responsibility                               | Key Pattern                                        |
+| -------------------------- | -------------------------------------------- | -------------------------------------------------- |
+| `BmadDetector`             | Detects `_bmad/` directory in workspace      | Single-context model (first workspace folder only) |
+| `FileWatcher`              | Monitors `_bmad-output/**/*.{yaml,md}`       | 500ms debounce, batched change events              |
+| `StateManager`             | Aggregates parsed data into `DashboardState` | Event emitter pattern, immutable state updates     |
+| `WorkflowDiscoveryService` | Recommends workflows based on state          | Pure logic (no I/O after initial scan)             |
+| `DashboardViewProvider`    | Bridges extension ↔ webview                  | WebviewViewProvider, message routing               |
 
 ### Parsers
 
-| Parser | Input | Output | Library |
-|---|---|---|---|
-| `parseSprintStatus` | `sprint-status.yaml` | `SprintStatus` | js-yaml |
-| `parseEpics` | `epics.md` (multi-epic) | `Epic[]` | gray-matter |
-| `parseEpic` | Single epic section | `Epic` | gray-matter |
-| `parseStory` | `N-N-name.md` | `Story` | gray-matter |
+| Parser              | Input                   | Output         | Library     |
+| ------------------- | ----------------------- | -------------- | ----------- |
+| `parseSprintStatus` | `sprint-status.yaml`    | `SprintStatus` | js-yaml     |
+| `parseEpics`        | `epics.md` (multi-epic) | `Epic[]`       | gray-matter |
+| `parseEpic`         | Single epic section     | `Epic`         | gray-matter |
+| `parseStory`        | `N-N-name.md`           | `Story`        | gray-matter |
 
 All parsers return `ParseResult<T>` — a discriminated union of `ParseSuccess<T>` or `ParseFailure` with optional partial data for graceful degradation.
 
 ### Webview Components
 
-| Component | Data Source | Purpose |
-|---|---|---|
-| `Dashboard` | `useLoading()` | Layout orchestrator with loading skeleton |
-| `SprintStatus` | `useSprint()` | Progress bar showing done/total stories |
-| `EpicList` | `useSprint()`, `useEpics()` | Per-epic cards with progress bars |
-| `ActiveStoryCard` | `useCurrentStory()` | Current story details with task progress |
-| `NextActionRecommendation` | `useSprint()`, `useCurrentStory()` | State-machine-driven next step |
-| `CTAButtons` | `useWorkflows()` | Context-sensitive workflow execution buttons |
-| `PlanningArtifactLinks` | `useOutputRoot()` | Quick links to PRD/Architecture |
-| `RefreshButton` | `useLoading()` | Manual refresh trigger |
+| Component                  | Data Source                        | Purpose                                      |
+| -------------------------- | ---------------------------------- | -------------------------------------------- |
+| `Dashboard`                | `useLoading()`                     | Layout orchestrator with loading skeleton    |
+| `SprintStatus`             | `useSprint()`                      | Progress bar showing done/total stories      |
+| `EpicList`                 | `useSprint()`, `useEpics()`        | Per-epic cards with progress bars            |
+| `ActiveStoryCard`          | `useCurrentStory()`                | Current story details with task progress     |
+| `NextActionRecommendation` | `useSprint()`, `useCurrentStory()` | State-machine-driven next step               |
+| `CTAButtons`               | `useWorkflows()`                   | Context-sensitive workflow execution buttons |
+| `PlanningArtifactLinks`    | `useOutputRoot()`                  | Quick links to PRD/Architecture              |
+| `RefreshButton`            | `useLoading()`                     | Manual refresh trigger                       |
 
 ## Data Flow
 
@@ -141,20 +142,20 @@ All parsers return `ParseResult<T>` — a discriminated union of `ParseSuccess<T
 
 ### Extension → Webview (ToWebview)
 
-| Type | Payload | When |
-|---|---|---|
-| `STATE_UPDATE` | `DashboardState` | After any state change |
+| Type               | Payload                          | When                             |
+| ------------------ | -------------------------------- | -------------------------------- |
+| `STATE_UPDATE`     | `DashboardState`                 | After any state change           |
 | `DOCUMENT_CONTENT` | `{ path, content, frontmatter }` | When document requested (future) |
-| `ERROR` | `{ message, recoverable }` | On unrecoverable errors |
+| `ERROR`            | `{ message, recoverable }`       | On unrecoverable errors          |
 
 ### Webview → Extension (ToExtension)
 
-| Type | Payload | When |
-|---|---|---|
-| `REFRESH` | — | On mount, manual refresh |
-| `OPEN_DOCUMENT` | `{ path, forceTextEditor? }` | Click on document link |
-| `EXECUTE_WORKFLOW` | `{ command }` | Click CTA button |
-| `COPY_COMMAND` | `{ command }` | Click copy button |
+| Type               | Payload                      | When                     |
+| ------------------ | ---------------------------- | ------------------------ |
+| `REFRESH`          | —                            | On mount, manual refresh |
+| `OPEN_DOCUMENT`    | `{ path, forceTextEditor? }` | Click on document link   |
+| `EXECUTE_WORKFLOW` | `{ command }`                | Click CTA button         |
+| `COPY_COMMAND`     | `{ command }`                | Click copy button        |
 
 ## State Management
 
@@ -162,13 +163,13 @@ All parsers return `ParseResult<T>` — a discriminated union of `ParseSuccess<T
 
 ```typescript
 interface DashboardState {
-  sprint: SprintStatus | null;     // Parsed sprint-status.yaml
-  epics: Epic[];                   // Parsed epics.md
-  currentStory: Story | null;      // First in-progress/ready-for-dev/review story
-  errors: ParseError[];            // Collected parse errors
-  loading: boolean;                // Whether data is being loaded
-  outputRoot: string | null;       // Configured output directory
-  workflows: AvailableWorkflow[];  // Context-sensitive workflow recommendations
+  sprint: SprintStatus | null; // Parsed sprint-status.yaml
+  epics: Epic[]; // Parsed epics.md
+  currentStory: Story | null; // First in-progress/ready-for-dev/review story
+  errors: ParseError[]; // Collected parse errors
+  loading: boolean; // Whether data is being loaded
+  outputRoot: string | null; // Configured output directory
+  workflows: AvailableWorkflow[]; // Context-sensitive workflow recommendations
 }
 ```
 
@@ -177,22 +178,23 @@ interface DashboardState {
 The webview Zustand store mirrors `DashboardState` exactly. It receives full state snapshots via `STATE_UPDATE` messages (no incremental updates).
 
 Selector hooks prevent unnecessary re-renders:
+
 - `useSprint()`, `useEpics()`, `useCurrentStory()`, `useErrors()`, `useLoading()`, `useOutputRoot()`, `useWorkflows()`
 
 ## Workflow Discovery State Machine
 
 The `WorkflowDiscoveryService` and `getNextAction()` utility implement a state machine for recommending the next workflow:
 
-| State | Condition | Recommended Workflow |
-|---|---|---|
-| No sprint | `sprint === null` | Sprint Planning |
-| Story in-progress | `currentStory.status === 'in-progress'` | Dev Story |
-| Story in review | `currentStory.status === 'review'` | Code Review |
-| Story ready-for-dev | `currentStory.status === 'ready-for-dev'` | Dev Story |
-| No stories | Sprint exists, no story keys | Create Story |
-| All done | All stories `done` | Retrospective |
-| Epic complete | All stories in one epic `done` | Retrospective |
-| Backlog stories | Unstarted stories exist | Create Story |
+| State               | Condition                                 | Recommended Workflow |
+| ------------------- | ----------------------------------------- | -------------------- |
+| No sprint           | `sprint === null`                         | Sprint Planning      |
+| Story in-progress   | `currentStory.status === 'in-progress'`   | Dev Story            |
+| Story in review     | `currentStory.status === 'review'`        | Code Review          |
+| Story ready-for-dev | `currentStory.status === 'ready-for-dev'` | Dev Story            |
+| No stories          | Sprint exists, no story keys              | Create Story         |
+| All done            | All stories `done`                        | Retrospective        |
+| Epic complete       | All stories in one epic `done`            | Retrospective        |
+| Backlog stories     | Unstarted stories exist                   | Create Story         |
 
 ## Security
 
@@ -215,10 +217,10 @@ All file system operations use `vscode.workspace.fs` (not Node.js `fs`) to ensur
 
 ## Configuration
 
-| Setting | Type | Default | Purpose |
-|---|---|---|---|
-| `bmad.outputRoot` | string | `_bmad-output` | Root directory for BMAD output files |
-| `bmad.cliPrefix` | string | `claude` | CLI tool prefix for workflow terminal commands |
+| Setting           | Type   | Default        | Purpose                                        |
+| ----------------- | ------ | -------------- | ---------------------------------------------- |
+| `bmad.outputRoot` | string | `_bmad-output` | Root directory for BMAD output files           |
+| `bmad.cliPrefix`  | string | `claude`       | CLI tool prefix for workflow terminal commands |
 
 ## Activation
 

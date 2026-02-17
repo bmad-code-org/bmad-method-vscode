@@ -7,6 +7,7 @@
 ## What is a BMAD PRD?
 
 A dual-audience document serving:
+
 1. **Human Product Managers and builders** - Vision, strategy, stakeholder communication
 2. **LLM Downstream Consumption** - UX Design → Architecture → Epics → Development AI Agents
 
@@ -21,6 +22,7 @@ Each successive document becomes more AI-tailored and granular.
 Every sentence must carry information weight. LLMs consume precise, dense content efficiently.
 
 **Anti-Patterns (Eliminate These):**
+
 - ❌ "The system will allow users to..." → ✅ "Users can..."
 - ❌ "It is important to note that..." → ✅ State the fact directly
 - ❌ "In order to..." → ✅ "To..."
@@ -33,11 +35,13 @@ Every sentence must carry information weight. LLMs consume precise, dense conten
 ## The Traceability Chain
 
 **PRD starts the chain:**
+
 ```
 Vision → Success Criteria → User Journeys → Functional Requirements → (future: User Stories)
 ```
 
 **In the PRD, establish:**
+
 - Vision → Success Criteria alignment
 - Success Criteria → User Journey coverage
 - User Journey → Functional Requirement mapping
@@ -68,18 +72,22 @@ Vision → Success Criteria → User Journeys → Functional Requirements → (f
 ### FR Anti-Patterns
 
 **Subjective Adjectives:**
+
 - ❌ "easy to use", "intuitive", "user-friendly", "fast", "responsive"
 - ✅ Use metrics: "completes task in under 3 clicks", "loads in under 2 seconds"
 
 **Implementation Leakage:**
+
 - ❌ Technology names, specific libraries, implementation details
 - ✅ Focus on capability and measurable outcomes
 
 **Vague Quantifiers:**
+
 - ❌ "multiple users", "several options", "various formats"
 - ✅ "up to 100 concurrent users", "3-5 options", "PDF, DOCX, TXT formats"
 
 **Missing Test Criteria:**
+
 - ❌ "The system shall provide notifications"
 - ✅ "The system shall send email notifications within 30 seconds of trigger event"
 
@@ -90,11 +98,13 @@ Vision → Success Criteria → User Journeys → Functional Requirements → (f
 ### NFRs Must Be Measurable
 
 **Template:**
+
 ```
 "The system shall [metric] [condition] [measurement method]"
 ```
 
 **Examples:**
+
 - ✅ "The system shall respond to API requests in under 200ms for 95th percentile as measured by APM monitoring"
 - ✅ "The system shall maintain 99.9% uptime during business hours as measured by cloud provider SLA"
 - ✅ "The system shall support 10,000 concurrent users as measured by load testing"
@@ -102,10 +112,12 @@ Vision → Success Criteria → User Journeys → Functional Requirements → (f
 ### NFR Anti-Patterns
 
 **Unmeasurable Claims:**
+
 - ❌ "The system shall be scalable" → ✅ "The system shall handle 10x load growth through horizontal scaling"
 - ❌ "High availability required" → ✅ "99.9% uptime as measured by cloud provider SLA"
 
 **Missing Context:**
+
 - ❌ "Response time under 1 second" → ✅ "API response time under 1 second for 95th percentile under normal load"
 
 ---
@@ -128,6 +140,7 @@ Certain industries have mandatory requirements that must be present:
 ## Document Structure (Markdown, Human-Readable)
 
 ### Required Sections
+
 1. **Executive Summary** - Vision, differentiator, target users
 2. **Success Criteria** - Measurable outcomes (SMART)
 3. **Product Scope** - MVP, Growth, Vision phases
@@ -141,11 +154,13 @@ Certain industries have mandatory requirements that must be present:
 ### Formatting for Dual Consumption
 
 **For Humans:**
+
 - Clear, professional language
 - Logical flow from vision to requirements
 - Easy for stakeholders to review and approve
 
 **For LLMs:**
+
 - ## Level 2 headers for all main sections (enables extraction)
 - Consistent structure and patterns
 - Precise, testable language
@@ -158,23 +173,27 @@ Certain industries have mandatory requirements that must be present:
 **How the PRD Feeds Next Artifacts:**
 
 **UX Design:**
+
 - User journeys → interaction flows
 - FRs → design requirements
 - Success criteria → UX metrics
 
 **Architecture:**
+
 - FRs → system capabilities
 - NFRs → architecture decisions
 - Domain requirements → compliance architecture
 - Project-type requirements → platform choices
 
 **Epics & Stories (created after architecture):**
+
 - FRs → user stories (1 FR could map to 1-3 stories potentially)
 - Acceptance criteria → story acceptance tests
 - Priority → sprint sequencing
 - Traceability → stories map back to vision
 
 **Development AI Agents:**
+
 - Precise requirements → implementation clarity
 - Test criteria → automated test generation
 - Domain requirements → compliance enforcement

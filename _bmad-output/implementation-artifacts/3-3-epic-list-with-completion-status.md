@@ -87,6 +87,7 @@ So that I can see project progress across all epics.
    - WRONG: `EpicList.tsx`, `epicList.tsx`
 
 2. **Component Naming**: PascalCase for components, camelCase for functions/hooks
+
    ```typescript
    export function EpicList(): React.ReactElement { ... }
    export function EpicListSkeleton(): React.ReactElement { ... }
@@ -111,12 +112,14 @@ So that I can see project progress across all epics.
    - `bg-[var(--vscode-list-activeSelectionBackground)]` for active epic background (use with opacity)
 
 6. **Zustand Store Usage**: Use existing selector hooks from `store.ts`
+
    ```typescript
    import { useSprint } from '../store';
    // DO NOT create new store - use existing selectors
    ```
 
 7. **Message Protocol**: Use existing factories from `@shared/messages`
+
    ```typescript
    import { createOpenDocumentMessage } from '@shared/messages';
    import { useVSCodeApi } from '../../shared/hooks';
@@ -149,7 +152,7 @@ import type { DevelopmentStatusValue, EpicStatusValue } from '@shared/types/spri
 
 interface EpicSummary {
   number: number;
-  key: string;            // "epic-1", "epic-2", etc.
+  key: string; // "epic-1", "epic-2", etc.
   status: EpicStatusValue;
   totalStories: number;
   doneStories: number;
@@ -287,14 +290,17 @@ import { cn } from '../../shared/utils/cn';
 ### Project Structure Notes
 
 **Files to Create:**
+
 - `src/webviews/dashboard/components/epic-list.tsx` - Epic list display component + skeleton
 - `src/webviews/dashboard/components/epic-list.test.tsx` - Epic list tests
 
 **Files to Modify:**
+
 - `src/webviews/dashboard/components/index.ts` - Add EpicList and EpicListSkeleton exports
 - `src/webviews/dashboard/index.tsx` - Wire EpicList + EpicListSkeleton into Dashboard layout
 
 **Files to NOT Modify (read-only references):**
+
 - `src/webviews/dashboard/store.ts` - Use existing `useSprint()`, `useEpics()` selectors
 - `src/shared/types/sprint-status.ts` - Use existing types and helper functions (isEpicKey, isStoryKey)
 - `src/shared/types/epic.ts` - Use existing Epic interface for title lookup
@@ -303,6 +309,7 @@ import { cn } from '../../shared/utils/cn';
 - `src/webviews/shared/utils/cn.ts` - Use existing `cn()` utility for conditional classes
 
 **Dependencies (all already installed - NO new packages):**
+
 - `react` 19.2.0
 - `zustand` ^5.0.0
 - `tailwindcss` 4.1.0
@@ -423,6 +430,7 @@ test('renders skeleton UI', () => {
 ### Previous Story Intelligence
 
 **From Story 3.2 (Sprint Status Display Component):**
+
 - SprintStatus component uses `useSprint()` directly to get sprint data, computes derived data inline
 - `computeStatusCounts()` helper function iterates `development_status` entries and filters by `isStoryKey()`
 - Empty state: returns early with `data-testid="sprint-status-empty"` div
@@ -431,6 +439,7 @@ test('renders skeleton UI', () => {
 - 228 tests passing after story 3.2
 
 **From Story 3.2 Code Review Learnings:**
+
 - H1 fix: Dashboard owns loading check, components should NOT internally check loading (dead code)
 - M2 fix: Remove dead exports from barrel file (clean up `index.ts`)
 - M3 fix: Components should handle empty/null props gracefully - don't hardcode defaults without empty state
@@ -438,12 +447,14 @@ test('renders skeleton UI', () => {
 - All validation gates must pass: typecheck, lint, test, build
 
 **From Story 3.1 (Dashboard Zustand Store and Message Handler):**
+
 - Zustand store has selectors: `useSprint()`, `useEpics()`, `useCurrentStory()`, `useErrors()`, `useLoading()`
 - Tests use `useDashboardStore.setState()` to set store state before rendering
 - Tests mock `useVSCodeApi` via `vi.mock('../../shared/hooks', ...)`
 - Build commands: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build`
 
 **Git Intelligence:**
+
 - Recent commits follow `feat: X-Y-story-title` format
 - Package manager: `pnpm` (NOT npm)
 - All previous stories pass: typecheck, lint, test, build

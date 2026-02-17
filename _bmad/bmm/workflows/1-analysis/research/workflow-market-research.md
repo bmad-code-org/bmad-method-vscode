@@ -16,6 +16,7 @@ description: Conduct market research covering market size, growth, competition, 
 ## CONFIGURATION
 
 Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
+
 - `project_name`, `output_folder`, `planning_artifacts`, `user_name`
 - `communication_language`, `document_output_language`, `user_skill_level`
 - `date` as a system-generated value
@@ -27,6 +28,7 @@ Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
 **What topic, problem, or area do you want to research?**
 
 For example:
+
 - 'The electric vehicle market in Europe'
 - 'Plant-based food alternatives market'
 - 'Mobile payment solutions in Southeast Asia'
@@ -35,6 +37,7 @@ For example:
 ### Topic Clarification
 
 Based on the user's topic, briefly clarify:
+
 1. **Core Topic**: "What exactly about [topic] are you most interested in?"
 2. **Research Goals**: "What do you hope to achieve with this research?"
 3. **Scope**: "Should we focus broadly or dive deep into specific aspects?"

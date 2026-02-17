@@ -94,6 +94,7 @@ So that I know the overall progress of the current sprint.
    - WRONG: `SprintStatus.tsx`, `sprintStatus.tsx`
 
 2. **Component Naming**: PascalCase for components, camelCase for functions/hooks
+
    ```typescript
    export function SprintStatus(): React.ReactElement { ... }
    export function PlanningArtifactLinks(): React.ReactElement { ... }
@@ -117,12 +118,14 @@ So that I know the overall progress of the current sprint.
    - See `src/webviews/index.css` for all available theme variables
 
 6. **Zustand Store Usage**: Use existing selector hooks from `store.ts`
+
    ```typescript
    import { useSprint, useLoading } from '../store';
    // DO NOT create new store - use existing selectors
    ```
 
 7. **Message Protocol**: Use existing factories from `@shared/messages`
+
    ```typescript
    import { createOpenDocumentMessage } from '@shared/messages';
    import { useVSCodeApi } from '../../shared/hooks';
@@ -202,22 +205,26 @@ import { cn } from '../../shared/utils/cn';
 ### Project Structure Notes
 
 **Files to Create:**
+
 - `src/webviews/dashboard/components/sprint-status.tsx` - Sprint status display component
 - `src/webviews/dashboard/components/sprint-status.test.tsx` - Sprint status tests
 - `src/webviews/dashboard/components/planning-artifact-links.tsx` - Document links component
 - `src/webviews/dashboard/components/planning-artifact-links.test.tsx` - Links tests
 
 **Files to Modify:**
+
 - `src/webviews/dashboard/components/index.ts` - Add SprintStatus and PlanningArtifactLinks exports
 - `src/webviews/dashboard/index.tsx` - Wire SprintStatus component into Dashboard layout
 
 **Files to NOT Modify (read-only references):**
+
 - `src/webviews/dashboard/store.ts` - Use existing `useSprint()`, `useLoading()`, `useErrors()` selectors
 - `src/shared/types/sprint-status.ts` - Use existing types and helper functions
 - `src/shared/messages.ts` - Use existing `createOpenDocumentMessage()` factory
 - `src/webviews/shared/hooks/use-vscode-api.ts` - Use existing `useVSCodeApi()` hook
 
 **Dependencies (all already installed - NO new packages):**
+
 - `react` 19.2.0
 - `zustand` ^5.0.0
 - `tailwindcss` 4.1.0
@@ -312,6 +319,7 @@ test('sends OPEN_DOCUMENT message on click', () => {
 ### Previous Story Intelligence
 
 **From Story 3.1 (Dashboard Zustand Store and Message Handler):**
+
 - Zustand store is at `src/webviews/dashboard/store.ts` with selector hooks: `useSprint()`, `useEpics()`, `useCurrentStory()`, `useErrors()`, `useLoading()`
 - `useMessageHandler()` hook handles STATE_UPDATE and ERROR messages from extension host
 - `useVSCodeApi()` is a proper React hook using `useMemo` (fixed in code review)
@@ -324,6 +332,7 @@ test('sends OPEN_DOCUMENT message on click', () => {
 - 212 total tests passing after Story 3.1
 
 **From Story 3.1 Code Review Learnings:**
+
 - Always make hooks into proper React hooks (use `useMemo`/`useEffect` inside)
 - Remove dead code - don't leave unused methods
 - Validate message types at runtime before casting (`typeof`/`'type' in` guard)
@@ -332,6 +341,7 @@ test('sends OPEN_DOCUMENT message on click', () => {
 - Avoid unnecessary round-trips - send initial state immediately
 
 **Git Intelligence:**
+
 - Recent commits follow `feat: X-Y-story-title` format
 - Package manager: `pnpm` (NOT npm)
 - All previous stories pass: typecheck, lint, test, build
@@ -391,12 +401,14 @@ Claude Opus 4.6
 ### File List
 
 **New Files:**
+
 - src/webviews/dashboard/components/sprint-status.tsx
 - src/webviews/dashboard/components/sprint-status.test.tsx
 - src/webviews/dashboard/components/planning-artifact-links.tsx
 - src/webviews/dashboard/components/planning-artifact-links.test.tsx
 
 **Modified Files:**
+
 - src/webviews/dashboard/components/index.ts
 - src/webviews/dashboard/index.tsx
-- _bmad-output/implementation-artifacts/sprint-status.yaml
+- \_bmad-output/implementation-artifacts/sprint-status.yaml

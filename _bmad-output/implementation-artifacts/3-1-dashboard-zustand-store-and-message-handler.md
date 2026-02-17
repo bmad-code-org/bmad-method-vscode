@@ -118,6 +118,7 @@ So that React components can reactively display project state.
    - WRONG: `Store.ts`, `useMessageHandler.ts`, `useVscodeApi.ts`
 
 2. **Class/Function Naming**: PascalCase for components, camelCase for functions/hooks
+
    ```typescript
    export function useDashboardStore() { ... }    // hook
    export function useMessageHandler() { ... }     // hook
@@ -137,6 +138,7 @@ So that React components can reactively display project state.
    - Webviews are read-only consumers (actions go back via messages)
 
 6. **VS Code API in Webview**: Use `acquireVsCodeApi()` (singleton, can only be called ONCE)
+
    ```typescript
    // CRITICAL: acquireVsCodeApi() can only be called once per webview lifecycle
    // Must be wrapped in singleton pattern
@@ -144,6 +146,7 @@ So that React components can reactively display project state.
    ```
 
 7. **Zustand 5.x API**: Project uses zustand ^5.0.0 (NOT v4)
+
    ```typescript
    import { create } from 'zustand';
 
@@ -335,13 +338,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // Register dashboard with StateManager dependency
     const dashboardProvider = new DashboardViewProvider(
-      context.extensionUri, detectionResult, stateManager
+      context.extensionUri,
+      detectionResult,
+      stateManager
     );
 
     context.subscriptions.push(
-      vscode.window.registerWebviewViewProvider(
-        DashboardViewProvider.viewType, dashboardProvider
-      ),
+      vscode.window.registerWebviewViewProvider(DashboardViewProvider.viewType, dashboardProvider),
       vscode.commands.registerCommand('bmad.refresh', () => {
         void stateManager.refresh();
       }),
@@ -350,13 +353,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
   } else {
     // Non-BMAD workspace - register provider without state manager
-    const dashboardProvider = new DashboardViewProvider(
-      context.extensionUri, detectionResult
-    );
+    const dashboardProvider = new DashboardViewProvider(context.extensionUri, detectionResult);
     context.subscriptions.push(
-      vscode.window.registerWebviewViewProvider(
-        DashboardViewProvider.viewType, dashboardProvider
-      )
+      vscode.window.registerWebviewViewProvider(DashboardViewProvider.viewType, dashboardProvider)
     );
   }
 }
@@ -365,6 +364,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 **CRITICAL: TypeScript Path Aliases**
 
 Check how imports resolve in the webview context. The project may use path aliases like `@shared/` or relative paths. Look at existing webview imports for the correct pattern:
+
 - If the project uses `@shared/messages` → use that
 - If the project uses `../../shared/messages` → use relative paths
 - Check `tsconfig.webview.json` for path aliases
@@ -381,6 +381,7 @@ The webview context needs `acquireVsCodeApi` to be available. Check if there's a
 ### Testing Strategy
 
 **Zustand Store Tests (Vitest):**
+
 ```typescript
 import { useDashboardStore } from './store';
 
@@ -395,6 +396,7 @@ test('updateState replaces full state', () => {
 ```
 
 **Message Handler Tests (Vitest + @testing-library/react):**
+
 ```typescript
 // Use renderHook from @testing-library/react
 // Mock window.addEventListener/removeEventListener
@@ -402,6 +404,7 @@ test('updateState replaces full state', () => {
 ```
 
 **VS Code API Tests (Vitest):**
+
 ```typescript
 // Mock window.acquireVsCodeApi as a global
 // Test singleton pattern - multiple calls return same instance
@@ -411,6 +414,7 @@ test('updateState replaces full state', () => {
 ### Project Structure Notes
 
 **Files to Create:**
+
 - `src/webviews/dashboard/store.ts` - Zustand store
 - `src/webviews/dashboard/store.test.ts` - Store unit tests
 - `src/webviews/dashboard/hooks/use-message-handler.ts` - Message handler hook
@@ -419,6 +423,7 @@ test('updateState replaces full state', () => {
 - `src/webviews/shared/hooks/use-vscode-api.test.ts` - Hook tests
 
 **Files to Modify:**
+
 - `src/extension/providers/dashboard-view-provider.ts` - Add StateManager integration
 - `src/extension/extension.ts` - Wire up FileWatcher + StateManager + Provider
 - `src/webviews/dashboard/index.tsx` - Connect Dashboard to store
@@ -426,6 +431,7 @@ test('updateState replaces full state', () => {
 - `src/webviews/shared/hooks/index.ts` - Export useVSCodeApi
 
 **Dependencies (already installed - no new packages):**
+
 - `zustand` ^5.0.0 (already in package.json)
 - `react` 19.2.0 (already installed)
 - `@testing-library/react` (already installed for webview tests)
@@ -449,6 +455,7 @@ test('updateState replaces full state', () => {
 ### Previous Story Intelligence
 
 **From Story 2.6 (State Manager with Parse Error Collection):**
+
 - StateManager exposes `onStateChange: Event<DashboardState>` for webview notification
 - StateManager exposes `state` getter for initial state access
 - StateManager exposes `refresh()` method for manual re-parse
@@ -458,6 +465,7 @@ test('updateState replaces full state', () => {
 - Implements `vscode.Disposable` for cleanup
 
 **From Story 2.5 (File Watcher Service):**
+
 - FileWatcher needs `start()` called after construction
 - Uses sinon for mocking VS Code APIs in tests
 - 30 comprehensive tests - aim for similar coverage
@@ -465,12 +473,14 @@ test('updateState replaces full state', () => {
 - Use VS Code's `EventEmitter` for event-based communication
 
 **From Story 1.4 (Sidebar Panel Registration):**
+
 - `DashboardViewProvider` currently takes `(extensionUri, detectionResult)` - needs `stateManager` added
 - `handleMessage()` is currently a no-op placeholder - needs implementation
 - `refresh()` currently reloads webview HTML - should instead trigger StateManager.refresh()
 - Webview HTML loads from `out/webview/index.js` and `out/webview/index.css`
 
 **Git Intelligence:**
+
 - Recent commits follow `feat: X-Y: Story Title` or `feat: X-Y-story-name` format
 - Package manager: `pnpm` (NOT npm)
 - Test frameworks: Vitest for webview, mocha for extension host
@@ -480,6 +490,7 @@ test('updateState replaces full state', () => {
 ### Integration Points
 
 **Upstream Dependencies:**
+
 - `StateManager.onStateChange` - provides state updates to forward to webview
 - `StateManager.state` - provides initial state for webview
 - `StateManager.refresh()` - triggered by webview REFRESH messages
@@ -487,6 +498,7 @@ test('updateState replaces full state', () => {
 - `DashboardState` from `src/shared/types/dashboard-state.ts` - shared state interface
 
 **Downstream Consumers (Stories 3.2-3.6):**
+
 - Story 3.2 (Sprint Status Display): Will use `useSprint()` selector from store
 - Story 3.3 (Epic List): Will use `useEpics()` selector from store
 - Story 3.4 (Story Card): Will use `useCurrentStory()` selector from store
@@ -494,6 +506,7 @@ test('updateState replaces full state', () => {
 - Story 3.6 (Manual Refresh): Will use `useVSCodeApi()` to send REFRESH message
 
 **Data Flow (Complete Pipeline):**
+
 ```
 Extension Activation
   -> BmadDetector.detectBmadProject()
@@ -548,15 +561,15 @@ Claude Opus 4.6
 **Outcome:** APPROVED with fixes applied
 **Issues Found:** 2 High, 3 Medium, 2 Low - ALL FIXED
 
-| # | Severity | Issue | Fix Applied |
-|---|----------|-------|-------------|
-| H1 | HIGH | `useVSCodeApi` wasn't a real React hook (no hook calls inside) | Added `useMemo` wrapper to make it a proper hook; updated tests to use `renderHook` |
-| H2 | HIGH | `refresh()` method on DashboardViewProvider was dead code | Removed the dead method entirely |
-| M1 | MEDIUM | `handleMessage` used unsafe `as ToExtension` cast with no runtime validation | Added `typeof`/`'type' in` guard before cast |
-| M2 | MEDIUM | Selector hook tests tested inline selectors, not actual exported hooks | Rewrote to import and test `useSprint`/`useEpics`/etc. via `renderHook` |
-| M3 | MEDIUM | Loading state showed "Loading..." text instead of skeleton UI per architecture | Replaced with animated skeleton placeholder bars using VS Code theme colors |
-| L1 | LOW | Initial state delivery required unnecessary REFRESH round-trip | Provider now sends `stateManager.state` immediately in `resolveWebviewView` |
-| L2 | LOW | Test used `globalThis` while implementation used `window` | Changed test to consistently use `window` |
+| #   | Severity | Issue                                                                          | Fix Applied                                                                         |
+| --- | -------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| H1  | HIGH     | `useVSCodeApi` wasn't a real React hook (no hook calls inside)                 | Added `useMemo` wrapper to make it a proper hook; updated tests to use `renderHook` |
+| H2  | HIGH     | `refresh()` method on DashboardViewProvider was dead code                      | Removed the dead method entirely                                                    |
+| M1  | MEDIUM   | `handleMessage` used unsafe `as ToExtension` cast with no runtime validation   | Added `typeof`/`'type' in` guard before cast                                        |
+| M2  | MEDIUM   | Selector hook tests tested inline selectors, not actual exported hooks         | Rewrote to import and test `useSprint`/`useEpics`/etc. via `renderHook`             |
+| M3  | MEDIUM   | Loading state showed "Loading..." text instead of skeleton UI per architecture | Replaced with animated skeleton placeholder bars using VS Code theme colors         |
+| L1  | LOW      | Initial state delivery required unnecessary REFRESH round-trip                 | Provider now sends `stateManager.state` immediately in `resolveWebviewView`         |
+| L2  | LOW      | Test used `globalThis` while implementation used `window`                      | Changed test to consistently use `window`                                           |
 
 **Verification:** typecheck, lint, 212 tests, build all pass after fixes.
 
@@ -568,6 +581,7 @@ Claude Opus 4.6
 ### File List
 
 **New Files:**
+
 - src/webviews/dashboard/store.ts
 - src/webviews/dashboard/store.test.ts
 - src/webviews/shared/hooks/use-vscode-api.ts
@@ -576,6 +590,7 @@ Claude Opus 4.6
 - src/webviews/dashboard/hooks/use-message-handler.test.ts
 
 **Modified Files:**
+
 - src/extension/providers/dashboard-view-provider.ts
 - src/extension/extension.ts
 - src/webviews/dashboard/index.tsx
