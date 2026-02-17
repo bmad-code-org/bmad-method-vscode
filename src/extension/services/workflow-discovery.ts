@@ -4,10 +4,45 @@ import type { DashboardState, AvailableWorkflow } from '../../shared/types';
 import { isStoryKey, isEpicKey, isStoryStatus, isRetrospectiveKey } from '../../shared/types';
 
 /**
- * Known BMAD implementation workflow definitions.
- * These map to folders under _bmad/bmm/workflows/4-implementation/
+ * Known BMAD workflow definitions.
+ * Phase 4 (implementation) workflows map to folders under _bmad/bmm/workflows/4-implementation/.
+ * Pre-implementation workflows map to specific directories in phases 1-3.
  */
 const WORKFLOW_DEFINITIONS: Record<string, Omit<AvailableWorkflow, 'isPrimary'>> = {
+  // Phase 1 - Analysis
+  brainstorming: {
+    id: 'brainstorming',
+    name: 'Brainstorm',
+    command: '/bmad-brainstorming',
+    description: 'Guided brainstorming to explore your project idea',
+  },
+  'create-product-brief': {
+    id: 'create-product-brief',
+    name: 'Create Brief',
+    command: '/bmad-bmm-create-product-brief',
+    description: 'Create a structured product brief to nail down your idea',
+  },
+  // Phase 2 - Planning
+  'create-prd': {
+    id: 'create-prd',
+    name: 'Create PRD',
+    command: '/bmad-bmm-create-prd',
+    description: 'Create your Product Requirements Document',
+  },
+  // Phase 3 - Solutioning
+  'create-architecture': {
+    id: 'create-architecture',
+    name: 'Create Architecture',
+    command: '/bmad-bmm-create-architecture',
+    description: 'Define your technical architecture',
+  },
+  'create-epics': {
+    id: 'create-epics',
+    name: 'Create Epics & Stories',
+    command: '/bmad-bmm-create-epics-and-stories',
+    description: 'Break down your project into epics and stories',
+  },
+  // Phase 4 - Implementation
   'sprint-planning': {
     id: 'sprint-planning',
     name: 'Sprint Planning',
@@ -47,13 +82,23 @@ const WORKFLOW_DEFINITIONS: Record<string, Omit<AvailableWorkflow, 'isPrimary'>>
 };
 
 /**
- * Known workflow IDs. The folder name under _bmad/bmm/workflows/4-implementation/
- * matches the workflow ID exactly.
+ * Pre-implementation workflow directory mappings.
+ * Maps workflow definition IDs to their actual directory paths relative to _bmad/.
+ * Phase 4 workflows use folder names matching their IDs under 4-implementation/.
  *
- * Note: The `sprint-status` workflow folder exists on disk but is excluded here
+ * Note: The `sprint-status` workflow folder exists on disk but is excluded
  * because it is a status display utility, not an actionable workflow for CTA buttons.
- * The dashboard's built-in sprint status display covers this functionality.
  */
+const PRE_IMPL_WORKFLOW_DIRS: Array<{ path: string[]; id: string }> = [
+  { path: ['core', 'workflows', 'brainstorming'], id: 'brainstorming' },
+  { path: ['bmm', 'workflows', '1-analysis', 'create-product-brief'], id: 'create-product-brief' },
+  { path: ['bmm', 'workflows', '2-plan-workflows', 'create-prd'], id: 'create-prd' },
+  { path: ['bmm', 'workflows', '3-solutioning', 'create-architecture'], id: 'create-architecture' },
+  {
+    path: ['bmm', 'workflows', '3-solutioning', 'create-epics-and-stories'],
+    id: 'create-epics',
+  },
+];
 
 /**
  * Service for discovering available BMAD workflows based on project state.
@@ -70,7 +115,8 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
   constructor(private readonly bmadDetector: BmadDetector) {}
 
   /**
-   * Discover installed workflows by scanning _bmad/bmm/workflows/4-implementation/
+   * Discover installed workflows by scanning workflow directories.
+   * Scans Phase 4 (4-implementation/) generically, plus specific pre-implementation directories.
    * Caches result after first scan. Call invalidateCache() to force re-scan.
    */
   async discoverInstalledWorkflows(): Promise<Set<string>> {
@@ -84,21 +130,28 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
       return this.installedWorkflows;
     }
 
-    const workflowsDir = vscode.Uri.joinPath(
-      paths.bmadRoot,
-      'bmm',
-      'workflows',
-      '4-implementation'
-    );
-
     try {
-      const entries = await this.readDirectory(workflowsDir);
-      this.installedWorkflows = new Set(
-        entries
-          .filter(([, type]) => type === vscode.FileType.Directory)
-          .map(([name]) => name)
-          .filter((name) => name in WORKFLOW_DEFINITIONS)
+      // Scan Phase 4 implementation workflows (folder names match definition IDs)
+      const implDir = vscode.Uri.joinPath(paths.bmadRoot, 'bmm', 'workflows', '4-implementation');
+      const implEntries = await this.readDirectory(implDir);
+      const implWorkflows = implEntries
+        .filter(([, type]) => type === vscode.FileType.Directory)
+        .map(([name]) => name)
+        .filter((name) => name in WORKFLOW_DEFINITIONS);
+
+      // Check pre-implementation workflow directories
+      const preImplResults = await Promise.all(
+        PRE_IMPL_WORKFLOW_DIRS.map(async ({ path, id }) => {
+          const dir = vscode.Uri.joinPath(paths.bmadRoot, ...path);
+          const entries = await this.readDirectory(dir);
+          return entries.length > 0 ? id : null;
+        })
       );
+
+      this.installedWorkflows = new Set([
+        ...implWorkflows,
+        ...preImplResults.filter((id): id is string => id !== null),
+      ]);
     } catch {
       this.installedWorkflows = new Set();
     }
@@ -130,10 +183,23 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
    * without checking installation.
    */
   private computeWorkflowCandidates(state: DashboardState): AvailableWorkflow[] {
-    const { sprint, currentStory } = state;
+    const { sprint, currentStory, planningArtifacts } = state;
 
-    // 1. No sprint data → recommend sprint planning
+    // 1. No sprint data → check planning artifacts to determine phase
     if (!sprint) {
+      if (!planningArtifacts.hasPrd) {
+        return [
+          this.makeWorkflow('create-prd', true),
+          this.makeWorkflow('brainstorming', false),
+          this.makeWorkflow('create-product-brief', false),
+        ];
+      }
+      if (!planningArtifacts.hasArchitecture) {
+        return [this.makeWorkflow('create-architecture', true)];
+      }
+      if (!planningArtifacts.hasEpics) {
+        return [this.makeWorkflow('create-epics', true)];
+      }
       return [this.makeWorkflow('sprint-planning', true)];
     }
 

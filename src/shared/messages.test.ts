@@ -52,6 +52,7 @@ describe('ToWebview message type guards', () => {
     outputRoot: null,
     workflows: [],
     bmadMetadata: null,
+    planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
   };
 
   describe('isStateUpdateMessage', () => {

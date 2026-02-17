@@ -9,6 +9,16 @@ import type { AvailableWorkflow } from './workflow';
 import type { BmadMetadata } from './bmad-metadata';
 
 /**
+ * Tracks existence of key planning artifacts for lifecycle-aware recommendations.
+ * Used to determine which BMAD phase the project is in (Phases 1-3 vs Phase 4).
+ */
+export interface PlanningArtifacts {
+  hasPrd: boolean;
+  hasArchitecture: boolean;
+  hasEpics: boolean;
+}
+
+/**
  * Aggregated dashboard state sent from extension to webview
  * This is the primary state object for the BMAD dashboard
  */
@@ -29,6 +39,8 @@ export interface DashboardState {
   workflows: AvailableWorkflow[];
   /** BMAD installation metadata (null if manifest not found) */
   bmadMetadata: BmadMetadata | null;
+  /** Tracks existence of key planning artifacts for lifecycle-aware recommendations */
+  planningArtifacts: PlanningArtifacts;
 }
 
 /**
@@ -44,5 +56,10 @@ export function createInitialDashboardState(): DashboardState {
     outputRoot: null,
     workflows: [],
     bmadMetadata: null,
+    planningArtifacts: {
+      hasPrd: false,
+      hasArchitecture: false,
+      hasEpics: false,
+    },
   };
 }

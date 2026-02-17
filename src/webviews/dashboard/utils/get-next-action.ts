@@ -6,9 +6,13 @@ import {
   isRetrospectiveKey,
 } from '@shared/types/sprint-status';
 import type { Story } from '@shared/types/story';
+import type { PlanningArtifacts } from '@shared/types/dashboard-state';
 
 export interface NextAction {
   type:
+    | 'create-prd'
+    | 'create-architecture'
+    | 'create-epics'
     | 'sprint-planning'
     | 'create-story'
     | 'dev-story'
@@ -27,13 +31,41 @@ function formatStoryLabel(story: Story): string {
   return `${story.epicNumber}.${story.storyNumber}`;
 }
 
-export function getNextAction(sprint: SprintStatus | null, currentStory: Story | null): NextAction {
-  // 1. No sprint data → recommend sprint planning
+export function getNextAction(
+  sprint: SprintStatus | null,
+  currentStory: Story | null,
+  planningArtifacts?: PlanningArtifacts
+): NextAction {
+  // 1. No sprint data → check planning artifacts to determine BMAD lifecycle phase
   if (!sprint) {
+    if (planningArtifacts) {
+      if (!planningArtifacts.hasPrd) {
+        return {
+          type: 'create-prd',
+          label: 'Create PRD',
+          description: 'No PRD found — create your Product Requirements Document to get started',
+        };
+      }
+      if (!planningArtifacts.hasArchitecture) {
+        return {
+          type: 'create-architecture',
+          label: 'Create Architecture',
+          description: 'PRD exists — define your technical architecture next',
+        };
+      }
+      if (!planningArtifacts.hasEpics) {
+        return {
+          type: 'create-epics',
+          label: 'Create Epics & Stories',
+          description: 'Architecture is ready — break down your project into epics and stories',
+        };
+      }
+    }
+
     return {
       type: 'sprint-planning',
       label: 'Run Sprint Planning',
-      description: 'No sprint status found — set up your sprint to get started',
+      description: 'Planning artifacts are ready — set up your sprint to start implementation',
     };
   }
 

@@ -10,6 +10,7 @@ import {
   useOutputRoot,
   useWorkflows,
   useBmadMetadata,
+  usePlanningArtifacts,
 } from './store';
 import { createInitialDashboardState } from '@shared/types';
 import type { DashboardState } from '@shared/types';
@@ -60,6 +61,7 @@ describe('useDashboardStore', () => {
         outputRoot: '_bmad-output',
         workflows: [],
         bmadMetadata: null,
+        planningArtifacts: { hasPrd: true, hasArchitecture: true, hasEpics: true },
       };
 
       useDashboardStore.getState().updateState(newState);
@@ -94,6 +96,7 @@ describe('useDashboardStore', () => {
         outputRoot: '_bmad-output',
         workflows: [],
         bmadMetadata: null,
+        planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
       };
 
       const secondState: DashboardState = {
@@ -105,6 +108,7 @@ describe('useDashboardStore', () => {
         outputRoot: null,
         workflows: [],
         bmadMetadata: null,
+        planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
       };
 
       useDashboardStore.getState().updateState(firstState);
@@ -191,6 +195,15 @@ describe('useDashboardStore', () => {
       const { result } = renderHook(() => useBmadMetadata());
       expect(result.current).toBeNull();
     });
+
+    it('usePlanningArtifacts returns planningArtifacts slice', () => {
+      const { result } = renderHook(() => usePlanningArtifacts());
+      expect(result.current).toEqual({
+        hasPrd: false,
+        hasArchitecture: false,
+        hasEpics: false,
+      });
+    });
   });
 
   describe('workflows state', () => {
@@ -251,6 +264,7 @@ describe('useDashboardStore', () => {
         outputRoot: null,
         workflows: [],
         bmadMetadata: null,
+        planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
       };
 
       useDashboardStore.getState().updateState(stateWithoutWorkflows);

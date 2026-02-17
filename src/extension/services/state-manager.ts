@@ -143,6 +143,9 @@ export class StateManager implements vscode.Disposable {
     // Parse BMAD manifest metadata
     await this.parseManifest(paths);
 
+    // Detect planning artifact existence for lifecycle-aware recommendations
+    await this.detectPlanningArtifacts(paths.outputRoot);
+
     // Determine current story from sprint status
     this.determineCurrentStory();
 
@@ -337,6 +340,31 @@ export class StateManager implements vscode.Disposable {
   }
 
   /**
+   * Detect existence of key planning artifacts (PRD, architecture).
+   * Epics presence is derived from the already-parsed epics array.
+   */
+  private async detectPlanningArtifacts(outputRoot: vscode.Uri): Promise<void> {
+    const planningPath = vscode.Uri.joinPath(outputRoot, 'planning-artifacts');
+
+    const prdPath = vscode.Uri.joinPath(planningPath, 'prd.md');
+    const archPath = vscode.Uri.joinPath(planningPath, 'architecture.md');
+
+    const [prdContent, archContent] = await Promise.all([
+      this.readFile(prdPath),
+      this.readFile(archPath),
+    ]);
+
+    this._state = {
+      ...this._state,
+      planningArtifacts: {
+        hasPrd: prdContent !== null,
+        hasArchitecture: archContent !== null,
+        hasEpics: this._state.epics.length > 0,
+      },
+    };
+  }
+
+  /**
    * Check if a filename matches the story file pattern (X-Y-name.md).
    */
   private isStoryFile(fileName: string): boolean {
@@ -436,6 +464,18 @@ export class StateManager implements vscode.Disposable {
       await this.parseSprintStatus(outputRoot);
     } else if (filePath.includes('planning-artifacts') && fileName === 'epics.md') {
       await this.parseEpics(outputRoot);
+      this._state = {
+        ...this._state,
+        planningArtifacts: {
+          ...this._state.planningArtifacts,
+          hasEpics: this._state.epics.length > 0,
+        },
+      };
+    } else if (
+      filePath.includes('planning-artifacts') &&
+      (fileName === 'prd.md' || fileName === 'architecture.md')
+    ) {
+      await this.detectPlanningArtifacts(outputRoot);
     } else if (filePath.includes('implementation-artifacts') && this.isStoryFile(fileName)) {
       await this.parseStoryFile(vscode.Uri.file(filePath));
     }
@@ -454,7 +494,21 @@ export class StateManager implements vscode.Disposable {
     if (fileName === 'sprint-status.yaml') {
       this._state = { ...this._state, sprint: null };
     } else if (fileName === 'epics.md') {
-      this._state = { ...this._state, epics: [] };
+      this._state = {
+        ...this._state,
+        epics: [],
+        planningArtifacts: { ...this._state.planningArtifacts, hasEpics: false },
+      };
+    } else if (fileName === 'prd.md') {
+      this._state = {
+        ...this._state,
+        planningArtifacts: { ...this._state.planningArtifacts, hasPrd: false },
+      };
+    } else if (fileName === 'architecture.md') {
+      this._state = {
+        ...this._state,
+        planningArtifacts: { ...this._state.planningArtifacts, hasArchitecture: false },
+      };
     } else if (this.isStoryFile(fileName)) {
       // Find and remove the story from internal map
       const storyKey = this.extractStoryKeyFromFileName(fileName);

@@ -38,12 +38,50 @@ function createStory(overrides: Partial<Story> = {}): Story {
   };
 }
 
+const allArtifacts = { hasPrd: true, hasArchitecture: true, hasEpics: true };
+const noArtifacts = { hasPrd: false, hasArchitecture: false, hasEpics: false };
+
 describe('getNextAction', () => {
-  test('returns sprint-planning when sprint is null', () => {
+  test('returns sprint-planning when sprint is null and planningArtifacts not provided (backward compat)', () => {
     const result = getNextAction(null, null);
     expect(result.type).toBe('sprint-planning');
     expect(result.label).toBe('Run Sprint Planning');
     expect(result.description).toBeTruthy();
+  });
+
+  test('returns sprint-planning when sprint is null and all planning artifacts exist', () => {
+    const result = getNextAction(null, null, allArtifacts);
+    expect(result.type).toBe('sprint-planning');
+    expect(result.label).toBe('Run Sprint Planning');
+  });
+
+  test('returns create-prd when no planning artifacts exist', () => {
+    const result = getNextAction(null, null, noArtifacts);
+    expect(result.type).toBe('create-prd');
+    expect(result.label).toBe('Create PRD');
+    expect(result.description).toContain('PRD');
+  });
+
+  test('returns create-architecture when PRD exists but no architecture', () => {
+    const result = getNextAction(null, null, {
+      hasPrd: true,
+      hasArchitecture: false,
+      hasEpics: false,
+    });
+    expect(result.type).toBe('create-architecture');
+    expect(result.label).toBe('Create Architecture');
+    expect(result.description).toContain('architecture');
+  });
+
+  test('returns create-epics when PRD and architecture exist but no epics', () => {
+    const result = getNextAction(null, null, {
+      hasPrd: true,
+      hasArchitecture: true,
+      hasEpics: false,
+    });
+    expect(result.type).toBe('create-epics');
+    expect(result.label).toBe('Create Epics & Stories');
+    expect(result.description).toContain('epics');
   });
 
   test('returns dev-story continue when current story is in-progress', () => {

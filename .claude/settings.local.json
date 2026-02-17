@@ -19,7 +19,9 @@
       "Bash(pnpm list:*)",
       "Bash(node:*)",
       "Bash(npx vitest:*)",
-      "Bash(npx prettier:*)"
+      "Bash(npx prettier:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

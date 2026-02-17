@@ -1,12 +1,15 @@
 import React from 'react';
 import { Play, Copy } from 'lucide-react';
-import { useSprint, useCurrentStory, useWorkflows } from '../store';
+import { useSprint, useCurrentStory, useWorkflows, usePlanningArtifacts } from '../store';
 import { useVSCodeApi } from '../../shared/hooks';
 import { createExecuteWorkflowMessage, createCopyCommandMessage } from '@shared/messages';
 import { getNextAction } from '../utils/get-next-action';
 import type { NextAction } from '../utils/get-next-action';
 
 const actionIcons: Record<NextAction['type'], string> = {
+  'create-prd': '📄',
+  'create-architecture': '🏗️',
+  'create-epics': '📋',
   'sprint-planning': '📋',
   'create-story': '📝',
   'dev-story': '🚀',
@@ -38,9 +41,10 @@ export function NextActionRecommendation(): React.ReactElement {
   const sprint = useSprint();
   const currentStory = useCurrentStory();
   const workflows = useWorkflows();
+  const planningArtifacts = usePlanningArtifacts();
   const vscodeApi = useVSCodeApi();
 
-  const action = getNextAction(sprint, currentStory);
+  const action = getNextAction(sprint, currentStory, planningArtifacts);
   const icon = actionIcons[action.type];
   const primaryWorkflow = workflows.find((w) => w.isPrimary);
 

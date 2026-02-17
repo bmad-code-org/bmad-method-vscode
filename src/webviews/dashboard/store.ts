@@ -24,6 +24,7 @@ export const useDashboardStore = create<DashboardStore>()((set) => ({
       outputRoot: state.outputRoot,
       workflows: state.workflows,
       bmadMetadata: state.bmadMetadata,
+      planningArtifacts: state.planningArtifacts,
     }),
 
   setLoading: (loading: boolean) => set({ loading }),
@@ -43,3 +44,4 @@ export const useLoading = () => useDashboardStore((s) => s.loading);
 export const useOutputRoot = () => useDashboardStore((s) => s.outputRoot);
 export const useWorkflows = () => useDashboardStore((s) => s.workflows);
 export const useBmadMetadata = () => useDashboardStore((s) => s.bmadMetadata);
+export const usePlanningArtifacts = () => useDashboardStore((s) => s.planningArtifacts);

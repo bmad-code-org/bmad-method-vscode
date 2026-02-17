@@ -100,13 +100,44 @@ describe('NextActionRecommendation', () => {
     expect(screen.getByTestId('next-action-label')).toHaveTextContent('Start Dev Story 3.5');
   });
 
-  test('renders sprint-planning when sprint is null', () => {
+  test('renders sprint-planning when sprint is null and all planning artifacts exist', () => {
     useDashboardStore.setState({
       sprint: null,
       currentStory: null,
+      planningArtifacts: { hasPrd: true, hasArchitecture: true, hasEpics: true },
     });
     render(<NextActionRecommendation />);
     expect(screen.getByTestId('next-action-label')).toHaveTextContent('Run Sprint Planning');
+  });
+
+  test('renders create-prd when no planning artifacts exist', () => {
+    useDashboardStore.setState({
+      sprint: null,
+      currentStory: null,
+      planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
+    });
+    render(<NextActionRecommendation />);
+    expect(screen.getByTestId('next-action-label')).toHaveTextContent('Create PRD');
+  });
+
+  test('renders create-architecture when PRD exists but no architecture', () => {
+    useDashboardStore.setState({
+      sprint: null,
+      currentStory: null,
+      planningArtifacts: { hasPrd: true, hasArchitecture: false, hasEpics: false },
+    });
+    render(<NextActionRecommendation />);
+    expect(screen.getByTestId('next-action-label')).toHaveTextContent('Create Architecture');
+  });
+
+  test('renders create-epics when PRD and architecture exist but no epics', () => {
+    useDashboardStore.setState({
+      sprint: null,
+      currentStory: null,
+      planningArtifacts: { hasPrd: true, hasArchitecture: true, hasEpics: false },
+    });
+    render(<NextActionRecommendation />);
+    expect(screen.getByTestId('next-action-label')).toHaveTextContent('Create Epics & Stories');
   });
 
   test('renders create-story when no active story and backlog exists', () => {
