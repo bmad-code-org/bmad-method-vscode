@@ -67,7 +67,6 @@ Load and read the complete file at:
 `{domainComplexityData}` (../data/domain-complexity.csv)
 
 This CSV contains:
-
 - Domain classifications and complexity levels (high/medium/low)
 - Required special sections for each domain
 - Key concerns and requirements for regulated industries
@@ -77,7 +76,6 @@ Internalize this data - it drives which domains require special compliance secti
 ### 2. Extract Domain Classification
 
 From PRD frontmatter, extract:
-
 - `classification.domain` - what domain is this PRD for?
 
 **If no domain classification found:**
@@ -86,14 +84,12 @@ Treat as "general" (low complexity) and proceed to step 4
 ### 2. Determine Domain Complexity
 
 **Low complexity domains (skip detailed checks):**
-
 - General
 - Consumer apps (standard e-commerce, social, productivity)
 - Content websites
 - Business tools (standard)
 
 **High complexity domains (require special sections):**
-
 - Healthcare / Healthtech
 - Fintech / Financial services
 - GovTech / Public sector
@@ -110,7 +106,6 @@ Treat as "general" (low complexity) and proceed to step 4
 Based on {domain} requirements, check PRD for:
 
 **Healthcare:**
-
 - Clinical Requirements section
 - Regulatory Pathway (FDA, HIPAA, etc.)
 - Safety Measures
@@ -118,7 +113,6 @@ Based on {domain} requirements, check PRD for:
 - Patient safety considerations
 
 **Fintech:**
-
 - Compliance Matrix (SOC2, PCI-DSS, GDPR, etc.)
 - Security Architecture
 - Audit Requirements
@@ -126,20 +120,17 @@ Based on {domain} requirements, check PRD for:
 - Financial transaction handling
 
 **GovTech:**
-
 - Accessibility Standards (WCAG 2.1 AA, Section 508)
 - Procurement Compliance
 - Security Clearance requirements
 - Data residency requirements
 
 **Other regulated domains:**
-
 - Check for domain-specific regulatory sections
 - Compliance requirements
 - Special considerations
 
 For each required section:
-
 - Is it present in PRD?
 - Is it adequately documented?
 - Note any gaps
@@ -147,7 +138,6 @@ For each required section:
 Return compliance matrix with presence/adequacy assessment."
 
 **Graceful degradation (if no Task tool):**
-
 - Manually check for required sections based on domain
 - List present sections and missing sections
 - Assess adequacy of documentation
@@ -155,7 +145,6 @@ Return compliance matrix with presence/adequacy assessment."
 ### 5. For Low-Complexity Domains: Skip Detailed Checks
 
 Append to validation report:
-
 ```markdown
 ## Domain Compliance Validation
 
@@ -196,11 +185,10 @@ Append to validation report:
 
 ### Compliance Matrix
 
-| Requirement     | Status                | Notes   |
-| --------------- | --------------------- | ------- |
+| Requirement | Status | Notes |
+|-------------|--------|-------|
 | {Requirement 1} | [Met/Partial/Missing] | {Notes} |
 | {Requirement 2} | [Met/Partial/Missing] | {Notes} |
-
 [... continue for all requirements]
 
 ### Summary

@@ -66,7 +66,6 @@ Check if Product Brief was loaded in step 1's inputDocuments:
 
 **IF no Product Brief found:**
 Append to validation report:
-
 ```markdown
 ## Product Brief Coverage
 
@@ -107,7 +106,6 @@ Return structured coverage map with classifications."
 If Task tool unavailable, perform analysis directly:
 
 **Extract from Product Brief:**
-
 - Vision: What is this product?
 - Users: Who is it for?
 - Problem: What problem does it solve?
@@ -116,7 +114,6 @@ If Task tool unavailable, perform analysis directly:
 - Differentiators: What makes it unique?
 
 **For each item, search PRD:**
-
 - Scan Executive Summary for vision
 - Check User Journeys or user personas
 - Look for problem statement
@@ -125,7 +122,6 @@ If Task tool unavailable, perform analysis directly:
 - Search for differentiators
 
 **Classify coverage:**
-
 - **Fully Covered:** Content present and complete
 - **Partially Covered:** Content present but incomplete
 - **Not Found:** Content missing from PRD
@@ -134,7 +130,6 @@ If Task tool unavailable, perform analysis directly:
 ### 4. Assess Coverage and Severity
 
 **For each gap (Partially Covered or Not Found):**
-
 - Is this Critical? (Core vision, primary users, main features)
 - Is this Moderate? (Secondary features, some goals)
 - Is this Informational? (Nice-to-have features, minor details)

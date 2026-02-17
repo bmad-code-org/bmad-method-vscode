@@ -60,7 +60,6 @@ Apply changes to the PRD following the approved change plan from step e-02, incl
 ### 1. Retrieve Approved Change Plan
 
 From step e-02, retrieve:
-
 - **Approved changes:** Section-by-section list
 - **Priority order:** Sequence to apply changes
 - **User requirements:** Edit goals from step e-01
@@ -80,14 +79,12 @@ Display: "**Starting PRD Edits**
 "Execute PRD edits for {section_name}:
 
 **Context:**
-
 - Section to edit: {section_name}
 - Current content: {existing content}
 - Changes needed: {specific changes from plan}
 - BMAD PRD standards: Load from prd-purpose.md
 
 **Tasks:**
-
 1. Read current PRD section
 2. Apply specified changes
 3. Ensure BMAD PRD principles compliance:
@@ -100,7 +97,6 @@ Display: "**Starting PRD Edits**
 Apply changes and return updated section."
 
 **Graceful degradation (if no Task tool):**
-
 - Perform edits directly in current context
 - Load PRD section, apply changes, save
 
@@ -109,19 +105,16 @@ Apply changes and return updated section."
 **For each section in approved plan (in priority order):**
 
 **a) Load current section**
-
 - Read the current PRD section content
 - Note what exists
 
 **b) Apply changes per plan**
-
 - Additions: Create new sections with proper content
 - Updates: Modify existing content per plan
 - Removals: Remove specified content
 - Restructuring: Reformat content to BMAD standard
 
 **c) Update PRD file**
-
 - Apply changes to PRD
 - Save updated PRD
 - Verify changes applied correctly
@@ -136,14 +129,12 @@ Changes: {brief summary}
 **If conversion mode is "Full restructuring" or "Both":**
 
 **For restructuring:**
-
 - Reorganize PRD to BMAD standard structure
 - Ensure proper ## Level 2 headers
 - Reorder sections logically
 - Update PRD frontmatter to match BMAD format
 
 **Follow BMAD PRD structure:**
-
 1. Executive Summary
 2. Success Criteria
 3. Product Scope
@@ -165,7 +156,7 @@ BMAD standard structure applied.
 ```yaml
 ---
 workflowType: 'prd'
-workflow: 'create' # or 'validate' or 'edit'
+workflow: 'create'  # or 'validate' or 'edit'
 classification:
   domain: '{domain}'
   projectType: '{project_type}'
@@ -186,19 +177,16 @@ editHistory:
 **Load complete updated PRD**
 
 **Verify:**
-
 - All approved changes applied correctly
 - PRD structure is sound
 - No unintended modifications
 - Frontmatter is accurate
 
 **If issues found:**
-
 - Fix them now
 - Note corrections made
 
 **If user wants adjustments:**
-
 - Accept feedback and make adjustments
 - Re-verify after adjustments
 
@@ -215,7 +203,6 @@ Display:
 {Brief bullet list of major changes}
 
 **PRD is ready for:**
-
 - Use in downstream workflows (UX, Architecture)
 - Validation (if not yet validated)
 

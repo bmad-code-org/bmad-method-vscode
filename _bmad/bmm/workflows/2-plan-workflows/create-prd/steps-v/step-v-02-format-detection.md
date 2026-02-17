@@ -63,13 +63,11 @@ Detect if PRD follows BMAD format and route appropriately - classify as BMAD Sta
 Load the complete PRD file and extract:
 
 **All Level 2 (##) headers:**
-
 - Scan through entire PRD document
 - Extract all ## section headers
 - List them in order
 
 **PRD frontmatter:**
-
 - Extract classification.domain if present
 - Extract classification.projectType if present
 - Note any other relevant metadata
@@ -86,7 +84,6 @@ Check if the PRD contains the following BMAD PRD core sections:
 6. **Non-Functional Requirements** (or: ## Non-Functional Requirements, ## NFRs, ## Quality Attributes)
 
 **Count matches:**
-
 - How many of these 6 core sections are present?
 - Which specific sections are present?
 - Which are missing?
@@ -96,18 +93,15 @@ Check if the PRD contains the following BMAD PRD core sections:
 Based on core section count, classify:
 
 **BMAD Standard:**
-
 - 5-6 core sections present
 - Follows BMAD PRD structure closely
 
 **BMAD Variant:**
-
 - 3-4 core sections present
 - Generally follows BMAD patterns but may have structural differences
 - Missing some sections but recognizable as BMAD-style
 
 **Non-Standard:**
-
 - Fewer than 3 core sections present
 - Does not follow BMAD PRD structure
 - May be completely custom format, legacy format, or from another framework
@@ -123,7 +117,6 @@ Append to validation report:
 [List all ## Level 2 headers found]
 
 **BMAD Core Sections Present:**
-
 - Executive Summary: [Present/Missing]
 - Success Criteria: [Present/Missing]
 - Product Scope: [Present/Missing]

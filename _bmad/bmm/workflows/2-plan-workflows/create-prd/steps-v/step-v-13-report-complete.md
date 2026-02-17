@@ -63,7 +63,6 @@ Finalize validation report, summarize all findings from steps 1-12, present summ
 Read the entire validation report from {validationReportPath}
 
 Extract all findings from:
-
 - Format Detection (Step 2)
 - Parity Analysis (Step 2B, if applicable)
 - Information Density (Step 3)
@@ -86,21 +85,7 @@ Update validation report frontmatter:
 validationTarget: '{prd_path}'
 validationDate: '{current_date}'
 inputDocuments: [list of documents]
-validationStepsCompleted:
-  [
-    'step-v-01-discovery',
-    'step-v-02-format-detection',
-    'step-v-03-density-validation',
-    'step-v-04-brief-coverage-validation',
-    'step-v-05-measurability-validation',
-    'step-v-06-traceability-validation',
-    'step-v-07-implementation-leakage-validation',
-    'step-v-08-domain-compliance-validation',
-    'step-v-09-project-type-validation',
-    'step-v-10-smart-validation',
-    'step-v-11-holistic-quality-validation',
-    'step-v-12-completeness-validation',
-  ]
+validationStepsCompleted: ['step-v-01-discovery', 'step-v-02-format-detection', 'step-v-03-density-validation', 'step-v-04-brief-coverage-validation', 'step-v-05-measurability-validation', 'step-v-06-traceability-validation', 'step-v-07-implementation-leakage-validation', 'step-v-08-domain-compliance-validation', 'step-v-09-project-type-validation', 'step-v-10-smart-validation', 'step-v-11-holistic-quality-validation', 'step-v-12-completeness-validation']
 validationStatus: COMPLETE
 holisticQualityRating: '{rating from step 11}'
 overallStatus: '{Pass/Warning/Critical based on all findings}'
@@ -110,14 +95,12 @@ overallStatus: '{Pass/Warning/Critical based on all findings}'
 ### 3. Create Summary of Findings
 
 **Overall Status:**
-
 - Determine from all validation findings
 - **Pass:** All critical checks pass, minor warnings acceptable
 - **Warning:** Some issues found but PRD is usable
 - **Critical:** Major issues that prevent PRD from being fit for purpose
 
 **Quick Results Table:**
-
 - Format: [classification]
 - Information Density: [severity]
 - Measurability: [severity]
@@ -161,14 +144,12 @@ Display:
 **Holistic Quality:** {rating}/5 - {label}
 
 **Top 3 Improvements:**
-
 1. {Improvement 1}
 2. {Improvement 2}
 3. {Improvement 3}
 
 **Recommendation:**
 {Based on overall status:
-
 - Pass: "PRD is in good shape. Address minor improvements to make it great."
 - Warning: "PRD is usable but has issues that should be addressed. Review warnings and improve where needed."
 - Critical: "PRD has significant issues that should be fixed before use. Focus on critical issues above."}
@@ -216,7 +197,7 @@ Display:
 - **IF X (Exit):**
   - Display: "**Validation Report Saved:** {validationReportPath}"
   - Display: "**Summary:** {overall status} - {recommendation}"
-  - PRD Validation complete. Read fully and follow: `_bmad/core/tasks/bmad-help.md` with argument `Validate PRD`.
+  - PRD Validation complete. Read fully and follow: `_bmad/core/tasks/help.md` with argument `Validate PRD`.
 
 - **IF Any other:** Help user, then redisplay menu
 
