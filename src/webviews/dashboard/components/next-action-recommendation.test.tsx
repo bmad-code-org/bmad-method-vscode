@@ -104,7 +104,12 @@ describe('NextActionRecommendation', () => {
     useDashboardStore.setState({
       sprint: null,
       currentStory: null,
-      planningArtifacts: { hasPrd: true, hasArchitecture: true, hasEpics: true },
+      planningArtifacts: {
+        hasProductBrief: false,
+        hasPrd: true,
+        hasArchitecture: true,
+        hasEpics: true,
+      },
     });
     render(<NextActionRecommendation />);
     expect(screen.getByTestId('next-action-label')).toHaveTextContent('Run Sprint Planning');
@@ -114,7 +119,12 @@ describe('NextActionRecommendation', () => {
     useDashboardStore.setState({
       sprint: null,
       currentStory: null,
-      planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
+      planningArtifacts: {
+        hasProductBrief: false,
+        hasPrd: false,
+        hasArchitecture: false,
+        hasEpics: false,
+      },
     });
     render(<NextActionRecommendation />);
     expect(screen.getByTestId('next-action-label')).toHaveTextContent('Create PRD');
@@ -124,7 +134,12 @@ describe('NextActionRecommendation', () => {
     useDashboardStore.setState({
       sprint: null,
       currentStory: null,
-      planningArtifacts: { hasPrd: true, hasArchitecture: false, hasEpics: false },
+      planningArtifacts: {
+        hasProductBrief: false,
+        hasPrd: true,
+        hasArchitecture: false,
+        hasEpics: false,
+      },
     });
     render(<NextActionRecommendation />);
     expect(screen.getByTestId('next-action-label')).toHaveTextContent('Create Architecture');
@@ -134,7 +149,12 @@ describe('NextActionRecommendation', () => {
     useDashboardStore.setState({
       sprint: null,
       currentStory: null,
-      planningArtifacts: { hasPrd: true, hasArchitecture: true, hasEpics: false },
+      planningArtifacts: {
+        hasProductBrief: false,
+        hasPrd: true,
+        hasArchitecture: true,
+        hasEpics: false,
+      },
     });
     render(<NextActionRecommendation />);
     expect(screen.getByTestId('next-action-label')).toHaveTextContent('Create Epics & Stories');

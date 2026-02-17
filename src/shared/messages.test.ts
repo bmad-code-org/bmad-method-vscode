@@ -52,7 +52,12 @@ describe('ToWebview message type guards', () => {
     outputRoot: null,
     workflows: [],
     bmadMetadata: null,
-    planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
+    planningArtifacts: {
+      hasProductBrief: false,
+      hasPrd: false,
+      hasArchitecture: false,
+      hasEpics: false,
+    },
   };
 
   describe('isStateUpdateMessage', () => {
@@ -248,6 +253,12 @@ describe('Message factory functions', () => {
         outputRoot: null,
         workflows: [],
         bmadMetadata: null,
+        planningArtifacts: {
+          hasProductBrief: false,
+          hasPrd: false,
+          hasArchitecture: false,
+          hasEpics: false,
+        },
       };
       const message = createStateUpdateMessage(state);
       expect(message.type).toBe('STATE_UPDATE');
@@ -332,6 +343,12 @@ describe('Discriminated union type narrowing', () => {
       outputRoot: null,
       workflows: [],
       bmadMetadata: null,
+      planningArtifacts: {
+        hasProductBrief: false,
+        hasPrd: false,
+        hasArchitecture: false,
+        hasEpics: false,
+      },
     };
 
     function handleToWebview(message: ToWebview): string {

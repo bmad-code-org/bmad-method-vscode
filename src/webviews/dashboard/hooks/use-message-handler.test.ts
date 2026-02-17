@@ -47,7 +47,12 @@ describe('useMessageHandler', () => {
       outputRoot: null,
       workflows: [],
       bmadMetadata: null,
-      planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
+      planningArtifacts: {
+        hasProductBrief: false,
+        hasPrd: false,
+        hasArchitecture: false,
+        hasEpics: false,
+      },
     };
 
     window.dispatchEvent(

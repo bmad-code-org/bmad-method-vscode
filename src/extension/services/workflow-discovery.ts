@@ -188,11 +188,14 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
     // 1. No sprint data → check planning artifacts to determine phase
     if (!sprint) {
       if (!planningArtifacts.hasPrd) {
-        return [
+        const candidates = [
           this.makeWorkflow('create-prd', true),
           this.makeWorkflow('brainstorming', false),
-          this.makeWorkflow('create-product-brief', false),
         ];
+        if (!planningArtifacts.hasProductBrief) {
+          candidates.push(this.makeWorkflow('create-product-brief', false));
+        }
+        return candidates;
       }
       if (!planningArtifacts.hasArchitecture) {
         return [this.makeWorkflow('create-architecture', true)];

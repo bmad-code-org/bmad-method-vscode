@@ -61,7 +61,12 @@ describe('useDashboardStore', () => {
         outputRoot: '_bmad-output',
         workflows: [],
         bmadMetadata: null,
-        planningArtifacts: { hasPrd: true, hasArchitecture: true, hasEpics: true },
+        planningArtifacts: {
+          hasProductBrief: false,
+          hasPrd: true,
+          hasArchitecture: true,
+          hasEpics: true,
+        },
       };
 
       useDashboardStore.getState().updateState(newState);
@@ -96,7 +101,12 @@ describe('useDashboardStore', () => {
         outputRoot: '_bmad-output',
         workflows: [],
         bmadMetadata: null,
-        planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
+        planningArtifacts: {
+          hasProductBrief: false,
+          hasPrd: false,
+          hasArchitecture: false,
+          hasEpics: false,
+        },
       };
 
       const secondState: DashboardState = {
@@ -108,7 +118,12 @@ describe('useDashboardStore', () => {
         outputRoot: null,
         workflows: [],
         bmadMetadata: null,
-        planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
+        planningArtifacts: {
+          hasProductBrief: false,
+          hasPrd: false,
+          hasArchitecture: false,
+          hasEpics: false,
+        },
       };
 
       useDashboardStore.getState().updateState(firstState);
@@ -199,6 +214,7 @@ describe('useDashboardStore', () => {
     it('usePlanningArtifacts returns planningArtifacts slice', () => {
       const { result } = renderHook(() => usePlanningArtifacts());
       expect(result.current).toEqual({
+        hasProductBrief: false,
         hasPrd: false,
         hasArchitecture: false,
         hasEpics: false,
@@ -264,7 +280,12 @@ describe('useDashboardStore', () => {
         outputRoot: null,
         workflows: [],
         bmadMetadata: null,
-        planningArtifacts: { hasPrd: false, hasArchitecture: false, hasEpics: false },
+        planningArtifacts: {
+          hasProductBrief: false,
+          hasPrd: false,
+          hasArchitecture: false,
+          hasEpics: false,
+        },
       };
 
       useDashboardStore.getState().updateState(stateWithoutWorkflows);

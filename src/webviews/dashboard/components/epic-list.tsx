@@ -2,7 +2,10 @@ import React, { useState, useCallback } from 'react';
 import { ChevronRight, ChevronDown, Check } from 'lucide-react';
 import { useSprint, useEpics, useOutputRoot } from '../store';
 import { useVSCodeApi } from '../../shared/hooks';
-import { createDocumentLinkHandler, createShiftOpenHandler } from '../../shared/utils/document-link';
+import {
+  createDocumentLinkHandler,
+  createShiftOpenHandler,
+} from '../../shared/utils/document-link';
 import { isEpicKey, isStoryKey, isEpicStatus, isStoryStatus } from '@shared/types/sprint-status';
 import type {
   DevelopmentStatusValue,

@@ -13,6 +13,7 @@ import type { BmadMetadata } from './bmad-metadata';
  * Used to determine which BMAD phase the project is in (Phases 1-3 vs Phase 4).
  */
 export interface PlanningArtifacts {
+  hasProductBrief: boolean;
   hasPrd: boolean;
   hasArchitecture: boolean;
   hasEpics: boolean;
@@ -57,6 +58,7 @@ export function createInitialDashboardState(): DashboardState {
     workflows: [],
     bmadMetadata: null,
     planningArtifacts: {
+      hasProductBrief: false,
       hasPrd: false,
       hasArchitecture: false,
       hasEpics: false,

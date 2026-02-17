@@ -38,8 +38,18 @@ function createStory(overrides: Partial<Story> = {}): Story {
   };
 }
 
-const allArtifacts = { hasPrd: true, hasArchitecture: true, hasEpics: true };
-const noArtifacts = { hasPrd: false, hasArchitecture: false, hasEpics: false };
+const allArtifacts = {
+  hasProductBrief: false,
+  hasPrd: true,
+  hasArchitecture: true,
+  hasEpics: true,
+};
+const noArtifacts = {
+  hasProductBrief: false,
+  hasPrd: false,
+  hasArchitecture: false,
+  hasEpics: false,
+};
 
 describe('getNextAction', () => {
   test('returns sprint-planning when sprint is null and planningArtifacts not provided (backward compat)', () => {
@@ -64,6 +74,7 @@ describe('getNextAction', () => {
 
   test('returns create-architecture when PRD exists but no architecture', () => {
     const result = getNextAction(null, null, {
+      hasProductBrief: false,
       hasPrd: true,
       hasArchitecture: false,
       hasEpics: false,
@@ -75,6 +86,7 @@ describe('getNextAction', () => {
 
   test('returns create-epics when PRD and architecture exist but no epics', () => {
     const result = getNextAction(null, null, {
+      hasProductBrief: false,
       hasPrd: true,
       hasArchitecture: true,
       hasEpics: false,

@@ -349,14 +349,21 @@ export class StateManager implements vscode.Disposable {
     const prdPath = vscode.Uri.joinPath(planningPath, 'prd.md');
     const archPath = vscode.Uri.joinPath(planningPath, 'architecture.md');
 
-    const [prdContent, archContent] = await Promise.all([
+    const [prdContent, archContent, planningEntries] = await Promise.all([
       this.readFile(prdPath),
       this.readFile(archPath),
+      this.readDirectory(planningPath),
     ]);
+
+    const hasProductBrief = planningEntries.some(
+      ([name, type]) =>
+        type === vscode.FileType.File && name.startsWith('product-brief-') && name.endsWith('.md')
+    );
 
     this._state = {
       ...this._state,
       planningArtifacts: {
+        hasProductBrief,
         hasPrd: prdContent !== null,
         hasArchitecture: archContent !== null,
         hasEpics: this._state.epics.length > 0,
@@ -369,6 +376,13 @@ export class StateManager implements vscode.Disposable {
    */
   private isStoryFile(fileName: string): boolean {
     return STORY_FILE_REGEX.test(fileName);
+  }
+
+  /**
+   * Check if a filename matches the product brief pattern (product-brief-*.md).
+   */
+  private isProductBriefFile(fileName: string): boolean {
+    return fileName.startsWith('product-brief-') && fileName.endsWith('.md');
   }
 
   /**
@@ -473,7 +487,7 @@ export class StateManager implements vscode.Disposable {
       };
     } else if (
       filePath.includes('planning-artifacts') &&
-      (fileName === 'prd.md' || fileName === 'architecture.md')
+      (fileName === 'prd.md' || fileName === 'architecture.md' || this.isProductBriefFile(fileName))
     ) {
       await this.detectPlanningArtifacts(outputRoot);
     } else if (filePath.includes('implementation-artifacts') && this.isStoryFile(fileName)) {
@@ -508,6 +522,11 @@ export class StateManager implements vscode.Disposable {
       this._state = {
         ...this._state,
         planningArtifacts: { ...this._state.planningArtifacts, hasArchitecture: false },
+      };
+    } else if (this.isProductBriefFile(fileName)) {
+      this._state = {
+        ...this._state,
+        planningArtifacts: { ...this._state.planningArtifacts, hasProductBrief: false },
       };
     } else if (this.isStoryFile(fileName)) {
       // Find and remove the story from internal map

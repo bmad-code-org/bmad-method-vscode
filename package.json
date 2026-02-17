@@ -35,7 +35,8 @@
     "lint": "eslint",
     "typecheck": "pnpm typecheck:extension && pnpm typecheck:webview",
     "typecheck:extension": "tsc -p tsconfig.extension.json --noEmit",
-    "typecheck:webview": "tsc -p tsconfig.webview.json --noEmit"
+    "typecheck:webview": "tsc -p tsconfig.webview.json --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

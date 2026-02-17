@@ -53,8 +53,18 @@ function createState(overrides: Partial<DashboardState> = {}): DashboardState {
 }
 
 /** Planning artifacts representing all phases complete (ready for sprint planning) */
-const allPlanningArtifacts = { hasPrd: true, hasArchitecture: true, hasEpics: true };
-const noPlanningArtifacts = { hasPrd: false, hasArchitecture: false, hasEpics: false };
+const allPlanningArtifacts = {
+  hasProductBrief: false,
+  hasPrd: true,
+  hasArchitecture: true,
+  hasEpics: true,
+};
+const noPlanningArtifacts = {
+  hasProductBrief: false,
+  hasPrd: false,
+  hasArchitecture: false,
+  hasEpics: false,
+};
 
 /** Standard BMAD workflow folder entries for readDirectory mock */
 const ALL_WORKFLOW_FOLDERS: [string, vscode.FileType][] = [
@@ -215,12 +225,31 @@ suite('WorkflowDiscoveryService', () => {
       assert.ok(findById(workflows, 'create-product-brief'));
     });
 
+    test('no sprint, no PRD, but product brief exists hides Create Brief', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: null,
+        planningArtifacts: { ...noPlanningArtifacts, hasProductBrief: true },
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.isPrimary);
+      assert.strictEqual(primary?.id, 'create-prd');
+      assert.ok(findById(workflows, 'brainstorming'));
+      assert.strictEqual(findById(workflows, 'create-product-brief'), undefined);
+    });
+
     test('no sprint with PRD but no architecture returns create-architecture', async () => {
       setup();
       await service.discoverInstalledWorkflows();
       const state = createState({
         sprint: null,
-        planningArtifacts: { hasPrd: true, hasArchitecture: false, hasEpics: false },
+        planningArtifacts: {
+          hasProductBrief: false,
+          hasPrd: true,
+          hasArchitecture: false,
+          hasEpics: false,
+        },
       });
       const workflows = service.discoverWorkflows(state);
       const primary = workflows.find((w) => w.isPrimary);
@@ -232,7 +261,12 @@ suite('WorkflowDiscoveryService', () => {
       await service.discoverInstalledWorkflows();
       const state = createState({
         sprint: null,
-        planningArtifacts: { hasPrd: true, hasArchitecture: true, hasEpics: false },
+        planningArtifacts: {
+          hasProductBrief: false,
+          hasPrd: true,
+          hasArchitecture: true,
+          hasEpics: false,
+        },
       });
       const workflows = service.discoverWorkflows(state);
       const primary = workflows.find((w) => w.isPrimary);
