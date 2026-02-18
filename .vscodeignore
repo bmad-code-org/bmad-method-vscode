@@ -1,0 +1,33 @@
+# Source and config (only bundled output is needed)
+src/**
+**/*.test.ts
+**/*.test.tsx
+**/*.test.js
+**/*.map
+
+# Dependencies (bundled by esbuild/vite)
+node_modules/**
+
+# Dev/build tooling
+.vscode/**
+.vscode-test/**
+.claude/**
+.github/**
+.releaserc.json
+vite.config.ts
+tsconfig*.json
+vitest.setup.ts
+eslint.config.*
+.prettierrc*
+.gitignore
+coverage/**
+
+# BMAD project artifacts (not part of the extension)
+_bmad/**
+_bmad-output/**
+docs/**
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.vsix
