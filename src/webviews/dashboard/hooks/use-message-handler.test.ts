@@ -52,6 +52,7 @@ describe('useMessageHandler', () => {
         hasPrd: false,
         hasArchitecture: false,
         hasEpics: false,
+        hasReadinessReport: false,
       },
     };
 

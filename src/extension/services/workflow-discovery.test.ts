@@ -58,12 +58,14 @@ const allPlanningArtifacts = {
   hasPrd: true,
   hasArchitecture: true,
   hasEpics: true,
+  hasReadinessReport: true,
 };
 const noPlanningArtifacts = {
   hasProductBrief: false,
   hasPrd: false,
   hasArchitecture: false,
   hasEpics: false,
+  hasReadinessReport: false,
 };
 
 /** Standard BMAD workflow folder entries for readDirectory mock */
@@ -91,7 +93,7 @@ suite('WorkflowDiscoveryService', () => {
 
   /**
    * Default readDirectory mock that returns appropriate entries per directory.
-   * Phase 4 gets ALL_WORKFLOW_FOLDERS, pre-impl dirs get a single file to indicate "installed".
+   * Phase 4 gets ALL_WORKFLOW_FOLDERS, extra dirs get a single file to indicate "installed".
    */
   function defaultReadDirectoryMock(
     implFolders: [string, vscode.FileType][] = ALL_WORKFLOW_FOLDERS
@@ -102,7 +104,7 @@ suite('WorkflowDiscoveryService', () => {
         const result = await Promise.resolve(implFolders);
         return result;
       }
-      // Pre-implementation directories: return a file entry to indicate "installed"
+      // Extra workflow directories: return a file entry to indicate "installed"
       const installed: [string, vscode.FileType][] = [['workflow.md', vscode.FileType.File]];
       const result = await Promise.resolve(installed);
       return result;
@@ -127,8 +129,8 @@ suite('WorkflowDiscoveryService', () => {
     test('discovers all standard workflow folders', async () => {
       setup();
       const installed = await service.discoverInstalledWorkflows();
-      // 6 implementation + 5 pre-implementation = 11
-      assert.strictEqual(installed.size, 11);
+      // 6 implementation + 10 extra = 16
+      assert.strictEqual(installed.size, 16);
       // Phase 4
       assert.ok(installed.has('sprint-planning'));
       assert.ok(installed.has('create-story'));
@@ -136,12 +138,17 @@ suite('WorkflowDiscoveryService', () => {
       assert.ok(installed.has('code-review'));
       assert.ok(installed.has('retrospective'));
       assert.ok(installed.has('correct-course'));
-      // Pre-implementation
+      // Extra workflows
       assert.ok(installed.has('brainstorming'));
       assert.ok(installed.has('create-product-brief'));
       assert.ok(installed.has('create-prd'));
+      assert.ok(installed.has('validate-prd'));
+      assert.ok(installed.has('edit-prd'));
+      assert.ok(installed.has('create-ux-design'));
       assert.ok(installed.has('create-architecture'));
       assert.ok(installed.has('create-epics'));
+      assert.ok(installed.has('check-implementation-readiness'));
+      assert.ok(installed.has('qa-automate'));
     });
 
     test('returns empty set when no BMAD paths detected', async () => {
@@ -156,8 +163,8 @@ suite('WorkflowDiscoveryService', () => {
         ['readme.md', vscode.FileType.File],
       ]);
       const installed = await service.discoverInstalledWorkflows();
-      // 1 impl workflow + 5 pre-impl workflows
-      assert.strictEqual(installed.size, 6);
+      // 1 impl workflow + 10 extra workflows
+      assert.strictEqual(installed.size, 11);
       assert.ok(installed.has('dev-story'));
       assert.ok(!installed.has('readme.md'));
     });
@@ -168,8 +175,8 @@ suite('WorkflowDiscoveryService', () => {
         ['unknown-workflow', vscode.FileType.Directory],
       ]);
       const installed = await service.discoverInstalledWorkflows();
-      // 1 impl workflow + 5 pre-impl workflows
-      assert.strictEqual(installed.size, 6);
+      // 1 impl workflow + 10 extra workflows
+      assert.strictEqual(installed.size, 11);
       assert.ok(installed.has('dev-story'));
       assert.ok(!installed.has('unknown-workflow'));
     });
@@ -186,7 +193,7 @@ suite('WorkflowDiscoveryService', () => {
     test('invalidateCache forces re-scan', async () => {
       setup();
       const initial = await service.discoverInstalledWorkflows();
-      assert.strictEqual(initial.size, 11);
+      assert.strictEqual(initial.size, 16);
       service.invalidateCache();
       // After invalidation, return empty for all directories
       service.setReadDirectoryMock(async () => Promise.resolve([]));
@@ -204,14 +211,14 @@ suite('WorkflowDiscoveryService', () => {
   });
 
   suite('discoverWorkflows - state mapping', () => {
-    test('no sprint data with all planning artifacts returns sprint-planning', async () => {
+    test('no sprint data with all planning artifacts and readiness report returns sprint-planning', async () => {
       setup();
       await service.discoverInstalledWorkflows();
       const state = createState({ sprint: null, planningArtifacts: allPlanningArtifacts });
       const workflows = service.discoverWorkflows(state);
       assert.strictEqual(workflows.length, 1);
       assert.strictEqual(workflows[0].id, 'sprint-planning');
-      assert.strictEqual(workflows[0].isPrimary, true);
+      assert.strictEqual(workflows[0].kind, 'primary');
     });
 
     test('no sprint and no PRD returns create-prd with brainstorming and brief', async () => {
@@ -219,7 +226,7 @@ suite('WorkflowDiscoveryService', () => {
       await service.discoverInstalledWorkflows();
       const state = createState({ sprint: null, planningArtifacts: noPlanningArtifacts });
       const workflows = service.discoverWorkflows(state);
-      const primary = workflows.find((w) => w.isPrimary);
+      const primary = workflows.find((w) => w.kind === 'primary');
       assert.strictEqual(primary?.id, 'create-prd');
       assert.ok(findById(workflows, 'brainstorming'));
       assert.ok(findById(workflows, 'create-product-brief'));
@@ -233,13 +240,13 @@ suite('WorkflowDiscoveryService', () => {
         planningArtifacts: { ...noPlanningArtifacts, hasProductBrief: true },
       });
       const workflows = service.discoverWorkflows(state);
-      const primary = workflows.find((w) => w.isPrimary);
+      const primary = workflows.find((w) => w.kind === 'primary');
       assert.strictEqual(primary?.id, 'create-prd');
       assert.ok(findById(workflows, 'brainstorming'));
       assert.strictEqual(findById(workflows, 'create-product-brief'), undefined);
     });
 
-    test('no sprint with PRD but no architecture returns create-architecture', async () => {
+    test('no sprint with PRD but no architecture returns create-architecture with optional PRD workflows', async () => {
       setup();
       await service.discoverInstalledWorkflows();
       const state = createState({
@@ -249,14 +256,18 @@ suite('WorkflowDiscoveryService', () => {
           hasPrd: true,
           hasArchitecture: false,
           hasEpics: false,
+          hasReadinessReport: false,
         },
       });
       const workflows = service.discoverWorkflows(state);
-      const primary = workflows.find((w) => w.isPrimary);
+      const primary = workflows.find((w) => w.kind === 'primary');
       assert.strictEqual(primary?.id, 'create-architecture');
+      assert.ok(findById(workflows, 'validate-prd'));
+      assert.ok(findById(workflows, 'edit-prd'));
+      assert.ok(findById(workflows, 'create-ux-design'));
     });
 
-    test('no sprint with PRD+arch but no epics returns create-epics', async () => {
+    test('no sprint with PRD+arch but no epics returns create-epics with optional UX', async () => {
       setup();
       await service.discoverInstalledWorkflows();
       const state = createState({
@@ -266,11 +277,29 @@ suite('WorkflowDiscoveryService', () => {
           hasPrd: true,
           hasArchitecture: true,
           hasEpics: false,
+          hasReadinessReport: false,
         },
       });
       const workflows = service.discoverWorkflows(state);
-      const primary = workflows.find((w) => w.isPrimary);
+      const primary = workflows.find((w) => w.kind === 'primary');
       assert.strictEqual(primary?.id, 'create-epics');
+      assert.ok(findById(workflows, 'create-ux-design'));
+    });
+
+    test('all planning artifacts but no readiness report returns check-implementation-readiness', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: null,
+        planningArtifacts: {
+          ...allPlanningArtifacts,
+          hasReadinessReport: false,
+        },
+      });
+      const workflows = service.discoverWorkflows(state);
+      assert.strictEqual(workflows.length, 1);
+      assert.strictEqual(workflows[0].id, 'check-implementation-readiness');
+      assert.strictEqual(workflows[0].kind, 'primary');
     });
 
     test('sprint active with all backlog stories returns create-story', async () => {
@@ -285,7 +314,7 @@ suite('WorkflowDiscoveryService', () => {
         currentStory: null,
       });
       const workflows = service.discoverWorkflows(state);
-      const primary = workflows.find((w) => w.isPrimary);
+      const primary = workflows.find((w) => w.kind === 'primary');
       assert.strictEqual(primary?.id, 'create-story');
     });
 
@@ -316,7 +345,7 @@ suite('WorkflowDiscoveryService', () => {
       const workflows = service.discoverWorkflows(state);
       assert.strictEqual(workflows.length, 1);
       assert.strictEqual(workflows[0].id, 'dev-story');
-      assert.strictEqual(workflows[0].isPrimary, true);
+      assert.strictEqual(workflows[0].kind, 'primary');
     });
 
     test('story with in-progress status returns dev-story (continue)', async () => {
@@ -344,12 +373,12 @@ suite('WorkflowDiscoveryService', () => {
         },
       });
       const workflows = service.discoverWorkflows(state);
-      const primary = workflows.find((w) => w.isPrimary);
+      const primary = workflows.find((w) => w.kind === 'primary');
       assert.strictEqual(primary?.id, 'dev-story');
       assert.ok(findById(workflows, 'correct-course'));
     });
 
-    test('story with review status returns code-review and create-story', async () => {
+    test('story with review status returns code-review, create-story and qa-automate', async () => {
       setup();
       await service.discoverInstalledWorkflows();
       const state = createState({
@@ -374,9 +403,10 @@ suite('WorkflowDiscoveryService', () => {
         },
       });
       const workflows = service.discoverWorkflows(state);
-      const primary = workflows.find((w) => w.isPrimary);
+      const primary = workflows.find((w) => w.kind === 'primary');
       assert.strictEqual(primary?.id, 'code-review');
       assert.ok(findById(workflows, 'create-story'));
+      assert.ok(findById(workflows, 'qa-automate'));
     });
 
     test('all stories in an epic complete returns retrospective and create-story', async () => {
@@ -393,7 +423,7 @@ suite('WorkflowDiscoveryService', () => {
         currentStory: null,
       });
       const workflows = service.discoverWorkflows(state);
-      const primary = workflows.find((w) => w.isPrimary);
+      const primary = workflows.find((w) => w.kind === 'primary');
       assert.strictEqual(primary?.id, 'retrospective');
       assert.ok(findById(workflows, 'create-story'));
     });
@@ -413,7 +443,7 @@ suite('WorkflowDiscoveryService', () => {
         currentStory: null,
       });
       const workflows = service.discoverWorkflows(state);
-      const primary = workflows.find((w) => w.isPrimary);
+      const primary = workflows.find((w) => w.kind === 'primary');
       assert.strictEqual(primary?.id, 'create-story');
     });
 
@@ -431,7 +461,7 @@ suite('WorkflowDiscoveryService', () => {
       const workflows = service.discoverWorkflows(state);
       assert.strictEqual(workflows.length, 1);
       assert.strictEqual(workflows[0].id, 'retrospective');
-      assert.strictEqual(workflows[0].isPrimary, true);
+      assert.strictEqual(workflows[0].kind, 'primary');
     });
 
     test('sprint with no stories returns create-story', async () => {
@@ -446,7 +476,7 @@ suite('WorkflowDiscoveryService', () => {
       const workflows = service.discoverWorkflows(state);
       assert.strictEqual(workflows.length, 1);
       assert.strictEqual(workflows[0].id, 'create-story');
-      assert.strictEqual(workflows[0].isPrimary, true);
+      assert.strictEqual(workflows[0].kind, 'primary');
     });
   });
 
@@ -523,7 +553,7 @@ suite('WorkflowDiscoveryService', () => {
         },
       });
       const workflows = service.discoverWorkflows(state);
-      const primaryCount = workflows.filter((w) => w.isPrimary).length;
+      const primaryCount = workflows.filter((w) => w.kind === 'primary').length;
       assert.strictEqual(primaryCount, 1);
     });
   });
@@ -588,7 +618,7 @@ suite('WorkflowDiscoveryService', () => {
         assert.ok(typeof w.name === 'string' && w.name.length > 0);
         assert.ok(typeof w.command === 'string' && w.command.length > 0);
         assert.ok(typeof w.description === 'string' && w.description.length > 0);
-        assert.ok(typeof w.isPrimary === 'boolean');
+        assert.ok(typeof w.kind === 'string');
       }
     });
 

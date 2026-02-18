@@ -822,7 +822,7 @@ tracking_system: file-system
           name: 'Dev Story',
           command: '/bmad-bmm-dev-story',
           description: 'Start or continue story implementation',
-          isPrimary: true,
+          kind: 'primary' as const,
         },
       ];
 
@@ -853,7 +853,7 @@ tracking_system: file-system
           name: 'Create Story',
           command: '/bmad-bmm-create-story',
           description: 'Create the next user story',
-          isPrimary: true,
+          kind: 'primary' as const,
         },
       ];
 
@@ -904,7 +904,7 @@ tracking_system: file-system
             name: `Workflow ${callCount}`,
             command: `claude /cmd-${callCount}`,
             description: `Description ${callCount}`,
-            isPrimary: true,
+            kind: 'primary' as const,
           },
         ];
       });

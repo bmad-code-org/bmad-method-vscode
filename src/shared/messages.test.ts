@@ -57,6 +57,7 @@ describe('ToWebview message type guards', () => {
       hasPrd: false,
       hasArchitecture: false,
       hasEpics: false,
+      hasReadinessReport: false,
     },
   };
 
@@ -258,6 +259,7 @@ describe('Message factory functions', () => {
           hasPrd: false,
           hasArchitecture: false,
           hasEpics: false,
+          hasReadinessReport: false,
         },
       };
       const message = createStateUpdateMessage(state);
@@ -348,6 +350,7 @@ describe('Discriminated union type narrowing', () => {
         hasPrd: false,
         hasArchitecture: false,
         hasEpics: false,
+        hasReadinessReport: false,
       },
     };
 

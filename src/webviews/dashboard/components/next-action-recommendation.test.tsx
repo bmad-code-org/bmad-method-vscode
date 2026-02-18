@@ -19,7 +19,7 @@ const mockPrimaryWorkflow: AvailableWorkflow = {
   name: 'Dev Story',
   command: '/bmad-bmm-dev-story',
   description: 'Implement the next story',
-  isPrimary: true,
+  kind: 'primary' as const,
 };
 
 const mockSecondaryWorkflow: AvailableWorkflow = {
@@ -27,7 +27,7 @@ const mockSecondaryWorkflow: AvailableWorkflow = {
   name: 'Correct Course',
   command: '/bmad-bmm-correct-course',
   description: 'Adjust sprint plan',
-  isPrimary: false,
+  kind: 'optional' as const,
 };
 
 const mockSprintStatus: SprintStatus = {
@@ -109,6 +109,7 @@ describe('NextActionRecommendation', () => {
         hasPrd: true,
         hasArchitecture: true,
         hasEpics: true,
+        hasReadinessReport: true,
       },
     });
     render(<NextActionRecommendation />);
@@ -124,6 +125,7 @@ describe('NextActionRecommendation', () => {
         hasPrd: false,
         hasArchitecture: false,
         hasEpics: false,
+        hasReadinessReport: false,
       },
     });
     render(<NextActionRecommendation />);
@@ -139,6 +141,7 @@ describe('NextActionRecommendation', () => {
         hasPrd: true,
         hasArchitecture: false,
         hasEpics: false,
+        hasReadinessReport: false,
       },
     });
     render(<NextActionRecommendation />);
@@ -154,6 +157,7 @@ describe('NextActionRecommendation', () => {
         hasPrd: true,
         hasArchitecture: true,
         hasEpics: false,
+        hasReadinessReport: false,
       },
     });
     render(<NextActionRecommendation />);

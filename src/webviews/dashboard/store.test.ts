@@ -66,6 +66,7 @@ describe('useDashboardStore', () => {
           hasPrd: true,
           hasArchitecture: true,
           hasEpics: true,
+          hasReadinessReport: false,
         },
       };
 
@@ -106,6 +107,7 @@ describe('useDashboardStore', () => {
           hasPrd: false,
           hasArchitecture: false,
           hasEpics: false,
+          hasReadinessReport: false,
         },
       };
 
@@ -123,6 +125,7 @@ describe('useDashboardStore', () => {
           hasPrd: false,
           hasArchitecture: false,
           hasEpics: false,
+          hasReadinessReport: false,
         },
       };
 
@@ -218,6 +221,7 @@ describe('useDashboardStore', () => {
         hasPrd: false,
         hasArchitecture: false,
         hasEpics: false,
+        hasReadinessReport: false,
       });
     });
   });
@@ -230,7 +234,7 @@ describe('useDashboardStore', () => {
           name: 'Dev Story',
           command: '/bmad-bmm-dev-story',
           description: 'Start or continue story implementation',
-          isPrimary: true,
+          kind: 'primary' as const,
         },
       ];
 
@@ -253,14 +257,14 @@ describe('useDashboardStore', () => {
           name: 'Create Story',
           command: '/bmad-bmm-create-story',
           description: 'Create the next user story',
-          isPrimary: true,
+          kind: 'primary' as const,
         },
         {
           id: 'correct-course',
           name: 'Correct Course',
           command: '/bmad-bmm-correct-course',
           description: 'Adjust sprint plan',
-          isPrimary: false,
+          kind: 'optional' as const,
         },
       ];
 
@@ -285,6 +289,7 @@ describe('useDashboardStore', () => {
           hasPrd: false,
           hasArchitecture: false,
           hasEpics: false,
+          hasReadinessReport: false,
         },
       };
 

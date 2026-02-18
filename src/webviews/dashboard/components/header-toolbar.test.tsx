@@ -14,7 +14,7 @@ const workflow1: AvailableWorkflow = {
   name: 'Dev Story',
   command: '/bmad-bmm-dev-story',
   description: 'Implement the next story',
-  isPrimary: true,
+  kind: 'primary' as const,
 };
 
 const workflow2: AvailableWorkflow = {
@@ -22,7 +22,7 @@ const workflow2: AvailableWorkflow = {
   name: 'Create Story',
   command: '/bmad-bmm-create-story',
   description: 'Create a new story',
-  isPrimary: false,
+  kind: 'optional' as const,
 };
 
 describe('HeaderToolbar', () => {

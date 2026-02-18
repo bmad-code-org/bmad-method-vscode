@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import type { BmadDetector } from './bmad-detector';
 import type { DashboardState, AvailableWorkflow } from '../../shared/types';
+import type { WorkflowKind } from '../../shared/types/workflow';
 import { isStoryKey, isEpicKey, isStoryStatus, isRetrospectiveKey } from '../../shared/types';
 
 /**
@@ -8,7 +9,7 @@ import { isStoryKey, isEpicKey, isStoryStatus, isRetrospectiveKey } from '../../
  * Phase 4 (implementation) workflows map to folders under _bmad/bmm/workflows/4-implementation/.
  * Pre-implementation workflows map to specific directories in phases 1-3.
  */
-const WORKFLOW_DEFINITIONS: Record<string, Omit<AvailableWorkflow, 'isPrimary'>> = {
+const WORKFLOW_DEFINITIONS: Record<string, Omit<AvailableWorkflow, 'kind'>> = {
   // Phase 1 - Analysis
   brainstorming: {
     id: 'brainstorming',
@@ -29,6 +30,24 @@ const WORKFLOW_DEFINITIONS: Record<string, Omit<AvailableWorkflow, 'isPrimary'>>
     command: '/bmad-bmm-create-prd',
     description: 'Create your Product Requirements Document',
   },
+  'validate-prd': {
+    id: 'validate-prd',
+    name: 'Validate PRD',
+    command: '/bmad-bmm-validate-prd',
+    description: 'Validate PRD is comprehensive, lean, well-organized and cohesive',
+  },
+  'edit-prd': {
+    id: 'edit-prd',
+    name: 'Edit PRD',
+    command: '/bmad-bmm-edit-prd',
+    description: 'Improve and enhance an existing PRD',
+  },
+  'create-ux-design': {
+    id: 'create-ux-design',
+    name: 'Create UX Design',
+    command: '/bmad-bmm-create-ux-design',
+    description: 'Guided workflow to document your UX design decisions',
+  },
   // Phase 3 - Solutioning
   'create-architecture': {
     id: 'create-architecture',
@@ -41,6 +60,12 @@ const WORKFLOW_DEFINITIONS: Record<string, Omit<AvailableWorkflow, 'isPrimary'>>
     name: 'Create Epics & Stories',
     command: '/bmad-bmm-create-epics-and-stories',
     description: 'Break down your project into epics and stories',
+  },
+  'check-implementation-readiness': {
+    id: 'check-implementation-readiness',
+    name: 'Check Implementation Readiness',
+    command: '/bmad-bmm-check-implementation-readiness',
+    description: 'Ensure PRD, UX, Architecture and Epics/Stories are aligned',
   },
   // Phase 4 - Implementation
   'sprint-planning': {
@@ -67,6 +92,12 @@ const WORKFLOW_DEFINITIONS: Record<string, Omit<AvailableWorkflow, 'isPrimary'>>
     command: '/bmad-bmm-code-review',
     description: 'Run code review on completed story',
   },
+  'qa-automate': {
+    id: 'qa-automate',
+    name: 'QA Automation',
+    command: '/bmad-bmm-qa-automate',
+    description: 'Generate automated API and E2E tests for implemented code',
+  },
   retrospective: {
     id: 'retrospective',
     name: 'Retrospective',
@@ -82,22 +113,35 @@ const WORKFLOW_DEFINITIONS: Record<string, Omit<AvailableWorkflow, 'isPrimary'>>
 };
 
 /**
- * Pre-implementation workflow directory mappings.
+ * Workflow directory mappings outside of 4-implementation/.
  * Maps workflow definition IDs to their actual directory paths relative to _bmad/.
  * Phase 4 workflows use folder names matching their IDs under 4-implementation/.
  *
  * Note: The `sprint-status` workflow folder exists on disk but is excluded
  * because it is a status display utility, not an actionable workflow for CTA buttons.
+ * Multiple IDs may share a directory (e.g., create-prd, validate-prd, edit-prd).
  */
-const PRE_IMPL_WORKFLOW_DIRS: Array<{ path: string[]; id: string }> = [
+const EXTRA_WORKFLOW_DIRS: Array<{ path: string[]; id: string }> = [
+  // Phase 1
   { path: ['core', 'workflows', 'brainstorming'], id: 'brainstorming' },
   { path: ['bmm', 'workflows', '1-analysis', 'create-product-brief'], id: 'create-product-brief' },
+  // Phase 2 (validate-prd and edit-prd share directory with create-prd)
   { path: ['bmm', 'workflows', '2-plan-workflows', 'create-prd'], id: 'create-prd' },
+  { path: ['bmm', 'workflows', '2-plan-workflows', 'create-prd'], id: 'validate-prd' },
+  { path: ['bmm', 'workflows', '2-plan-workflows', 'create-prd'], id: 'edit-prd' },
+  { path: ['bmm', 'workflows', '2-plan-workflows', 'create-ux-design'], id: 'create-ux-design' },
+  // Phase 3
   { path: ['bmm', 'workflows', '3-solutioning', 'create-architecture'], id: 'create-architecture' },
   {
     path: ['bmm', 'workflows', '3-solutioning', 'create-epics-and-stories'],
     id: 'create-epics',
   },
+  {
+    path: ['bmm', 'workflows', '3-solutioning', 'check-implementation-readiness'],
+    id: 'check-implementation-readiness',
+  },
+  // QA workflow lives outside 4-implementation/
+  { path: ['bmm', 'workflows', 'qa', 'automate'], id: 'qa-automate' },
 ];
 
 /**
@@ -116,7 +160,7 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
 
   /**
    * Discover installed workflows by scanning workflow directories.
-   * Scans Phase 4 (4-implementation/) generically, plus specific pre-implementation directories.
+   * Scans Phase 4 (4-implementation/) generically, plus extra workflow directories.
    * Caches result after first scan. Call invalidateCache() to force re-scan.
    */
   async discoverInstalledWorkflows(): Promise<Set<string>> {
@@ -139,9 +183,9 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
         .map(([name]) => name)
         .filter((name) => name in WORKFLOW_DEFINITIONS);
 
-      // Check pre-implementation workflow directories
-      const preImplResults = await Promise.all(
-        PRE_IMPL_WORKFLOW_DIRS.map(async ({ path, id }) => {
+      // Check extra workflow directories
+      const extraResults = await Promise.all(
+        EXTRA_WORKFLOW_DIRS.map(async ({ path, id }) => {
           const dir = vscode.Uri.joinPath(paths.bmadRoot, ...path);
           const entries = await this.readDirectory(dir);
           return entries.length > 0 ? id : null;
@@ -150,7 +194,7 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
 
       this.installedWorkflows = new Set([
         ...implWorkflows,
-        ...preImplResults.filter((id): id is string => id !== null),
+        ...extraResults.filter((id): id is string => id !== null),
       ]);
     } catch {
       this.installedWorkflows = new Set();
@@ -180,7 +224,8 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
 
   /**
    * Compute which workflows SHOULD be available based on state,
-   * without checking installation.
+   * without checking installation. Returns primary, mandatory, and optional workflows
+   * based on the current BMAD lifecycle phase.
    */
   private computeWorkflowCandidates(state: DashboardState): AvailableWorkflow[] {
     const { sprint, currentStory, planningArtifacts } = state;
@@ -189,36 +234,55 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
     if (!sprint) {
       if (!planningArtifacts.hasPrd) {
         const candidates = [
-          this.makeWorkflow('create-prd', true),
-          this.makeWorkflow('brainstorming', false),
+          this.makeWorkflow('create-prd', 'primary'),
+          this.makeWorkflow('brainstorming', 'optional'),
         ];
         if (!planningArtifacts.hasProductBrief) {
-          candidates.push(this.makeWorkflow('create-product-brief', false));
+          candidates.push(this.makeWorkflow('create-product-brief', 'optional'));
         }
         return candidates;
       }
       if (!planningArtifacts.hasArchitecture) {
-        return [this.makeWorkflow('create-architecture', true)];
+        return [
+          this.makeWorkflow('create-architecture', 'primary'),
+          this.makeWorkflow('validate-prd', 'optional'),
+          this.makeWorkflow('edit-prd', 'optional'),
+          this.makeWorkflow('create-ux-design', 'optional'),
+        ];
       }
       if (!planningArtifacts.hasEpics) {
-        return [this.makeWorkflow('create-epics', true)];
+        return [
+          this.makeWorkflow('create-epics', 'primary'),
+          this.makeWorkflow('create-ux-design', 'optional'),
+        ];
       }
-      return [this.makeWorkflow('sprint-planning', true)];
+      // All planning artifacts exist
+      if (!planningArtifacts.hasReadinessReport) {
+        return [this.makeWorkflow('check-implementation-readiness', 'primary')];
+      }
+      return [this.makeWorkflow('sprint-planning', 'primary')];
     }
 
     // 2. Active story in-progress → continue development
     if (currentStory?.status === 'in-progress') {
-      return [this.makeWorkflow('dev-story', true), this.makeWorkflow('correct-course', false)];
+      return [
+        this.makeWorkflow('dev-story', 'primary'),
+        this.makeWorkflow('correct-course', 'optional'),
+      ];
     }
 
     // 3. Story in review → code review
     if (currentStory?.status === 'review') {
-      return [this.makeWorkflow('code-review', true), this.makeWorkflow('create-story', false)];
+      return [
+        this.makeWorkflow('code-review', 'primary'),
+        this.makeWorkflow('create-story', 'optional'),
+        this.makeWorkflow('qa-automate', 'optional'),
+      ];
     }
 
     // 4. Story ready-for-dev → start development
     if (currentStory?.status === 'ready-for-dev') {
-      return [this.makeWorkflow('dev-story', true)];
+      return [this.makeWorkflow('dev-story', 'primary')];
     }
 
     // 5. No active story - analyze development_status
@@ -266,42 +330,48 @@ export class WorkflowDiscoveryService implements vscode.Disposable {
 
     // 8. Sprint exists, no stories at all → create story
     if (!hasStories) {
-      return [this.makeWorkflow('create-story', true)];
+      return [this.makeWorkflow('create-story', 'primary')];
     }
 
     // 7. All stories in sprint complete → retrospective
     // Note: get-next-action.ts distinguishes this as 'sprint-complete' type,
     // but for workflow discovery we offer 'retrospective' as the actionable workflow.
     if (allStoriesDone) {
-      return [this.makeWorkflow('retrospective', true)];
+      return [this.makeWorkflow('retrospective', 'primary')];
     }
 
     // 6. Check if any single epic has all its stories done (per-epic retrospective)
     // Skip epics whose retrospective is already done
     for (const [epicNum, counts] of epicStories) {
       if (counts.total > 0 && counts.done === counts.total && !retroDone.has(epicNum)) {
-        return [this.makeWorkflow('retrospective', true), this.makeWorkflow('create-story', false)];
+        return [
+          this.makeWorkflow('retrospective', 'primary'),
+          this.makeWorkflow('create-story', 'optional'),
+        ];
       }
     }
 
     // 5. Backlog stories exist → create next story
     if (hasBacklogStory) {
-      return [this.makeWorkflow('create-story', true), this.makeWorkflow('correct-course', false)];
+      return [
+        this.makeWorkflow('create-story', 'primary'),
+        this.makeWorkflow('correct-course', 'optional'),
+      ];
     }
 
     // Fallback: some stories exist in non-backlog, non-done states but no currentStory
-    return [this.makeWorkflow('create-story', true)];
+    return [this.makeWorkflow('create-story', 'primary')];
   }
 
   /**
-   * Create an AvailableWorkflow from a definition with the given primary flag.
+   * Create an AvailableWorkflow from a definition with the given kind.
    */
-  private makeWorkflow(id: string, isPrimary: boolean): AvailableWorkflow {
+  private makeWorkflow(id: string, kind: WorkflowKind): AvailableWorkflow {
     const def = WORKFLOW_DEFINITIONS[id];
     if (!def) {
-      return { id, name: id, command: '', description: '', isPrimary };
+      return { id, name: id, command: '', description: '', kind };
     }
-    return { ...def, isPrimary };
+    return { ...def, kind };
   }
 
   /**

@@ -1,4 +1,12 @@
 /**
+ * Categorization of a workflow's importance in the current context.
+ * - 'primary': The single most important next action (shown in NextActionRecommendation)
+ * - 'mandatory': Important follow-up that should not be skipped (shown prominently in CTA)
+ * - 'optional': Recommended but skippable follow-up (shown with secondary styling in CTA)
+ */
+export type WorkflowKind = 'primary' | 'mandatory' | 'optional';
+
+/**
  * Represents a BMAD workflow that can be executed from the dashboard
  */
 export interface AvailableWorkflow {
@@ -10,6 +18,6 @@ export interface AvailableWorkflow {
   command: string;
   /** Brief description of what the workflow does */
   description: string;
-  /** Whether this is the primary/recommended workflow for current state */
-  isPrimary: boolean;
+  /** Categorization of this workflow's importance in the current context */
+  kind: WorkflowKind;
 }

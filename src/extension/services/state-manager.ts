@@ -360,6 +360,13 @@ export class StateManager implements vscode.Disposable {
         type === vscode.FileType.File && name.startsWith('product-brief-') && name.endsWith('.md')
     );
 
+    const hasReadinessReport = planningEntries.some(
+      ([name, type]) =>
+        type === vscode.FileType.File &&
+        name.startsWith('implementation-readiness-report-') &&
+        name.endsWith('.md')
+    );
+
     this._state = {
       ...this._state,
       planningArtifacts: {
@@ -367,6 +374,7 @@ export class StateManager implements vscode.Disposable {
         hasPrd: prdContent !== null,
         hasArchitecture: archContent !== null,
         hasEpics: this._state.epics.length > 0,
+        hasReadinessReport,
       },
     };
   }
@@ -383,6 +391,13 @@ export class StateManager implements vscode.Disposable {
    */
   private isProductBriefFile(fileName: string): boolean {
     return fileName.startsWith('product-brief-') && fileName.endsWith('.md');
+  }
+
+  /**
+   * Check if a filename matches the readiness report pattern (implementation-readiness-report-*.md).
+   */
+  private isReadinessReportFile(fileName: string): boolean {
+    return fileName.startsWith('implementation-readiness-report-') && fileName.endsWith('.md');
   }
 
   /**
@@ -487,7 +502,10 @@ export class StateManager implements vscode.Disposable {
       };
     } else if (
       filePath.includes('planning-artifacts') &&
-      (fileName === 'prd.md' || fileName === 'architecture.md' || this.isProductBriefFile(fileName))
+      (fileName === 'prd.md' ||
+        fileName === 'architecture.md' ||
+        this.isProductBriefFile(fileName) ||
+        this.isReadinessReportFile(fileName))
     ) {
       await this.detectPlanningArtifacts(outputRoot);
     } else if (filePath.includes('implementation-artifacts') && this.isStoryFile(fileName)) {
@@ -527,6 +545,11 @@ export class StateManager implements vscode.Disposable {
       this._state = {
         ...this._state,
         planningArtifacts: { ...this._state.planningArtifacts, hasProductBrief: false },
+      };
+    } else if (this.isReadinessReportFile(fileName)) {
+      this._state = {
+        ...this._state,
+        planningArtifacts: { ...this._state.planningArtifacts, hasReadinessReport: false },
       };
     } else if (this.isStoryFile(fileName)) {
       // Find and remove the story from internal map

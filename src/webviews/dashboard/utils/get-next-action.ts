@@ -13,6 +13,7 @@ export interface NextAction {
     | 'create-prd'
     | 'create-architecture'
     | 'create-epics'
+    | 'check-implementation-readiness'
     | 'sprint-planning'
     | 'create-story'
     | 'dev-story'
@@ -58,6 +59,14 @@ export function getNextAction(
           type: 'create-epics',
           label: 'Create Epics & Stories',
           description: 'Architecture is ready — break down your project into epics and stories',
+        };
+      }
+      if (!planningArtifacts.hasReadinessReport) {
+        return {
+          type: 'check-implementation-readiness',
+          label: 'Check Implementation Readiness',
+          description:
+            'Epics are ready — validate alignment before starting implementation',
         };
       }
     }

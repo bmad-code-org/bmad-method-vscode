@@ -43,12 +43,14 @@ const allArtifacts = {
   hasPrd: true,
   hasArchitecture: true,
   hasEpics: true,
+  hasReadinessReport: true,
 };
 const noArtifacts = {
   hasProductBrief: false,
   hasPrd: false,
   hasArchitecture: false,
   hasEpics: false,
+  hasReadinessReport: false,
 };
 
 describe('getNextAction', () => {
@@ -78,6 +80,7 @@ describe('getNextAction', () => {
       hasPrd: true,
       hasArchitecture: false,
       hasEpics: false,
+      hasReadinessReport: false,
     });
     expect(result.type).toBe('create-architecture');
     expect(result.label).toBe('Create Architecture');
@@ -90,10 +93,36 @@ describe('getNextAction', () => {
       hasPrd: true,
       hasArchitecture: true,
       hasEpics: false,
+      hasReadinessReport: false,
     });
     expect(result.type).toBe('create-epics');
     expect(result.label).toBe('Create Epics & Stories');
     expect(result.description).toContain('epics');
+  });
+
+  test('returns check-implementation-readiness when all planning artifacts exist but no readiness report', () => {
+    const result = getNextAction(null, null, {
+      hasProductBrief: false,
+      hasPrd: true,
+      hasArchitecture: true,
+      hasEpics: true,
+      hasReadinessReport: false,
+    });
+    expect(result.type).toBe('check-implementation-readiness');
+    expect(result.label).toBe('Check Implementation Readiness');
+    expect(result.description).toContain('validate alignment');
+  });
+
+  test('returns sprint-planning only when readiness report also exists', () => {
+    const result = getNextAction(null, null, {
+      hasProductBrief: false,
+      hasPrd: true,
+      hasArchitecture: true,
+      hasEpics: true,
+      hasReadinessReport: true,
+    });
+    expect(result.type).toBe('sprint-planning');
+    expect(result.label).toBe('Run Sprint Planning');
   });
 
   test('returns dev-story continue when current story is in-progress', () => {

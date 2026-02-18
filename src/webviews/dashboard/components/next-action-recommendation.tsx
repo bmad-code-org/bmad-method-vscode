@@ -10,6 +10,7 @@ const actionIcons: Record<NextAction['type'], string> = {
   'create-prd': '📄',
   'create-architecture': '🏗️',
   'create-epics': '📋',
+  'check-implementation-readiness': '✅',
   'sprint-planning': '📋',
   'create-story': '📝',
   'dev-story': '🚀',
@@ -46,7 +47,7 @@ export function NextActionRecommendation(): React.ReactElement {
 
   const action = getNextAction(sprint, currentStory, planningArtifacts);
   const icon = actionIcons[action.type];
-  const primaryWorkflow = workflows.find((w) => w.isPrimary);
+  const primaryWorkflow = workflows.find((w) => w.kind === 'primary');
 
   const handleExecute = () => {
     if (primaryWorkflow) {

@@ -14,7 +14,15 @@ const primaryWorkflow: AvailableWorkflow = {
   name: 'Dev Story',
   command: '/bmad-bmm-dev-story',
   description: 'Implement the next story',
-  isPrimary: true,
+  kind: 'primary' as const,
+};
+
+const mandatoryWorkflow: AvailableWorkflow = {
+  id: 'validate-prd',
+  name: 'Validate PRD',
+  command: '/bmad-bmm-validate-prd',
+  description: 'Validate the PRD',
+  kind: 'mandatory' as const,
 };
 
 const secondaryWorkflow: AvailableWorkflow = {
@@ -22,7 +30,7 @@ const secondaryWorkflow: AvailableWorkflow = {
   name: 'Create Story',
   command: '/bmad-bmm-create-story',
   description: 'Create a new story',
-  isPrimary: false,
+  kind: 'optional' as const,
 };
 
 describe('CTAButtons', () => {
@@ -114,6 +122,46 @@ describe('CTAButtons', () => {
     render(<CTAButtons />);
     const copyButton = screen.getByTestId('cta-copy-create-story');
     expect(copyButton).toHaveAttribute('title', 'Copy: /bmad-bmm-create-story');
+  });
+
+  test('renders mandatory section with Required Actions heading', () => {
+    useDashboardStore.setState({ workflows: [primaryWorkflow, mandatoryWorkflow] });
+    render(<CTAButtons />);
+    expect(screen.getByTestId('cta-mandatory')).toBeInTheDocument();
+    expect(screen.getByText('Required Actions')).toBeInTheDocument();
+  });
+
+  test('mandatory workflow buttons have primary styling', () => {
+    useDashboardStore.setState({ workflows: [mandatoryWorkflow] });
+    render(<CTAButtons />);
+    const button = screen.getByTestId('cta-execute-validate-prd');
+    expect(button.className).toContain('bg-[var(--vscode-button-background)]');
+    expect(button.className).toContain('text-[var(--vscode-button-foreground)]');
+  });
+
+  test('renders both mandatory and optional sections when both kinds exist', () => {
+    useDashboardStore.setState({ workflows: [primaryWorkflow, mandatoryWorkflow, secondaryWorkflow] });
+    render(<CTAButtons />);
+    expect(screen.getByTestId('cta-mandatory')).toBeInTheDocument();
+    expect(screen.getByTestId('cta-buttons')).toBeInTheDocument();
+    expect(screen.getByText('Required Actions')).toBeInTheDocument();
+    expect(screen.getByText('Other Actions')).toBeInTheDocument();
+  });
+
+  test('clicking mandatory execute button sends EXECUTE_WORKFLOW', () => {
+    useDashboardStore.setState({ workflows: [mandatoryWorkflow] });
+    render(<CTAButtons />);
+    fireEvent.click(screen.getByTestId('cta-execute-validate-prd'));
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      type: 'EXECUTE_WORKFLOW',
+      payload: { command: '/bmad-bmm-validate-prd' },
+    });
+  });
+
+  test('renders nothing when only primary workflow exists (no mandatory or optional)', () => {
+    useDashboardStore.setState({ workflows: [primaryWorkflow] });
+    const { container } = render(<CTAButtons />);
+    expect(container.innerHTML).toBe('');
   });
 });
 

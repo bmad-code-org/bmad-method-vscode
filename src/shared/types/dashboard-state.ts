@@ -17,6 +17,7 @@ export interface PlanningArtifacts {
   hasPrd: boolean;
   hasArchitecture: boolean;
   hasEpics: boolean;
+  hasReadinessReport: boolean;
 }
 
 /**
@@ -62,6 +63,7 @@ export function createInitialDashboardState(): DashboardState {
       hasPrd: false,
       hasArchitecture: false,
       hasEpics: false,
+      hasReadinessReport: false,
     },
   };
 }
