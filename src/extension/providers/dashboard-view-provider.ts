@@ -13,6 +13,8 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
   private static readonly TERMINAL_NAME = 'BMAD';
   private static readonly VALID_COMMAND_PATTERN = /^\/bmad-[a-z0-9-]+$/;
   private static readonly VALID_CLI_PREFIX_PATTERN = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
+  private static readonly STORY_PATH_REGEX =
+    /^(.+)\/implementation-artifacts\/(\d+)-(\d+)-[\w-]+\.md$/;
 
   private view?: vscode.WebviewView;
   private readonly disposables: vscode.Disposable[] = [];
@@ -104,6 +106,7 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
   /**
    * Open a document in the editor by relative path.
    * Markdown files open in preview by default; pass forceTextEditor to open as text.
+   * Story files that don't exist yet fall back to opening epics.md at the story heading.
    */
   private async openDocument(relativePath: string, forceTextEditor?: boolean): Promise<void> {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -117,6 +120,29 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
 
     const documentUri = vscode.Uri.joinPath(workspaceFolder.uri, relativePath);
 
+    // Check if this is a story file that might not exist yet
+    const storyMatch = relativePath.match(DashboardViewProvider.STORY_PATH_REGEX);
+    if (storyMatch) {
+      const exists = await this.fileExists(documentUri);
+      if (!exists) {
+        const outputRoot = storyMatch[1];
+        const epicNum = parseInt(storyMatch[2], 10);
+        const storyNum = parseInt(storyMatch[3], 10);
+        try {
+          await this.openStoryFallback(
+            workspaceFolder.uri,
+            outputRoot,
+            epicNum,
+            storyNum,
+            forceTextEditor
+          );
+        } catch {
+          void vscode.window.showErrorMessage(`Could not open: ${relativePath}`);
+        }
+        return;
+      }
+    }
+
     try {
       if (!forceTextEditor && relativePath.endsWith('.md')) {
         await vscode.commands.executeCommand('markdown.showPreview', documentUri);
@@ -127,6 +153,71 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
     } catch {
       void vscode.window.showErrorMessage(`Could not open: ${relativePath}`);
     }
+  }
+
+  /**
+   * Check if a file exists using VS Code's workspace.fs API.
+   */
+  private async fileExists(uri: vscode.Uri): Promise<boolean> {
+    try {
+      await vscode.workspace.fs.stat(uri);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Fall back to opening epics.md scrolled to a story heading when the story file doesn't exist.
+   * Normal click: opens markdown preview with URI fragment to scroll to the heading.
+   * Ctrl+click (forceTextEditor): opens text editor scrolled to the heading line.
+   */
+  private async openStoryFallback(
+    workspaceFolderUri: vscode.Uri,
+    outputRoot: string,
+    epicNum: number,
+    storyNum: number,
+    forceTextEditor?: boolean
+  ): Promise<void> {
+    const epicsPath = `${outputRoot}/planning-artifacts/epics.md`;
+    const epicsUri = vscode.Uri.joinPath(workspaceFolderUri, epicsPath);
+
+    // Read file content to find the story heading
+    const document = await vscode.workspace.openTextDocument(epicsUri);
+    const searchPattern = `### Story ${epicNum}.${storyNum}:`;
+    const text = document.getText();
+    const lines = text.split('\n');
+    const lineIndex = lines.findIndex((line) => line.startsWith(searchPattern));
+
+    if (forceTextEditor) {
+      const editor = await vscode.window.showTextDocument(document, { preview: true });
+      if (lineIndex >= 0) {
+        const range = new vscode.Range(lineIndex, 0, lineIndex, 0);
+        editor.revealRange(range, vscode.TextEditorRevealType.AtTop);
+        editor.selection = new vscode.Selection(lineIndex, 0, lineIndex, 0);
+      }
+    } else {
+      // Build URI with fragment for markdown preview scroll-to-heading
+      let previewUri = epicsUri;
+      if (lineIndex >= 0) {
+        const headingText = lines[lineIndex].replace(/^#+\s*/, '');
+        const fragment = DashboardViewProvider.slugifyHeading(headingText);
+        previewUri = epicsUri.with({ fragment });
+      }
+      await vscode.commands.executeCommand('markdown.showPreview', previewUri);
+    }
+  }
+
+  /**
+   * Slugify a heading into a GitHub-compatible anchor fragment.
+   * Mirrors VS Code's built-in github slugifier algorithm.
+   */
+  private static slugifyHeading(heading: string): string {
+    return heading
+      .trim()
+      .toLowerCase()
+      .replace(/[^\p{L}\p{M}\p{Nd}\p{Nl}\p{Pc}\- ]/gu, '')
+      .replace(/\s/g, '-');
   }
 
   /**
