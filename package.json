@@ -2,7 +2,7 @@
   "name": "bmad-dashboard",
   "displayName": "BMAD Dashboard",
   "description": "Interactive dashboard for BMAD V6 projects",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "elvince",
   "main": "./out/extension/extension.js",
   "engines": {
@@ -17,6 +17,7 @@
     "dashboard"
   ],
   "license": "MIT",
+  "repository": "https://github.com/elvince/bmad-dashboard-extension",
   "packageManager": "pnpm@10.26.2",
   "scripts": {
     "vscode:prepublish": "pnpm build",
@@ -36,7 +37,9 @@
     "typecheck": "pnpm typecheck:extension && pnpm typecheck:webview",
     "typecheck:extension": "tsc -p tsconfig.extension.json --noEmit",
     "typecheck:webview": "tsc -p tsconfig.webview.json --noEmit",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "release": "semantic-release",
+    "release:dry": "semantic-release --dry-run"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
@@ -67,6 +70,9 @@
     "mocha": "^11.7.5",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^25.0.3",
     "sinon": "^21.0.1",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.9.0",
