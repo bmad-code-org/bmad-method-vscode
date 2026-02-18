@@ -10,15 +10,15 @@
       }
     ],
     [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "pnpm build && pnpm vscode:package"
-      }
-    ],
-    [
       "@semantic-release/changelog",
       {
         "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "pnpm build && pnpm vscode:package"
       }
     ],
     [
