@@ -103,15 +103,16 @@ export function isEpicKey(key: string): boolean {
 }
 
 /**
- * Check if a key represents a story in development_status (pattern: N-N-name)
+ * Check if a key represents a story in development_status (pattern: N-N-name or N-Na-name for split stories)
  *
  * @example
  * isStoryKey('1-1-project-init')  // true
  * isStoryKey('2-3-auth-flow')     // true
+ * isStoryKey('5-5a-editor-panel') // true (split story)
  * isStoryKey('epic-1')            // false
  */
 export function isStoryKey(key: string): boolean {
-  return /^\d+-\d+-[\w-]+$/.test(key);
+  return /^\d+-\d+[a-z]?-[\w-]+$/.test(key);
 }
 
 /**

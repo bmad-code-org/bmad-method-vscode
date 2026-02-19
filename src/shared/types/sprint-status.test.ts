@@ -90,6 +90,13 @@ describe('Sprint Status Key Pattern Functions', () => {
       expect(isStoryKey('1-1-a')).toBe(true);
     });
 
+    it('returns true for split story keys with letter suffix', () => {
+      expect(isStoryKey('5-5a-editor-panel-infrastructure')).toBe(true);
+      expect(isStoryKey('5-5b-navigation-shell-breadcrumbs')).toBe(true);
+      expect(isStoryKey('1-2c-some-story-name')).toBe(true);
+      expect(isStoryKey('10-3z-another-story')).toBe(true);
+    });
+
     it('returns false for epic keys', () => {
       expect(isStoryKey('epic-1')).toBe(false);
       expect(isStoryKey('epic-12')).toBe(false);

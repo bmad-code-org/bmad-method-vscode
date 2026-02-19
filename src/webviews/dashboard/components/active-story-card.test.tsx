@@ -189,6 +189,23 @@ describe('ActiveStoryCard', () => {
     expect(progressBar).toHaveAttribute('aria-valuenow', '0');
   });
 
+  test('renders split story title with suffix', () => {
+    useDashboardStore.setState({
+      currentStory: {
+        ...mockStory,
+        epicNumber: 5,
+        storyNumber: 5,
+        storySuffix: 'a',
+        title: 'Editor Panel',
+        key: '5-5a-editor-panel',
+        filePath: '_bmad-output/implementation-artifacts/5-5a-editor-panel.md',
+      },
+    });
+    render(<ActiveStoryCard />);
+    expect(screen.getByText('Epic 5')).toBeInTheDocument();
+    expect(screen.getByText(/Story 5\.5a:/)).toBeInTheDocument();
+  });
+
   test('renders correctly when all tasks and subtasks are complete (100% progress)', () => {
     useDashboardStore.setState({
       currentStory: {

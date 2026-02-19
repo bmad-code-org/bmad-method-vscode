@@ -134,6 +134,19 @@ describe('getNextAction', () => {
     expect(result.description).toContain('in progress');
   });
 
+  test('includes story suffix in label for split stories', () => {
+    const story = createStory({
+      epicNumber: 5,
+      storyNumber: 5,
+      storySuffix: 'a',
+      status: 'in-progress',
+      key: '5-5a-editor-panel',
+    });
+    const result = getNextAction(mockSprint, story);
+    expect(result.type).toBe('dev-story');
+    expect(result.label).toBe('Continue Story 5.5a');
+  });
+
   test('returns code-review when current story is in review', () => {
     const story = createStory({ status: 'review' });
     const result = getNextAction(mockSprint, story);

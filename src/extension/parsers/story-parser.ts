@@ -16,8 +16,8 @@ import path from 'node:path';
 /**
  * Regex patterns for parsing story file content
  */
-// Story header: # Story 2.4: Story File Parser
-const STORY_HEADER_REGEX = /^#\s+Story\s+(\d+)\.(\d+):\s+(.+)$/m;
+// Story header: # Story 2.4: Story File Parser (also handles split stories like 5.5a)
+const STORY_HEADER_REGEX = /^#\s+Story\s+(\d+)\.(\d+)([a-z]?):\s+(.+)$/m;
 
 // Status line: Status: ready-for-dev
 const STATUS_LINE_REGEX = /^Status:\s*(\S+)/m;
@@ -30,8 +30,8 @@ const USER_STORY_REGEX =
 // Note: Using non-global regex pattern - matchAll() creates fresh iterator each call
 const AC_HEADER_PATTERN = /^(\d+)\.\s+\*\*(.+?)\*\*/gm;
 
-// Story key from filename: 2-4-story-file-parser.md
-const FILENAME_KEY_REGEX = /^(\d+)-(\d+)-(.+)\.md$/;
+// Story key from filename: 2-4-story-file-parser.md (also handles 5-5a-title.md)
+const FILENAME_KEY_REGEX = /^(\d+)-(\d+[a-z]?)-(.+)\.md$/;
 
 /**
  * Convert title to kebab-case key for story identifiers
@@ -55,13 +55,15 @@ function toKebabCase(title: string): string {
  * @param filePath - File path for key extraction (optional)
  * @param epicNumber - Epic number from header
  * @param storyNumber - Story number from header
+ * @param storySuffix - Optional letter suffix for split stories (e.g., "a", "b")
  * @param title - Story title for fallback key generation
- * @returns Story key string (e.g., "2-4-story-file-parser")
+ * @returns Story key string (e.g., "2-4-story-file-parser" or "5-5a-editor-panel")
  */
 function extractStoryKey(
   filePath: string | undefined,
   epicNumber: number,
   storyNumber: number,
+  storySuffix: string,
   title: string
 ): string {
   // Try to extract from filename first
@@ -75,7 +77,7 @@ function extractStoryKey(
   }
 
   // Fallback: generate from epic/story numbers and title
-  return `${epicNumber}-${storyNumber}-${toKebabCase(title)}`;
+  return `${epicNumber}-${storyNumber}${storySuffix}-${toKebabCase(title)}`;
 }
 
 /**
@@ -310,7 +312,8 @@ export function parseStory(content: string, filePath?: string): ParseResult<Stor
 
     const epicNumber = parseInt(headerMatch[1], 10);
     const storyNumber = parseInt(headerMatch[2], 10);
-    const title = headerMatch[3].trim();
+    const storySuffix = headerMatch[3] || ''; // optional letter suffix (e.g., "a", "b")
+    const title = headerMatch[4].trim();
 
     // Validate numbers are valid
     if (isNaN(epicNumber) || epicNumber < 1) {
@@ -325,7 +328,7 @@ export function parseStory(content: string, filePath?: string): ParseResult<Stor
     }
 
     // Generate story key from filename or content
-    const key = extractStoryKey(filePath, epicNumber, storyNumber, title);
+    const key = extractStoryKey(filePath, epicNumber, storyNumber, storySuffix, title);
 
     // Parse status (from Status: line or default to 'backlog')
     const status = extractStatus(markdownContent);
@@ -347,6 +350,7 @@ export function parseStory(content: string, filePath?: string): ParseResult<Stor
       key,
       epicNumber,
       storyNumber,
+      storySuffix: storySuffix || undefined,
       title,
       userStory,
       acceptanceCriteria,

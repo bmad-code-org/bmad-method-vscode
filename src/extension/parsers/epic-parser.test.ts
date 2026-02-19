@@ -357,6 +357,71 @@ So that actions are organized.
     });
   });
 
+  describe('split story support', () => {
+    it('parses split story headers with letter suffix', () => {
+      const content = `## Epic 5: Editor Features
+
+Build editor features.
+
+### Story 5.5a: Editor Panel Infrastructure & Build Setup
+
+As a developer,
+I want editor panel infrastructure,
+So that the build system is ready.
+
+### Story 5.5b: Navigation Shell & Breadcrumbs
+
+As a developer,
+I want navigation shell,
+So that I can navigate between views.
+`;
+      const result = parseEpic(content);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.stories).toHaveLength(2);
+        expect(result.data.stories[0].key).toBe(
+          '5-5a-editor-panel-infrastructure-and-build-setup'
+        );
+        expect(result.data.stories[0].title).toBe('Editor Panel Infrastructure & Build Setup');
+        expect(result.data.stories[1].key).toBe('5-5b-navigation-shell-and-breadcrumbs');
+        expect(result.data.stories[1].title).toBe('Navigation Shell & Breadcrumbs');
+      }
+    });
+
+    it('mixes regular and split stories in the same epic', () => {
+      const content = `## Epic 5: UX Polish
+
+Description.
+
+### Story 5.4: About Section
+
+As a developer,
+I want an about section,
+So that I see metadata.
+
+### Story 5.5a: Editor Panel Infrastructure
+
+As a developer,
+I want editor panel,
+So that it works.
+
+### Story 5.6: Epics Browser
+
+As a developer,
+I want an epics browser,
+So that I can browse.
+`;
+      const result = parseEpic(content);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.stories).toHaveLength(3);
+        expect(result.data.stories[0].key).toBe('5-4-about-section');
+        expect(result.data.stories[1].key).toBe('5-5a-editor-panel-infrastructure');
+        expect(result.data.stories[2].key).toBe('5-6-epics-browser');
+      }
+    });
+  });
+
   describe('description extraction', () => {
     it('extracts epic description correctly', () => {
       const result = parseEpic(VALID_EPIC_CONTENT);

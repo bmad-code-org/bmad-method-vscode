@@ -12,8 +12,8 @@ import { promises as fs } from 'node:fs';
 // Epic header: ## Epic 2: BMAD File Parsing & State Management
 const EPIC_HEADER_REGEX = /^##\s+Epic\s+(\d+):\s+(.+)$/m;
 
-// Story header: ### Story 2.1: Shared Types and Message Protocol
-const STORY_HEADER_REGEX = /^###\s+Story\s+(\d+)\.(\d+):\s+(.+)$/gm;
+// Story header: ### Story 2.1: Shared Types and Message Protocol (also handles split stories like 5.5a)
+const STORY_HEADER_REGEX = /^###\s+Story\s+(\d+)\.(\d+)([a-z]?):\s+(.+)$/gm;
 
 // User story pattern: As a [role], I want [action], so that [benefit]
 const USER_STORY_REGEX =
@@ -76,14 +76,21 @@ function parseStoryEntries(content: string): EpicStoryEntry[] {
   STORY_HEADER_REGEX.lastIndex = 0;
 
   let match: RegExpExecArray | null;
-  const matches: Array<{ epicNum: number; storyNum: number; title: string; index: number }> = [];
+  const matches: Array<{
+    epicNum: number;
+    storyNum: number;
+    storySuffix: string;
+    title: string;
+    index: number;
+  }> = [];
 
   // Collect all story header matches first
   while ((match = STORY_HEADER_REGEX.exec(content)) !== null) {
     matches.push({
       epicNum: parseInt(match[1], 10),
       storyNum: parseInt(match[2], 10),
-      title: match[3].trim(),
+      storySuffix: match[3] || '',
+      title: match[4].trim(),
       index: match.index + match[0].length,
     });
   }
@@ -108,8 +115,8 @@ function parseStoryEntries(content: string): EpicStoryEntry[] {
     const userStoryMatch = storyContent.match(USER_STORY_REGEX);
     const description = userStoryMatch ? userStoryMatch[0].trim() : undefined;
 
-    // Generate story key: N-M-kebab-case-title
-    const storyKey = `${current.epicNum}-${current.storyNum}-${toKebabCase(current.title)}`;
+    // Generate story key: N-M-kebab-case-title (or N-Ma-kebab-case-title for split stories)
+    const storyKey = `${current.epicNum}-${current.storyNum}${current.storySuffix}-${toKebabCase(current.title)}`;
 
     stories.push({
       key: storyKey,

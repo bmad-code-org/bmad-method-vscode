@@ -29,7 +29,7 @@ export interface NextAction {
 }
 
 function formatStoryLabel(story: Story): string {
-  return `${story.epicNumber}.${story.storyNumber}`;
+  return `${story.epicNumber}.${story.storyNumber}${story.storySuffix || ''}`;
 }
 
 export function getNextAction(

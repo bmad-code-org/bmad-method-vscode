@@ -8,13 +8,14 @@ import type { DashboardState, ParseError, SprintStatus, Epic, Story } from '../.
 import { createInitialDashboardState, isStoryKey, isEpicKey } from '../../shared/types';
 
 /**
- * Story file validation regex - only files matching X-Y-name.md are stories
+ * Story file validation regex - only files matching X-Y-name.md or X-Ya-name.md are stories
  * Examples:
  *   '2-6-state-manager.md' → true (story)
+ *   '5-5a-editor-panel.md' → true (split story)
  *   'sprint-status.yaml' → false (not .md)
  *   'readme.md' → false (doesn't match X-Y-name pattern)
  */
-const STORY_FILE_REGEX = /^\d+-\d+-[\w-]+\.md$/;
+const STORY_FILE_REGEX = /^\d+-\d+[a-z]?-[\w-]+\.md$/;
 
 /**
  * Service for managing aggregated BMAD dashboard state.
@@ -567,9 +568,10 @@ export class StateManager implements vscode.Disposable {
   /**
    * Extract story key from filename.
    * E.g., "2-6-state-manager.md" → "2-6-state-manager"
+   * E.g., "5-5a-editor-panel.md" → "5-5a-editor-panel"
    */
   private extractStoryKeyFromFileName(fileName: string): string | null {
-    const match = fileName.match(/^(\d+-\d+-[\w-]+)\.md$/);
+    const match = fileName.match(/^(\d+-\d+[a-z]?-[\w-]+)\.md$/);
     return match ? match[1] : null;
   }
 

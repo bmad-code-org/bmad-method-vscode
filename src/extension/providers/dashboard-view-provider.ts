@@ -14,7 +14,7 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
   private static readonly VALID_COMMAND_PATTERN = /^\/bmad-[a-z0-9-]+$/;
   private static readonly VALID_CLI_PREFIX_PATTERN = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
   private static readonly STORY_PATH_REGEX =
-    /^(.+)\/implementation-artifacts\/(\d+)-(\d+)-[\w-]+\.md$/;
+    /^(.+)\/implementation-artifacts\/(\d+)-(\d+[a-z]?)-[\w-]+\.md$/;
 
   private view?: vscode.WebviewView;
   private readonly disposables: vscode.Disposable[] = [];
@@ -127,13 +127,16 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
       if (!exists) {
         const outputRoot = storyMatch[1];
         const epicNum = parseInt(storyMatch[2], 10);
-        const storyNum = parseInt(storyMatch[3], 10);
+        const storyNumRaw = storyMatch[3]; // e.g., "5" or "5a"
+        const storyNum = parseInt(storyNumRaw, 10);
+        const storySuffix = storyNumRaw.replace(/^\d+/, ''); // "" or "a"
         try {
           await this.openStoryFallback(
             workspaceFolder.uri,
             outputRoot,
             epicNum,
             storyNum,
+            storySuffix,
             forceTextEditor
           );
         } catch {
@@ -177,6 +180,7 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
     outputRoot: string,
     epicNum: number,
     storyNum: number,
+    storySuffix: string,
     forceTextEditor?: boolean
   ): Promise<void> {
     const epicsPath = `${outputRoot}/planning-artifacts/epics.md`;
@@ -184,7 +188,7 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
 
     // Read file content to find the story heading
     const document = await vscode.workspace.openTextDocument(epicsUri);
-    const searchPattern = `### Story ${epicNum}.${storyNum}:`;
+    const searchPattern = `### Story ${epicNum}.${storyNum}${storySuffix}:`;
     const text = document.getText();
     const lines = text.split('\n');
     const lineIndex = lines.findIndex((line) => line.startsWith(searchPattern));

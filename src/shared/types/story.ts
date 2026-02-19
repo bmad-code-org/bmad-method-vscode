@@ -53,6 +53,8 @@ export interface Story {
   epicNumber: number;
   /** Story number within the epic */
   storyNumber: number;
+  /** Optional letter suffix for split stories (e.g., "a", "b", "c") */
+  storySuffix?: string;
   /** Story title from H1 heading */
   title: string;
   /** User story statement (As a... I want... So that...) */

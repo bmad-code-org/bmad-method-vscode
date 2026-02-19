@@ -76,7 +76,8 @@ export function ActiveStoryCard(): React.ReactElement {
           className="text-left text-sm text-[var(--vscode-textLink-foreground)] hover:underline"
           onClick={createDocumentLinkHandler(vscodeApi, currentStory.filePath)}
         >
-          Story {currentStory.epicNumber}.{currentStory.storyNumber}: {currentStory.title}
+          Story {currentStory.epicNumber}.{currentStory.storyNumber}{currentStory.storySuffix || ''}:{' '}
+          {currentStory.title}
         </button>
       </div>
 

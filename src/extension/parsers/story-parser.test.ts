@@ -676,6 +676,92 @@ As a user, I want flexible parsing, So that case does not matter.
     }
   });
 
+  describe('split story support', () => {
+    const SPLIT_STORY_CONTENT = `# Story 5.5a: Editor Panel Infrastructure & Build Setup
+
+Status: in-progress
+
+## Story
+
+As a developer,
+I want editor panel infrastructure,
+So that the build system is ready.
+
+## Acceptance Criteria
+
+1. **Build Works**
+   - **Given** a configured project
+   - **Then** build succeeds
+
+## Tasks / Subtasks
+
+- [ ] Task 1: Setup build (AC: #1)
+`;
+
+    it('parses split story header with letter suffix', () => {
+      const result = parseStory(
+        SPLIT_STORY_CONTENT,
+        '5-5a-editor-panel-infrastructure-and-build-setup.md'
+      );
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.epicNumber).toBe(5);
+        expect(result.data.storyNumber).toBe(5);
+        expect(result.data.storySuffix).toBe('a');
+        expect(result.data.title).toBe('Editor Panel Infrastructure & Build Setup');
+        expect(result.data.key).toBe('5-5a-editor-panel-infrastructure-and-build-setup');
+      }
+    });
+
+    it('extracts key from split story filename', () => {
+      const result = parseStory(
+        SPLIT_STORY_CONTENT,
+        '/path/to/stories/5-5a-editor-panel-infrastructure-and-build-setup.md'
+      );
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.key).toBe('5-5a-editor-panel-infrastructure-and-build-setup');
+      }
+    });
+
+    it('generates correct key for split story without filename', () => {
+      const result = parseStory(SPLIT_STORY_CONTENT);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.key).toBe('5-5a-editor-panel-infrastructure-and-build-setup');
+      }
+    });
+
+    it('non-split stories have undefined storySuffix', () => {
+      const result = parseStory(VALID_STORY_CONTENT, '2-4-story-file-parser.md');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.storySuffix).toBeUndefined();
+      }
+    });
+
+    it('parses split story with suffix b', () => {
+      const content = `# Story 5.5b: Navigation Shell & Breadcrumbs
+
+Status: backlog
+
+## Story
+
+As a developer,
+I want navigation shell with breadcrumbs,
+So that I can navigate between views.
+`;
+      const result = parseStory(content, '5-5b-navigation-shell-and-breadcrumbs.md');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.epicNumber).toBe(5);
+        expect(result.data.storyNumber).toBe(5);
+        expect(result.data.storySuffix).toBe('b');
+        expect(result.data.key).toBe('5-5b-navigation-shell-and-breadcrumbs');
+      }
+    });
+  });
+
   it('parses AC references with various formats', () => {
     const content = `# Story 1.1: AC Reference Formats
 
