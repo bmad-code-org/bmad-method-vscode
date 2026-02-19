@@ -108,28 +108,16 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 #old code
 .old
 
-# Basketball sync data
-apps/api/data/
-
 #cscodecounter
 .VSCodeCounter
 
 .ignored/
-#excell files that are auto generated during testing
-apps/web/e2e/fixtures/schedule-import/
 
 .playwright-mcp/
 
-out/
-node_modules/
+# VSCode Extension
 .vscode-test/
 *.vsix
-dist/
 
-# Logs
-*.log
-npm-debug.log*
-
-# OS files
-.DS_Store
+# OS
 Thumbs.db
