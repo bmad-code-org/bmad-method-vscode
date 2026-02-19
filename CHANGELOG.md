@@ -1,3 +1,11 @@
+# [1.1.0](https://github.com/elvince/bmad-dashboard-extension/compare/v1.0.0...v1.1.0) (2026-02-19)
+
+
+### Features
+
+* add workflow sequencing with mandatory/optional action kinds ([ee8498d](https://github.com/elvince/bmad-dashboard-extension/commit/ee8498d5986ec802583df96b294622d6800a1f33))
+* fall back to epics.md when clicking unwritten story in epic dropdown ([77f1b03](https://github.com/elvince/bmad-dashboard-extension/commit/77f1b038df264f179f3f6b228e522d0e7639884c))
+
 # 1.0.0 (2026-02-18)
 
 
