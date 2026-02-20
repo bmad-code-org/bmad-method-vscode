@@ -1,11 +1,7 @@
 import React from 'react';
 import type { ViewType } from '../types';
 
-const COMING_SOON_MAP: Record<ViewType, string> = {
-  dashboard: '',
-  epics: 'Coming in Story 5.6',
-  stories: 'Coming in Story 5.7',
-  kanban: 'Coming in Story 5.7',
+const COMING_SOON_MAP: Partial<Record<ViewType, string>> = {
   docs: 'Coming in Story 5.8',
 };
 

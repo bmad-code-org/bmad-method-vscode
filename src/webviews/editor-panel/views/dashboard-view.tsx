@@ -27,32 +27,34 @@ import {
 } from '../store';
 import type { ViewType } from '../types';
 
-const VIEWS: { label: string; view: ViewType }[] = [
+const VIEWS: { label: string; view: ViewType; params?: Record<string, string> }[] = [
   { label: 'Dashboard', view: 'dashboard' },
   { label: 'Epics', view: 'epics' },
   { label: 'Stories', view: 'stories' },
-  { label: 'Kanban', view: 'kanban' },
+  { label: 'Kanban', view: 'stories', params: { mode: 'kanban' } },
   { label: 'Docs', view: 'docs' },
 ];
 
 function TabBar(): React.ReactElement {
   const navigateTo = useEditorPanelStore((s) => s.navigateTo);
-  const currentView = useEditorPanelStore((s) => s.currentRoute.view);
+  const currentRoute = useEditorPanelStore((s) => s.currentRoute);
 
   return (
     <div
       data-testid="dashboard-tab-bar"
       className="flex gap-0 border-b border-[var(--vscode-panel-border)]"
     >
-      {VIEWS.map(({ label, view }) => {
-        const isActive = currentView === view;
+      {VIEWS.map(({ label, view, params }) => {
+        const isActive = params
+          ? currentRoute.view === view && currentRoute.params?.mode === params.mode
+          : currentRoute.view === view && !currentRoute.params?.mode;
         return (
           <button
-            key={view}
+            key={label}
             type="button"
-            data-testid={`tab-${view}`}
+            data-testid={`tab-${label.toLowerCase()}`}
             onClick={() => {
-              if (!isActive) navigateTo({ view });
+              if (!isActive) navigateTo({ view, ...(params && { params }) });
             }}
             className={
               isActive

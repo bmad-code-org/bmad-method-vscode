@@ -85,6 +85,6 @@ development_status:
   5-5a-editor-panel-infrastructure-and-build-setup: done
   5-5b-navigation-shell-breadcrumbs-dashboard-view-and-click-behavior: done
   5-6-epics-browser-and-story-detail-views: done
-  5-7-stories-table-and-kanban-board-views: backlog
+  5-7-stories-table-and-kanban-board-views: done
   5-8-document-library-and-markdown-viewer: backlog
   epic-5-retrospective: optional

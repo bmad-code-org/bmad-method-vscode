@@ -249,6 +249,70 @@ describe('useEditorPanelStore', () => {
     });
   });
 
+  describe('buildBreadcrumbs for stories view', () => {
+    it('generates Dashboard / Stories breadcrumbs for stories view', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'stories' });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.breadcrumbs).toHaveLength(2);
+      expect(state.breadcrumbs[0]).toEqual({ label: 'Dashboard', route: { view: 'dashboard' } });
+      expect(state.breadcrumbs[1]).toEqual({ label: 'Stories', route: { view: 'stories' } });
+    });
+
+    it('generates Dashboard / Stories / Story N.M: Title breadcrumbs with storyKey', () => {
+      useEditorPanelStore.setState({
+        ...createInitialEditorPanelState(),
+        storySummaries: [
+          {
+            key: '2-1-feature-a',
+            title: 'Feature Alpha',
+            status: 'in-progress',
+            epicNumber: 2,
+            storyNumber: 1,
+            totalTasks: 5,
+            completedTasks: 2,
+            totalSubtasks: 10,
+            completedSubtasks: 4,
+            filePath: 'impl/2-1-feature-a.md',
+          },
+        ],
+      });
+      useEditorPanelStore
+        .getState()
+        .navigateTo({ view: 'stories', params: { storyKey: '2-1-feature-a' } });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.breadcrumbs).toHaveLength(3);
+      expect(state.breadcrumbs[0]).toEqual({ label: 'Dashboard', route: { view: 'dashboard' } });
+      expect(state.breadcrumbs[1]).toEqual({ label: 'Stories', route: { view: 'stories' } });
+      expect(state.breadcrumbs[2]).toEqual({
+        label: 'Story 2.1: Feature Alpha',
+        route: { view: 'stories', params: { storyKey: '2-1-feature-a' } },
+      });
+    });
+
+    it('uses storyKey as fallback label when summary not found', () => {
+      useEditorPanelStore
+        .getState()
+        .navigateTo({ view: 'stories', params: { storyKey: '9-9-unknown' } });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.breadcrumbs).toHaveLength(3);
+      expect(state.breadcrumbs[2].label).toBe('9-9-unknown');
+    });
+
+    it('stories breadcrumbs not affected by mode param', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'stories', params: { mode: 'kanban' } });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.breadcrumbs).toHaveLength(2);
+      expect(state.breadcrumbs[1]).toEqual({
+        label: 'Stories',
+        route: { view: 'stories' },
+      });
+    });
+  });
+
   describe('goBack', () => {
     it('returns to previous route', () => {
       useEditorPanelStore.getState().navigateTo({ view: 'epics' });
@@ -280,7 +344,7 @@ describe('useEditorPanelStore', () => {
     it('pops history stack correctly through multiple navigations', () => {
       useEditorPanelStore.getState().navigateTo({ view: 'epics' });
       useEditorPanelStore.getState().navigateTo({ view: 'stories' });
-      useEditorPanelStore.getState().navigateTo({ view: 'kanban' });
+      useEditorPanelStore.getState().navigateTo({ view: 'docs' });
 
       expect(useEditorPanelStore.getState().navigationHistory).toHaveLength(3);
 

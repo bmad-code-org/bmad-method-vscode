@@ -36,11 +36,22 @@ describe('NavigationShell', () => {
     expect(screen.getByTestId('epics-view-empty')).toBeInTheDocument();
   });
 
-  it('renders placeholder view for stories route', () => {
+  it('renders stories view for stories route', () => {
     useEditorPanelStore.getState().navigateTo({ view: 'stories' });
     render(<NavigationShell />);
-    expect(screen.getByTestId('placeholder-view')).toBeInTheDocument();
-    expect(screen.getByText('Coming in Story 5.7')).toBeInTheDocument();
+    expect(screen.getByTestId('stories-view')).toBeInTheDocument();
+  });
+
+  it('renders story detail view for stories route with storyKey', () => {
+    useEditorPanelStore.setState({
+      ...createInitialEditorPanelState(),
+      loading: false,
+      currentRoute: { view: 'stories', params: { storyKey: '1-1-setup' } },
+      storySummaries: [],
+    });
+    render(<NavigationShell />);
+    // StoryDetailView renders — with no summary found, shows error state
+    expect(screen.getByTestId('story-detail-error')).toBeInTheDocument();
   });
 
   it('renders placeholder view for docs route', () => {

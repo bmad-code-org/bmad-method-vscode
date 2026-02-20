@@ -9,7 +9,6 @@ const VIEW_LABELS: Record<string, string> = {
   dashboard: 'Dashboard',
   epics: 'Epics',
   stories: 'Stories',
-  kanban: 'Kanban',
   docs: 'Docs',
 };
 
@@ -56,6 +55,27 @@ function buildBreadcrumbs(
           route: { view: 'epics', params: { epicId: params.epicId, storyKey: params.storyKey } },
         });
       }
+    }
+  } else if (route.view === 'stories') {
+    // Stories list level
+    crumbs.push({
+      label: 'Stories',
+      route: { view: 'stories' },
+    });
+
+    if (params?.storyKey) {
+      // Story detail level (from stories view)
+      let storyLabel = params.storyKey;
+      if (state) {
+        const summary = state.storySummaries.find((s) => s.key === params.storyKey);
+        if (summary) {
+          storyLabel = `Story ${summary.epicNumber}.${summary.storyNumber}${summary.storySuffix ?? ''}: ${summary.title}`;
+        }
+      }
+      crumbs.push({
+        label: storyLabel,
+        route: { view: 'stories', params: { storyKey: params.storyKey } },
+      });
     }
   } else {
     crumbs.push({

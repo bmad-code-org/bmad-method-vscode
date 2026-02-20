@@ -28,7 +28,7 @@ export function getStoryStatusLabel(status: StoryStatusValue): string {
     case 'review':
       return 'Review';
     case 'ready-for-dev':
-      return 'Ready';
+      return 'Ready for Dev';
     default:
       return 'Backlog';
   }

@@ -50,6 +50,50 @@ describe('DashboardView', () => {
     expect(state.currentRoute).toEqual({ view: 'epics' });
   });
 
+  it('kanban tab navigates to stories view with kanban mode param', () => {
+    render(<DashboardView />);
+    fireEvent.click(screen.getByTestId('tab-kanban'));
+
+    const state = useEditorPanelStore.getState();
+    expect(state.currentRoute).toEqual({ view: 'stories', params: { mode: 'kanban' } });
+  });
+
+  it('stories tab navigates to stories view without mode param', () => {
+    render(<DashboardView />);
+    fireEvent.click(screen.getByTestId('tab-stories'));
+
+    const state = useEditorPanelStore.getState();
+    expect(state.currentRoute).toEqual({ view: 'stories' });
+  });
+
+  it('tab active state correctly highlights for stories vs kanban mode', () => {
+    // Navigate to stories in kanban mode
+    useEditorPanelStore.getState().navigateTo({ view: 'stories', params: { mode: 'kanban' } });
+    const { unmount } = render(<DashboardView />);
+
+    const kanbanTab = screen.getByTestId('tab-kanban');
+    const storiesTab = screen.getByTestId('tab-stories');
+
+    // Kanban should be active (has font-medium)
+    expect(kanbanTab.className).toContain('font-medium');
+    // Stories tab should NOT be active
+    expect(storiesTab.className).not.toContain('font-medium');
+
+    unmount();
+
+    // Navigate to stories without mode
+    useEditorPanelStore.getState().navigateTo({ view: 'stories' });
+    render(<DashboardView />);
+
+    const storiesTab2 = screen.getByTestId('tab-stories');
+    const kanbanTab2 = screen.getByTestId('tab-kanban');
+
+    // Stories should be active
+    expect(storiesTab2.className).toContain('font-medium');
+    // Kanban should NOT be active
+    expect(kanbanTab2.className).not.toContain('font-medium');
+  });
+
   it('clicking the active tab does not navigate', () => {
     render(<DashboardView />);
     const historyBefore = useEditorPanelStore.getState().navigationHistory.length;
