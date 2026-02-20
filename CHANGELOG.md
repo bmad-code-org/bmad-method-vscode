@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/elvince/bmad-dashboard-extension/compare/v1.2.0...v1.2.1) (2026-02-20)
+
+
+### Bug Fixes
+
+* story criteria not properly displayed ([185efd1](https://github.com/elvince/bmad-dashboard-extension/commit/185efd1f59c5a7c234598277cc2c06c4d50825e0))
+
 # [1.2.0](https://github.com/elvince/bmad-dashboard-extension/compare/v1.1.0...v1.2.0) (2026-02-20)
 
 
