@@ -38,11 +38,28 @@ export function NextActionRecommendationSkeleton(): React.ReactElement {
   );
 }
 
-export function NextActionRecommendation(): React.ReactElement {
-  const sprint = useSprint();
-  const currentStory = useCurrentStory();
-  const workflows = useWorkflows();
-  const planningArtifacts = usePlanningArtifacts();
+export interface NextActionRecommendationProps {
+  sprint?: import('@shared/types/sprint-status').SprintStatus | null;
+  currentStory?: import('@shared/types/story').Story | null;
+  workflows?: import('@shared/types').AvailableWorkflow[];
+  planningArtifacts?: import('@shared/types').PlanningArtifacts;
+}
+
+export function NextActionRecommendation({
+  sprint: sprintProp,
+  currentStory: currentStoryProp,
+  workflows: workflowsProp,
+  planningArtifacts: planningArtifactsProp,
+}: NextActionRecommendationProps = {}): React.ReactElement {
+  const sprintFromStore = useSprint();
+  const currentStoryFromStore = useCurrentStory();
+  const workflowsFromStore = useWorkflows();
+  const planningArtifactsFromStore = usePlanningArtifacts();
+  const sprint = sprintProp !== undefined ? sprintProp : sprintFromStore;
+  const currentStory = currentStoryProp !== undefined ? currentStoryProp : currentStoryFromStore;
+  const workflows = workflowsProp !== undefined ? workflowsProp : workflowsFromStore;
+  const planningArtifacts =
+    planningArtifactsProp !== undefined ? planningArtifactsProp : planningArtifactsFromStore;
   const vscodeApi = useVSCodeApi();
 
   const action = getNextAction(sprint, currentStory, planningArtifacts);

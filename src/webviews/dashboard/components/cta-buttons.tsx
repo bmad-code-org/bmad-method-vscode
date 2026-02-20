@@ -62,8 +62,15 @@ function WorkflowButtonRow({
   );
 }
 
-export function CTAButtons(): React.ReactElement | null {
-  const workflows = useWorkflows();
+export interface CTAButtonsProps {
+  workflows?: AvailableWorkflow[];
+}
+
+export function CTAButtons({
+  workflows: workflowsProp,
+}: CTAButtonsProps = {}): React.ReactElement | null {
+  const workflowsFromStore = useWorkflows();
+  const workflows = workflowsProp !== undefined ? workflowsProp : workflowsFromStore;
   const vscodeApi = useVSCodeApi();
 
   const handleExecute = useCallback(

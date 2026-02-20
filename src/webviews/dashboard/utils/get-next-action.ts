@@ -65,8 +65,7 @@ export function getNextAction(
         return {
           type: 'check-implementation-readiness',
           label: 'Check Implementation Readiness',
-          description:
-            'Epics are ready — validate alignment before starting implementation',
+          description: 'Epics are ready — validate alignment before starting implementation',
         };
       }
     }

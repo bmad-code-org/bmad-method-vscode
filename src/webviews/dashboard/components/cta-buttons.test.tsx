@@ -140,7 +140,9 @@ describe('CTAButtons', () => {
   });
 
   test('renders both mandatory and optional sections when both kinds exist', () => {
-    useDashboardStore.setState({ workflows: [primaryWorkflow, mandatoryWorkflow, secondaryWorkflow] });
+    useDashboardStore.setState({
+      workflows: [primaryWorkflow, mandatoryWorkflow, secondaryWorkflow],
+    });
     render(<CTAButtons />);
     expect(screen.getByTestId('cta-mandatory')).toBeInTheDocument();
     expect(screen.getByTestId('cta-buttons')).toBeInTheDocument();

@@ -25,6 +25,7 @@ export const useDashboardStore = create<DashboardStore>()((set) => ({
       workflows: state.workflows,
       bmadMetadata: state.bmadMetadata,
       planningArtifacts: state.planningArtifacts,
+      defaultClickBehavior: state.defaultClickBehavior,
     }),
 
   setLoading: (loading: boolean) => set({ loading }),

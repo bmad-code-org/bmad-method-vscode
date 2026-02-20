@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import {
   useEditorPanelStore,
+  createInitialEditorPanelState,
   useSprint,
   useEpics,
   useCurrentStory,
@@ -11,13 +12,16 @@ import {
   useWorkflows,
   useBmadMetadata,
   usePlanningArtifacts,
+  useCurrentRoute,
+  useBreadcrumbs,
+  useCanGoBack,
 } from './store';
 import { createInitialDashboardState } from '@shared/types';
 import type { DashboardState } from '@shared/types';
 
 describe('useEditorPanelStore', () => {
   beforeEach(() => {
-    useEditorPanelStore.setState(createInitialDashboardState());
+    useEditorPanelStore.setState(createInitialEditorPanelState());
   });
 
   it('initializes with createInitialDashboardState()', () => {
@@ -29,6 +33,13 @@ describe('useEditorPanelStore', () => {
     expect(state.errors).toEqual(initial.errors);
     expect(state.loading).toEqual(initial.loading);
     expect(state.outputRoot).toEqual(initial.outputRoot);
+  });
+
+  it('initializes with default navigation state', () => {
+    const state = useEditorPanelStore.getState();
+    expect(state.currentRoute).toEqual({ view: 'dashboard' });
+    expect(state.breadcrumbs).toEqual([{ label: 'Dashboard', route: { view: 'dashboard' } }]);
+    expect(state.navigationHistory).toEqual([]);
   });
 
   describe('updateState', () => {
@@ -67,6 +78,7 @@ describe('useEditorPanelStore', () => {
           hasEpics: true,
           hasReadinessReport: false,
         },
+        defaultClickBehavior: 'markdown-preview',
       };
 
       useEditorPanelStore.getState().updateState(newState);
@@ -106,6 +118,7 @@ describe('useEditorPanelStore', () => {
           hasEpics: false,
           hasReadinessReport: false,
         },
+        defaultClickBehavior: 'markdown-preview',
       };
 
       const secondState: DashboardState = {
@@ -124,6 +137,7 @@ describe('useEditorPanelStore', () => {
           hasEpics: false,
           hasReadinessReport: false,
         },
+        defaultClickBehavior: 'markdown-preview',
       };
 
       useEditorPanelStore.getState().updateState(firstState);
@@ -167,6 +181,155 @@ describe('useEditorPanelStore', () => {
       expect(state.errors).toHaveLength(2);
       expect(state.errors[0].message).toBe('First error');
       expect(state.errors[1].message).toBe('Second error');
+    });
+  });
+
+  describe('navigateTo', () => {
+    it('pushes route and updates breadcrumbs', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'epics' });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.currentRoute).toEqual({ view: 'epics' });
+      expect(state.breadcrumbs).toHaveLength(2);
+      expect(state.breadcrumbs[0]).toEqual({ label: 'Dashboard', route: { view: 'dashboard' } });
+      expect(state.breadcrumbs[1]).toEqual({ label: 'Epics', route: { view: 'epics' } });
+    });
+
+    it('saves previous route to history', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'epics' });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.navigationHistory).toHaveLength(1);
+      expect(state.navigationHistory[0]).toEqual({ view: 'dashboard' });
+    });
+
+    it('navigating to dashboard shows single breadcrumb', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'epics' });
+      useEditorPanelStore.getState().navigateTo({ view: 'dashboard' });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.currentRoute).toEqual({ view: 'dashboard' });
+      expect(state.breadcrumbs).toHaveLength(1);
+      expect(state.breadcrumbs[0].label).toBe('Dashboard');
+    });
+
+    it('preserves route params', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'epics', params: { epicNum: '3' } });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.currentRoute.params).toEqual({ epicNum: '3' });
+    });
+
+    it('caps history at 10 entries', () => {
+      for (let i = 0; i < 12; i++) {
+        useEditorPanelStore
+          .getState()
+          .navigateTo({ view: 'epics', params: { epicNum: String(i) } });
+      }
+
+      const state = useEditorPanelStore.getState();
+      expect(state.navigationHistory).toHaveLength(10);
+    });
+
+    it('drops oldest entries when history exceeds cap', () => {
+      // Start at dashboard, navigate 11 times
+      for (let i = 0; i < 11; i++) {
+        useEditorPanelStore
+          .getState()
+          .navigateTo({ view: 'epics', params: { epicNum: String(i) } });
+      }
+
+      const state = useEditorPanelStore.getState();
+      expect(state.navigationHistory).toHaveLength(10);
+      // The initial dashboard route and first navigation should be dropped
+      expect(state.navigationHistory[0]).toEqual({ view: 'epics', params: { epicNum: '0' } });
+    });
+  });
+
+  describe('goBack', () => {
+    it('returns to previous route', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'epics' });
+      useEditorPanelStore.getState().goBack();
+
+      const state = useEditorPanelStore.getState();
+      expect(state.currentRoute).toEqual({ view: 'dashboard' });
+      expect(state.navigationHistory).toHaveLength(0);
+    });
+
+    it('updates breadcrumbs when going back', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'epics' });
+      useEditorPanelStore.getState().goBack();
+
+      const state = useEditorPanelStore.getState();
+      expect(state.breadcrumbs).toHaveLength(1);
+      expect(state.breadcrumbs[0].label).toBe('Dashboard');
+    });
+
+    it('does nothing when history is empty', () => {
+      const before = useEditorPanelStore.getState();
+      useEditorPanelStore.getState().goBack();
+      const after = useEditorPanelStore.getState();
+
+      expect(after.currentRoute).toEqual(before.currentRoute);
+      expect(after.breadcrumbs).toEqual(before.breadcrumbs);
+    });
+
+    it('pops history stack correctly through multiple navigations', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'epics' });
+      useEditorPanelStore.getState().navigateTo({ view: 'stories' });
+      useEditorPanelStore.getState().navigateTo({ view: 'kanban' });
+
+      expect(useEditorPanelStore.getState().navigationHistory).toHaveLength(3);
+
+      useEditorPanelStore.getState().goBack();
+      expect(useEditorPanelStore.getState().currentRoute).toEqual({ view: 'stories' });
+      expect(useEditorPanelStore.getState().navigationHistory).toHaveLength(2);
+
+      useEditorPanelStore.getState().goBack();
+      expect(useEditorPanelStore.getState().currentRoute).toEqual({ view: 'epics' });
+      expect(useEditorPanelStore.getState().navigationHistory).toHaveLength(1);
+
+      useEditorPanelStore.getState().goBack();
+      expect(useEditorPanelStore.getState().currentRoute).toEqual({ view: 'dashboard' });
+      expect(useEditorPanelStore.getState().navigationHistory).toHaveLength(0);
+    });
+  });
+
+  describe('navigateToBreadcrumb', () => {
+    it('navigates to breadcrumb at index', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'epics' });
+      useEditorPanelStore.getState().navigateToBreadcrumb(0);
+
+      const state = useEditorPanelStore.getState();
+      expect(state.currentRoute).toEqual({ view: 'dashboard' });
+      expect(state.breadcrumbs).toHaveLength(1);
+    });
+
+    it('truncates history to match breadcrumb level', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'epics' });
+      useEditorPanelStore.getState().navigateTo({ view: 'stories' });
+
+      // Navigate to first breadcrumb (Dashboard)
+      useEditorPanelStore.getState().navigateToBreadcrumb(0);
+
+      const state = useEditorPanelStore.getState();
+      expect(state.navigationHistory).toHaveLength(0);
+    });
+
+    it('does nothing for out-of-bounds index', () => {
+      const before = useEditorPanelStore.getState();
+      useEditorPanelStore.getState().navigateToBreadcrumb(5);
+      const after = useEditorPanelStore.getState();
+
+      expect(after.currentRoute).toEqual(before.currentRoute);
+    });
+
+    it('does nothing for negative index', () => {
+      const before = useEditorPanelStore.getState();
+      useEditorPanelStore.getState().navigateToBreadcrumb(-1);
+      const after = useEditorPanelStore.getState();
+
+      expect(after.currentRoute).toEqual(before.currentRoute);
     });
   });
 
@@ -220,6 +383,27 @@ describe('useEditorPanelStore', () => {
         hasEpics: false,
         hasReadinessReport: false,
       });
+    });
+
+    it('useCurrentRoute returns currentRoute slice', () => {
+      const { result } = renderHook(() => useCurrentRoute());
+      expect(result.current).toEqual({ view: 'dashboard' });
+    });
+
+    it('useBreadcrumbs returns breadcrumbs slice', () => {
+      const { result } = renderHook(() => useBreadcrumbs());
+      expect(result.current).toEqual([{ label: 'Dashboard', route: { view: 'dashboard' } }]);
+    });
+
+    it('useCanGoBack returns false when history is empty', () => {
+      const { result } = renderHook(() => useCanGoBack());
+      expect(result.current).toBe(false);
+    });
+
+    it('useCanGoBack returns true when history has entries', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'epics' });
+      const { result } = renderHook(() => useCanGoBack());
+      expect(result.current).toBe(true);
     });
   });
 });

@@ -15,15 +15,19 @@ function getDefaultPlanningArtifacts(outputRoot: string): ArtifactLink[] {
   ];
 }
 
-interface PlanningArtifactLinksProps {
+export interface PlanningArtifactLinksProps {
   links?: ArtifactLink[];
+  outputRoot?: string | null;
 }
 
 export function PlanningArtifactLinks({
   links,
+  outputRoot: outputRootProp,
 }: PlanningArtifactLinksProps): React.ReactElement | null {
   const vscodeApi = useVSCodeApi();
-  const outputRoot = useOutputRoot() ?? '_bmad-output';
+  const outputRootFromStore = useOutputRoot();
+  const outputRoot =
+    (outputRootProp !== undefined ? outputRootProp : outputRootFromStore) ?? '_bmad-output';
   const resolvedLinks = links ?? getDefaultPlanningArtifacts(outputRoot);
 
   if (resolvedLinks.length === 0) {

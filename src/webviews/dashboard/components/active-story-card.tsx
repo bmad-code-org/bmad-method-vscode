@@ -35,8 +35,15 @@ export function ActiveStoryCardSkeleton(): React.ReactElement {
   );
 }
 
-export function ActiveStoryCard(): React.ReactElement {
-  const currentStory = useCurrentStory();
+export interface ActiveStoryCardProps {
+  currentStory?: import('@shared/types/story').Story | null;
+}
+
+export function ActiveStoryCard({
+  currentStory: currentStoryProp,
+}: ActiveStoryCardProps = {}): React.ReactElement {
+  const currentStoryFromStore = useCurrentStory();
+  const currentStory = currentStoryProp !== undefined ? currentStoryProp : currentStoryFromStore;
   const vscodeApi = useVSCodeApi();
 
   if (!currentStory) {
@@ -76,8 +83,8 @@ export function ActiveStoryCard(): React.ReactElement {
           className="text-left text-sm text-[var(--vscode-textLink-foreground)] hover:underline"
           onClick={createDocumentLinkHandler(vscodeApi, currentStory.filePath)}
         >
-          Story {currentStory.epicNumber}.{currentStory.storyNumber}{currentStory.storySuffix || ''}:{' '}
-          {currentStory.title}
+          Story {currentStory.epicNumber}.{currentStory.storyNumber}
+          {currentStory.storySuffix || ''}: {currentStory.title}
         </button>
       </div>
 

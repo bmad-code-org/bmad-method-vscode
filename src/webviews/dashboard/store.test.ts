@@ -68,6 +68,7 @@ describe('useDashboardStore', () => {
           hasEpics: true,
           hasReadinessReport: false,
         },
+        defaultClickBehavior: 'markdown-preview',
       };
 
       useDashboardStore.getState().updateState(newState);
@@ -109,6 +110,7 @@ describe('useDashboardStore', () => {
           hasEpics: false,
           hasReadinessReport: false,
         },
+        defaultClickBehavior: 'markdown-preview',
       };
 
       const secondState: DashboardState = {
@@ -127,6 +129,7 @@ describe('useDashboardStore', () => {
           hasEpics: false,
           hasReadinessReport: false,
         },
+        defaultClickBehavior: 'markdown-preview',
       };
 
       useDashboardStore.getState().updateState(firstState);
@@ -291,6 +294,7 @@ describe('useDashboardStore', () => {
           hasEpics: false,
           hasReadinessReport: false,
         },
+        defaultClickBehavior: 'markdown-preview',
       };
 
       useDashboardStore.getState().updateState(stateWithoutWorkflows);

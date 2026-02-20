@@ -121,11 +121,25 @@ export function EpicListSkeleton(): React.ReactElement {
   );
 }
 
-export function EpicList(): React.ReactElement {
-  const sprint = useSprint();
-  const epicsData = useEpics();
+export interface EpicListProps {
+  sprint?: import('@shared/types/sprint-status').SprintStatus | null;
+  epics?: Epic[];
+  outputRoot?: string | null;
+}
+
+export function EpicList({
+  sprint: sprintProp,
+  epics: epicsProp,
+  outputRoot: outputRootProp,
+}: EpicListProps = {}): React.ReactElement {
+  const sprintFromStore = useSprint();
+  const epicsFromStore = useEpics();
+  const outputRootFromStore = useOutputRoot();
+  const sprint = sprintProp !== undefined ? sprintProp : sprintFromStore;
+  const epicsData = epicsProp !== undefined ? epicsProp : epicsFromStore;
   const vscodeApi = useVSCodeApi();
-  const outputRoot = useOutputRoot() ?? '_bmad-output';
+  const outputRoot =
+    (outputRootProp !== undefined ? outputRootProp : outputRootFromStore) ?? '_bmad-output';
   const [expandedEpics, setExpandedEpics] = useState<Set<number>>(new Set());
   const [hideDoneEpics, setHideDoneEpics] = useState(true);
 

@@ -54,6 +54,7 @@ describe('useMessageHandler', () => {
         hasEpics: false,
         hasReadinessReport: false,
       },
+      defaultClickBehavior: 'markdown-preview',
     };
 
     window.dispatchEvent(

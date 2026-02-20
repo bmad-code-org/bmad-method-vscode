@@ -26,8 +26,15 @@ export function AboutSectionSkeleton(): React.ReactElement {
   );
 }
 
-export function AboutSection(): React.ReactElement {
-  const metadata = useBmadMetadata();
+export interface AboutSectionProps {
+  bmadMetadata?: import('@shared/types').BmadMetadata | null;
+}
+
+export function AboutSection({
+  bmadMetadata: metadataProp,
+}: AboutSectionProps = {}): React.ReactElement {
+  const metadataFromStore = useBmadMetadata();
+  const metadata = metadataProp !== undefined ? metadataProp : metadataFromStore;
 
   const version = metadata?.version ?? 'Unknown';
   const lastUpdated = metadata?.lastUpdated ? formatDate(metadata.lastUpdated) : 'Unknown';

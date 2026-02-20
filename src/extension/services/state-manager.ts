@@ -128,9 +128,16 @@ export class StateManager implements vscode.Disposable {
       return;
     }
 
-    // Populate outputRoot from config so webview can construct document paths
+    // Populate outputRoot and settings from config so webview can construct document paths
     const config = vscode.workspace.getConfiguration('bmad');
-    this._state = { ...this._state, outputRoot: config.get<string>('outputRoot', '_bmad-output') };
+    this._state = {
+      ...this._state,
+      outputRoot: config.get<string>('outputRoot', '_bmad-output'),
+      defaultClickBehavior: config.get<'markdown-preview' | 'editor-panel'>(
+        'defaultClickBehavior',
+        'markdown-preview'
+      ),
+    };
 
     // Parse sprint status
     await this.parseSprintStatus(paths.outputRoot);

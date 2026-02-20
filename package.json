@@ -141,6 +141,15 @@
           "type": "string",
           "default": "claude",
           "description": "CLI tool prefix for workflow terminal commands (e.g., 'claude', 'aider', 'copilot'). The BMAD slash command is appended after this prefix."
+        },
+        "bmad.defaultClickBehavior": {
+          "type": "string",
+          "enum": [
+            "markdown-preview",
+            "editor-panel"
+          ],
+          "default": "markdown-preview",
+          "description": "Default click behavior for document links in the sidebar. 'markdown-preview' opens files normally; 'editor-panel' opens the editor panel at the relevant view."
         }
       }
     }

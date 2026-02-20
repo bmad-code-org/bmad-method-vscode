@@ -54,6 +54,7 @@ describe('useMessageHandler (editor panel)', () => {
         hasEpics: false,
         hasReadinessReport: false,
       },
+      defaultClickBehavior: 'markdown-preview',
     };
 
     window.dispatchEvent(

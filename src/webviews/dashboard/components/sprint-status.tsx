@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSprint } from '../store';
 import { isStoryKey } from '@shared/types/sprint-status';
+import type { SprintStatus as SprintStatusType } from '@shared/types/sprint-status';
 import type { DevelopmentStatusValue } from '@shared/types/sprint-status';
 
 function computeStatusCounts(developmentStatus: Record<string, DevelopmentStatusValue>) {
@@ -30,8 +31,13 @@ export function SprintStatusSkeleton(): React.ReactElement {
   );
 }
 
-export function SprintStatus(): React.ReactElement {
-  const sprint = useSprint();
+interface SprintStatusProps {
+  sprint?: SprintStatusType | null;
+}
+
+export function SprintStatus({ sprint: sprintProp }: SprintStatusProps = {}): React.ReactElement {
+  const sprintFromStore = useSprint();
+  const sprint = sprintProp !== undefined ? sprintProp : sprintFromStore;
 
   if (!sprint) {
     return (

@@ -59,6 +59,7 @@ describe('ToWebview message type guards', () => {
       hasEpics: false,
       hasReadinessReport: false,
     },
+    defaultClickBehavior: 'markdown-preview',
   };
 
   describe('isStateUpdateMessage', () => {
@@ -261,6 +262,7 @@ describe('Message factory functions', () => {
           hasEpics: false,
           hasReadinessReport: false,
         },
+        defaultClickBehavior: 'markdown-preview',
       };
       const message = createStateUpdateMessage(state);
       expect(message.type).toBe('STATE_UPDATE');
@@ -352,6 +354,7 @@ describe('Discriminated union type narrowing', () => {
         hasEpics: false,
         hasReadinessReport: false,
       },
+      defaultClickBehavior: 'markdown-preview',
     };
 
     function handleToWebview(message: ToWebview): string {

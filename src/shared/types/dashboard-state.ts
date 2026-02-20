@@ -43,6 +43,8 @@ export interface DashboardState {
   bmadMetadata: BmadMetadata | null;
   /** Tracks existence of key planning artifacts for lifecycle-aware recommendations */
   planningArtifacts: PlanningArtifacts;
+  /** Default click behavior for document links: 'markdown-preview' or 'editor-panel' */
+  defaultClickBehavior: 'markdown-preview' | 'editor-panel';
 }
 
 /**
@@ -65,5 +67,6 @@ export function createInitialDashboardState(): DashboardState {
       hasEpics: false,
       hasReadinessReport: false,
     },
+    defaultClickBehavior: 'markdown-preview',
   };
 }
