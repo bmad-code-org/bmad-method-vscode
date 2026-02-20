@@ -159,10 +159,15 @@ export function StoryDetailView(): React.ReactElement {
           <h3 className="text-xs font-medium text-[var(--vscode-descriptionForeground)]">
             Acceptance Criteria
           </h3>
-          <ol className="flex flex-col gap-1 pl-4 text-sm text-[var(--vscode-foreground)]">
+          <ol className="flex flex-col gap-2 pl-4 text-sm text-[var(--vscode-foreground)]">
             {storyDetail.acceptanceCriteria.map((ac) => (
               <li key={ac.number} className="list-decimal">
                 <span className="font-medium">{ac.title}</span>
+                {ac.content && (
+                  <pre className="mt-1 whitespace-pre-wrap text-xs text-(--vscode-descriptionForeground)">
+                    {ac.content}
+                  </pre>
+                )}
               </li>
             ))}
           </ol>
