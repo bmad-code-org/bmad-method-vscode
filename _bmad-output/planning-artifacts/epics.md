@@ -153,11 +153,11 @@ This document provides the complete epic and story breakdown for bmad-extension,
 | FR13 | Epic 4   | Copy command to clipboard                               |
 | FR14 | Epic 4   | Context-sensitive workflow options                      |
 | FR15 | Epic 4   | Determine available workflows                           |
-| FR16 | Deferred | View planning artifacts (moved to Phase 2)              |
-| FR17 | Deferred | Render markdown formatting (moved to Phase 2)           |
-| FR18 | Deferred | Render Mermaid diagrams (moved to Phase 2)              |
-| FR19 | Deferred | Syntax-highlighted code blocks (Phase 2)                |
-| FR20 | Epic 5   | Navigate dashboard to document (partial: doc tree view) |
+| FR16 | Epic 5   | View planning artifacts (via document library)          |
+| FR17 | Epic 5   | Render markdown formatting (via markdown renderer)      |
+| FR18 | Deferred | Render Mermaid diagrams (deferred to future epic)       |
+| FR19 | Epic 5   | Syntax-highlighted code blocks (via rehype-highlight)   |
+| FR20 | Epic 5   | Navigate dashboard to document (full: editor panel)     |
 | FR21 | Epic 1   | Auto-activation on BMAD detection                       |
 | FR22 | Epic 1   | No activation in non-BMAD workspaces                    |
 | FR23 | Epic 3   | Manual refresh capability                               |
@@ -190,9 +190,9 @@ Developer can launch any BMAD workflow with one click or copy commands to clipbo
 
 ### Epic 5: UX Polish & Dashboard Enhancements
 
-Developer benefits from a refined dashboard experience with epic drill-down views, actionable next actions, an overflow menu, an about section, improved epic list UX, document tree navigation, and a kanban board view.
-**FRs covered:** FR2 (enhanced), FR5 (enhanced), FR20 (partial), plus new UX capabilities
-**NFRs addressed:** NFR1 (render performance), NFR11 (error feedback)
+Developer benefits from a refined dashboard experience with epic drill-down views, actionable next actions, an overflow menu, an about section, improved epic list UX, plus a full editor panel webview providing an enhanced dashboard, epics browser, story detail, stories table, kanban board, and document library with breadcrumb navigation.
+**FRs covered:** FR2 (enhanced), FR5 (enhanced), FR16 (partial via doc library), FR17 (partial via markdown renderer), FR20 (full), plus new UX capabilities
+**NFRs addressed:** NFR1 (render performance), NFR4 (rendering performance), NFR11 (error feedback)
 
 ---
 
@@ -655,9 +655,9 @@ So that I can paste it into an existing terminal or use it elsewhere.
 
 ## Epic 5: UX Polish & Dashboard Enhancements
 
-Developer benefits from a refined dashboard experience with epic drill-down views, actionable next actions, an overflow menu, an about section, improved epic list UX, document tree navigation, and a kanban board view. Builds entirely on proven patterns from Epics 1-4.
+Developer benefits from a refined dashboard experience with epic drill-down views, actionable next actions, an overflow menu, an about section, improved epic list UX, plus a full editor panel webview providing an enhanced dashboard, epics browser, story detail, stories table, kanban board, and document library with breadcrumb navigation. Builds on proven patterns from Epics 1-4.
 
-**Implementation Note:** Stories 5.1-5.5 modify the existing sidebar dashboard webview. Story 5.6 (Kanban Board) introduces a new editor panel webview. Stories 5.1-5.5 can be developed in any order after reviewing existing component structure. Story 5.6 is independent.
+**Implementation Note:** Stories 5.1-5.4 modify the existing sidebar dashboard webview. Story 5.5a establishes the editor panel infrastructure (WebviewPanel provider, Vite multi-entry build, CSP handling). Story 5.5b adds the navigation shell, breadcrumbs with back button, full-width dashboard view, and click behavior. Stories 5.6-5.7 build the epics/stories/kanban views on that foundation. Story 5.8 (Document Library) depends only on 5.5a/5.5b and can be developed in parallel with 5.6-5.7. Dependency chain: 5.5a -> 5.5b -> 5.6 -> 5.7, with 5.8 parallel after 5.5b.
 
 ### Story 5.1: Epic Detail View with Story Lists
 
@@ -747,48 +747,220 @@ So that I can see project metadata at a glance and navigate epics cleanly in lar
 **And** additional epics are accessible via scrolling within the epic list area
 **And** the scroll area has a defined max-height to prevent the epic list from consuming the entire sidebar
 
-### Story 5.5: Keyboard Navigation & Doc Tree View
+### Story 5.5a: Editor Panel Infrastructure & Build Setup
 
 As a developer,
-I want Ctrl/Cmd+click to open raw .md files and a document tree view for planning artifacts,
-So that I can quickly access source files and browse all planning documents.
+I want a dedicated editor panel webview registered and functional with its own build entry point,
+So that there is a foundation for all editor panel views to be built upon.
 
 **Acceptance Criteria:**
 
-**Given** any clickable document link in the dashboard (epic titles, story titles, artifact links)
-**When** the user Ctrl+click (Windows/Linux) or Cmd+click (macOS) on the link
-**Then** the raw .md file opens in a VS Code editor tab (instead of any formatted view)
-**And** the previous Shift+click behavior is replaced with Ctrl/Cmd+click
+**Given** the extension is activated in a BMAD workspace
+**When** the user invokes the `bmad.openEditorPanel` command (via command palette or dashboard action)
+**Then** a webview panel opens in the editor area with the title "BMAD Project"
+**And** the panel receives STATE_UPDATE messages from the extension host (same state as sidebar)
+**And** only one editor panel instance exists at a time (singleton pattern)
 
-**Given** the Planning Artifacts section of the dashboard
-**When** the Doc Tree View renders
-**Then** it displays a tree/folder structure of all documents in the planning artifacts directory
-**And** folders are expandable/collapsible
-**And** clicking a document in the tree opens its raw .md file in a VS Code editor tab
-**And** the tree view updates when files change (via existing file watcher)
+**Given** the editor panel is open
+**When** the user closes and reopens it
+**Then** the panel is recreated cleanly (onDidDispose clears singleton reference)
+**And** the panel restores to the default view
 
-### Story 5.6: Kanban Board View
+**Given** the build system
+**When** `pnpm build` runs
+**Then** it produces both `out/webview/index.js` (sidebar) and `out/webview/editor-panel.js` (editor panel)
+**And** Vite multi-entry build handles shared code deduplication (React, Zustand, shared types)
+**And** the editor panel HTML template correctly includes all generated script chunks with CSP nonces
+**And** `pnpm build` completes without errors
+**And** both webviews load correctly
+
+**Given** the editor panel webview
+**When** it initializes
+**Then** it has its own Zustand store subscribing to STATE_UPDATE messages
+**And** it renders a placeholder layout confirming successful initialization
+
+### Story 5.5b: Navigation Shell, Breadcrumbs, Dashboard View & Click Behavior
 
 As a developer,
-I want a kanban board view showing story status across columns in a dedicated editor panel,
-So that I can visualize workflow progress across all stories in the current epic.
+I want a navigation shell with breadcrumbs and back button, a full-width dashboard as the default view, and both Ctrl/Cmd+click and Shift+click to open raw files,
+So that I can navigate between views with clear context and access a richer project overview in the editor panel.
 
 **Acceptance Criteria:**
 
-**Given** the user triggers the kanban view (via command palette or dashboard action)
-**When** the kanban board editor panel opens
-**Then** a new webview panel opens in the editor area (not sidebar)
-**And** stories are displayed as cards organized in columns by status (backlog, in-progress, review, done)
-**And** each card shows the story title, epic context, and task completion count
+**Given** the editor panel is open
+**When** the user navigates between views (e.g., Dashboard > Epics > Epic 3 > Story 3.2)
+**Then** the breadcrumb bar shows the navigation path (e.g., "Dashboard / Epics / Epic 3 / Story 3.2")
+**And** clicking any breadcrumb segment navigates back to that level
+**And** the current view title is highlighted as the active breadcrumb segment
 
-**Given** the kanban board is open
+**Given** the editor panel navigation
+**When** the user has navigated through multiple views
+**Then** a back arrow button is displayed next to the breadcrumb
+**And** clicking the back button returns to the previous view
+**And** the navigation history is capped at 10 entries (oldest entries are dropped)
+
+**Given** the editor panel opens or navigates to the default view
+**When** no specific view has been selected
+**Then** a full-width dashboard view renders as the default landing page
+**And** it displays the same core information as the sidebar (sprint status, epics, active story, actions) in a more spacious, visually appealing layout with richer details that would overcharge the compact sidebar
+**And** navigation tabs or links allow switching to Epics, Stories, Kanban, and Docs views
+
+**Given** any clickable document link in the sidebar dashboard or editor panel
+**When** the user Ctrl+click (Windows/Linux), Cmd+click (macOS), or Shift+click on the link
+**Then** the raw .md file opens in a VS Code editor tab
+**And** both modifier key combinations work identically for raw file access
+
+**Given** the VS Code settings
+**When** the `bmad.defaultClickBehavior` setting is configured
+**Then** it accepts values `'markdown-preview'` (default, preserves current behavior) or `'editor-panel'` (opens editor panel to relevant view)
+**And** when set to `'editor-panel'`, normal-clicking a story or artifact link in the sidebar opens/focuses the editor panel at the relevant view
+**And** when set to `'markdown-preview'`, normal-clicking behaves as it does today (opens VS Code markdown preview)
+
+**Given** the editor panel is displayed at any width
+**When** the viewport width changes (e.g., split editor, narrow panel)
+**Then** the layout adapts responsively using Tailwind breakpoints
+**And** content remains usable at widths as narrow as 400px
+
+### Story 5.6: Epics Browser & Story Detail Views
+
+As a developer,
+I want to browse all epics in a visual layout and drill into individual story details in the editor panel,
+So that I can understand project progress and review story specifications without leaving VS Code.
+
+**Acceptance Criteria:**
+
+**Given** the editor panel is open
+**When** the user navigates to the Epics view
+**Then** all epics are displayed as cards in a visual layout
+**And** each epic shows: title, number, status badge, story count, and progress bar
+**And** the currently active epic is visually highlighted
+**And** completed epics are visually muted but still visible
+
+**Given** the Epics view is displayed
+**When** the user clicks on an epic card
+**Then** the view transitions to show the stories within that epic
+**And** the breadcrumb updates to "Dashboard / Epics / Epic N: Title"
+**And** each story shows: title, status badge, and task progress (completed/total)
+**And** Ctrl/Cmd+click or Shift+click on the epic title opens epics.md in a text editor
+
+**Given** the user is viewing stories within an epic
+**When** the user clicks on a story
+**Then** the view transitions to a story detail panel
+**And** the breadcrumb updates to "Dashboard / Epics / Epic N / Story N.M: Title"
+**And** the detail view displays: title, user story text, status, acceptance criteria list, task checklist with completion status, and progress bar
+**And** Ctrl/Cmd+click or Shift+click on the story title opens the raw .md file in a text editor
+
+**Given** the DashboardState sent via STATE_UPDATE
+**When** the extension host builds the state payload
+**Then** it includes lightweight story summaries (key, title, status, task counts, epic number) for all parsed stories
+**And** full story content (user story text, acceptance criteria, dev notes) is loaded on-demand via the existing DOCUMENT_CONTENT message when the user navigates to Story Detail
+**And** this keeps state updates fast and lean regardless of project size
+
+**Given** the sidebar dashboard shows the active story card
+**When** the user normal-clicks the story link in the sidebar (with `bmad.defaultClickBehavior` set to `'editor-panel'`)
+**Then** the editor panel opens/focuses and navigates directly to the Story Detail view for that story
+
+**Given** an epic with no stories or a project with no epics
+**When** the view renders
+**Then** a helpful message indicates what is missing
+
+**Given** the Epics browser or Story Detail view is displayed at any width
+**When** the viewport width changes
+**Then** the layout adapts responsively (e.g., epic cards reflow, story detail sections stack)
+**And** content remains usable at widths as narrow as 400px
+
+### Story 5.7: Stories Table & Kanban Board Views
+
+As a developer,
+I want a filterable stories table and a kanban board view showing story cards organized by status columns,
+So that I can visualize workflow progress across all stories and quickly find stories by status or epic.
+
+**Acceptance Criteria:**
+
+**Given** the editor panel is open
+**When** the user navigates to the Stories view
+**Then** all stories across all epics are displayed in a table layout
+**And** the table shows columns: Story ID, Title, Epic, Status, Tasks Progress
+**And** clicking a story row navigates to the Story Detail view
+
+**Given** the Stories view is displayed
+**When** the user switches to the Kanban view (via a table/kanban toggle)
+**Then** stories are displayed as cards organized in columns by status: Backlog, Ready for Dev, In Progress, Review, Done
+**And** each card shows: story title, epic context (e.g., "Epic 3"), and task count (e.g., "4/7")
+**And** each column header shows the column name and story count
+**And** empty columns display a subtle empty state
+
+**Given** the Stories or Kanban view is displayed
+**When** the user interacts with the filter bar
+**Then** they can filter by epic (dropdown), by status (dropdown), and search by story title (text input)
+**And** filters are preserved when toggling between table and kanban layouts
+
+**Given** the user switches between table and kanban views
+**When** the toggle is clicked
+**Then** the view switches while preserving the current filter state
+
+**Given** a story card in the kanban view or row in the stories table
+**When** the user clicks on it
+**Then** the view navigates to the Story Detail view with breadcrumb updated
+**And** Ctrl/Cmd+click or Shift+click opens the raw story .md file in a text editor
+
+**Given** the kanban board or stories table is open
 **When** story statuses change (detected by file watcher)
-**Then** cards move to the appropriate status column automatically
+**Then** cards/rows update to reflect the new status automatically
 
-**Given** a story card in the kanban view
-**When** the user clicks on a story card
-**Then** the raw story .md file opens in a VS Code editor tab
+**Given** the Stories table or Kanban board is displayed at any width
+**When** the viewport width changes
+**Then** the layout adapts responsively (e.g., kanban columns stack vertically at narrow widths, table scrolls horizontally)
+**And** content remains usable at widths as narrow as 400px
 
-**Given** the kanban board
-**When** no stories exist or parsing fails
-**Then** a helpful empty state or error message is displayed
+### Story 5.8: Document Library & Markdown Viewer
+
+As a developer,
+I want to browse all project artifacts in a file tree and read markdown documents with proper formatting directly in the editor panel,
+So that I can review PRDs, architecture docs, and other artifacts without switching to external tools.
+
+**Acceptance Criteria:**
+
+**Given** the editor panel is open
+**When** the user navigates to the Docs view
+**Then** a file tree is displayed on the left showing files from configurable directories
+**And** the content area on the right displays the selected document
+**And** the file tree updates when files change (via existing file watcher)
+
+**Given** the VS Code settings
+**When** the `bmad.docLibraryPaths` setting is configured
+**Then** the file tree displays files from the configured paths
+**And** the default value includes: `["{outputRoot}/planning-artifacts", "{outputRoot}/implementation-artifacts", "docs"]`
+**And** the user can add custom folder paths to this setting
+
+**Given** the file tree is displayed
+**When** the user clicks on a file in the tree
+**Then** the file content loads and displays in the main content area
+**And** the selected file is visually highlighted in the tree
+**And** the breadcrumb updates to "Dashboard / Docs / filename.md"
+**And** directories are expandable/collapsible
+
+**Given** a .md file is selected
+**When** the content renders
+**Then** markdown is rendered with proper formatting: headings, lists, tables, bold/italic, links, blockquotes
+**And** GFM extensions are supported (tables, task lists, strikethrough)
+
+**Given** a .yaml, .yml, or code file is selected
+**When** the content renders
+**Then** the content displays with syntax highlighting
+**And** a "Copy" button allows copying the raw content
+
+**Given** a markdown document is rendered
+**When** headings are present (H1-H4)
+**Then** a table of contents appears as a side panel or collapsible section
+**And** clicking a TOC entry scrolls to that heading
+
+**Given** the project dependencies
+**When** the document library is implemented
+**Then** `react-markdown`, `remark-gfm`, and `rehype-highlight` are added as dependencies
+**And** they are used only in the editor panel webview bundle
+
+**Given** the Document Library view is displayed at any width
+**When** the viewport width changes
+**Then** the layout adapts responsively (e.g., file tree collapses to a toggle at narrow widths, content area takes full width)
+**And** content remains usable at widths as narrow as 400px

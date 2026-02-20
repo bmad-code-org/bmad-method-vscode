@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { BmadDetector, FileWatcher, StateManager, WorkflowDiscoveryService } from './services';
 import { DashboardViewProvider } from './providers/dashboard-view-provider';
+import { EditorPanelProvider } from './providers/editor-panel-provider';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   // Detect BMAD project in current workspace
@@ -34,6 +35,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       vscode.commands.registerCommand('bmad.refresh', () => {
         void stateManager.refresh();
       }),
+      vscode.commands.registerCommand('bmad.openEditorPanel', () => {
+        EditorPanelProvider.createOrShow(context.extensionUri, stateManager);
+      }),
+      // Dispose editor panel on extension deactivation (singleton may be open)
+      { dispose: () => EditorPanelProvider.disposePanel() },
       fileWatcher,
       stateManager,
       workflowDiscovery

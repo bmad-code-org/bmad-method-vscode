@@ -1,0 +1,1 @@
+export { EditorPanelPlaceholder } from './placeholder';

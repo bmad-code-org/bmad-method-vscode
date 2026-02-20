@@ -123,6 +123,10 @@
       {
         "command": "bmad.refresh",
         "title": "BMAD: Refresh Dashboard"
+      },
+      {
+        "command": "bmad.openEditorPanel",
+        "title": "BMAD: Open Editor Panel"
       }
     ],
     "configuration": {
