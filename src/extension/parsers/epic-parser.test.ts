@@ -337,6 +337,27 @@ So that it works.
       }
     });
 
+    it('converts dots to dashes in story key', () => {
+      const content = `## Epic 1: Test
+
+Description.
+
+### Story 1.3: Package.json Discovery & Dependency Extraction
+
+As a developer,
+I want this parsed,
+So that it works.
+`;
+      const result = parseEpic(content);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.stories[0].key).toBe(
+          '1-3-package-json-discovery-and-dependency-extraction'
+        );
+      }
+    });
+
     it('converts & to and in story key', () => {
       const content = `## Epic 5: UX Polish
 
@@ -379,9 +400,7 @@ So that I can navigate between views.
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.stories).toHaveLength(2);
-        expect(result.data.stories[0].key).toBe(
-          '5-5a-editor-panel-infrastructure-and-build-setup'
-        );
+        expect(result.data.stories[0].key).toBe('5-5a-editor-panel-infrastructure-and-build-setup');
         expect(result.data.stories[0].title).toBe('Editor Panel Infrastructure & Build Setup');
         expect(result.data.stories[1].key).toBe('5-5b-navigation-shell-and-breadcrumbs');
         expect(result.data.stories[1].title).toBe('Navigation Shell & Breadcrumbs');
