@@ -76,14 +76,15 @@ describe('HeaderToolbar', () => {
     expect(screen.queryByTestId('overflow-menu-dropdown')).not.toBeInTheDocument();
   });
 
-  // 3.6 Test "Refresh" appears as first menu item
-  test('Refresh appears as first menu item', () => {
+  // 3.6 Test "Open Tab View" appears as first menu item, "Refresh" as second
+  test('Open Tab View appears as first menu item, Refresh as second', () => {
     useDashboardStore.setState({ workflows: [workflow1, workflow2] });
     render(<HeaderToolbar />);
     fireEvent.click(screen.getByTestId('overflow-menu-button'));
     const dropdown = screen.getByTestId('overflow-menu-dropdown');
     const buttons = dropdown.querySelectorAll('button');
-    expect(buttons[0]).toHaveTextContent('Refresh');
+    expect(buttons[0]).toHaveTextContent('Open Tab View');
+    expect(buttons[1]).toHaveTextContent('Refresh');
   });
 
   // 3.7 Test clicking "Refresh" sends REFRESH message and closes menu
@@ -92,6 +93,18 @@ describe('HeaderToolbar', () => {
     fireEvent.click(screen.getByTestId('overflow-menu-button'));
     fireEvent.click(screen.getByTestId('overflow-menu-refresh'));
     expect(mockPostMessage).toHaveBeenCalledWith({ type: 'REFRESH' });
+    expect(screen.queryByTestId('overflow-menu-dropdown')).not.toBeInTheDocument();
+  });
+
+  // Test clicking "Open Tab View" sends NAVIGATE_EDITOR_PANEL message and closes menu
+  test('clicking Open Tab View sends NAVIGATE_EDITOR_PANEL message and closes menu', () => {
+    render(<HeaderToolbar />);
+    fireEvent.click(screen.getByTestId('overflow-menu-button'));
+    fireEvent.click(screen.getByTestId('overflow-menu-open-panel'));
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      type: 'NAVIGATE_EDITOR_PANEL',
+      payload: { view: 'dashboard', params: undefined },
+    });
     expect(screen.queryByTestId('overflow-menu-dropdown')).not.toBeInTheDocument();
   });
 
@@ -154,19 +167,21 @@ describe('HeaderToolbar', () => {
     expect(screen.getByTestId('overflow-menu-button')).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('overflow-menu-button'));
     expect(screen.getByTestId('overflow-menu-dropdown')).toBeInTheDocument();
+    expect(screen.getByTestId('overflow-menu-open-panel')).toBeInTheDocument();
     expect(screen.getByTestId('overflow-menu-refresh')).toBeInTheDocument();
     expect(screen.getByTestId('overflow-menu-workflow-dev-story')).toBeInTheDocument();
   });
 
-  // 3.15 Test menu renders empty (no workflow items) when no workflows available (still shows Refresh)
-  test('menu shows Refresh even when no workflows available', () => {
+  // 3.15 Test menu renders empty (no workflow items) when no workflows available (still shows Open Tab View + Refresh)
+  test('menu shows Open Tab View and Refresh even when no workflows available', () => {
     useDashboardStore.setState({ workflows: [] });
     render(<HeaderToolbar />);
     fireEvent.click(screen.getByTestId('overflow-menu-button'));
+    expect(screen.getByTestId('overflow-menu-open-panel')).toBeInTheDocument();
     expect(screen.getByTestId('overflow-menu-refresh')).toBeInTheDocument();
     const dropdown = screen.getByTestId('overflow-menu-dropdown');
     const buttons = dropdown.querySelectorAll('button');
-    expect(buttons).toHaveLength(1); // Only Refresh
+    expect(buttons).toHaveLength(2); // Open Tab View + Refresh
   });
 
   // L2 fix: ARIA menu roles
@@ -177,7 +192,7 @@ describe('HeaderToolbar', () => {
     const dropdown = screen.getByTestId('overflow-menu-dropdown');
     expect(dropdown).toHaveAttribute('role', 'menu');
     const menuItems = dropdown.querySelectorAll('[role="menuitem"]');
-    expect(menuItems).toHaveLength(2); // Refresh + 1 workflow
+    expect(menuItems).toHaveLength(3); // Open Tab View + Refresh + 1 workflow
   });
 
   // L1 fix: workflow menu items have icons

@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { HelpCircle, EllipsisVertical, RefreshCw, Play } from 'lucide-react';
+import { HelpCircle, EllipsisVertical, RefreshCw, Play, PanelRight } from 'lucide-react';
 import { useWorkflows } from '../store';
 import { useVSCodeApi } from '../../shared/hooks';
 import {
   createRefreshMessage,
   createExecuteWorkflowMessage,
   createCopyCommandMessage,
+  createNavigateEditorPanelMessage,
 } from '@shared/messages';
 
 export function HeaderToolbar(): React.ReactElement {
@@ -16,6 +17,11 @@ export function HeaderToolbar(): React.ReactElement {
 
   const handleHelpClick = useCallback(() => {
     vscodeApi.postMessage(createCopyCommandMessage('bmad help'));
+  }, [vscodeApi]);
+
+  const handleOpenPanel = useCallback(() => {
+    vscodeApi.postMessage(createNavigateEditorPanelMessage('dashboard'));
+    setIsOpen(false);
   }, [vscodeApi]);
 
   const handleRefresh = useCallback(() => {
@@ -92,6 +98,16 @@ export function HeaderToolbar(): React.ReactElement {
             data-testid="overflow-menu-dropdown"
             className="animate-expand-in absolute top-full right-0 z-10 mt-1 min-w-[160px] rounded border border-[var(--vscode-menu-border)] bg-[var(--vscode-menu-background)] py-1 shadow-md"
           >
+            <button
+              role="menuitem"
+              type="button"
+              data-testid="overflow-menu-open-panel"
+              onClick={handleOpenPanel}
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-[var(--vscode-menu-foreground)] hover:bg-[var(--vscode-menu-selectionBackground)]"
+            >
+              <PanelRight size={12} />
+              Open Tab View
+            </button>
             <button
               role="menuitem"
               type="button"
