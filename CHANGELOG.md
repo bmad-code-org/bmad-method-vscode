@@ -1,3 +1,21 @@
+# [1.2.0](https://github.com/elvince/bmad-dashboard-extension/compare/v1.1.0...v1.2.0) (2026-02-20)
+
+
+### Bug Fixes
+
+* file naming from story/epic name parsing with dot ([39f7c28](https://github.com/elvince/bmad-dashboard-extension/commit/39f7c28e3c964e2c07537acb29b6dab35a9cac87))
+* split story like 5.5a/b/c are now properly managed ([b85aec9](https://github.com/elvince/bmad-dashboard-extension/commit/b85aec988d8b41ae675a47b9b30c25482a1778ec))
+
+
+### Features
+
+* 5-5a-editor-panel-infrastructure-and-build-setup ([93458e9](https://github.com/elvince/bmad-dashboard-extension/commit/93458e9e52488c1d6376eff66a4c70a496d30053))
+* 5-5b-navigation-shell-breadcrumbs-dashboard-view-and-click-behavior ([2cfbbb7](https://github.com/elvince/bmad-dashboard-extension/commit/2cfbbb742797e4af979fa9363819727ea948b414))
+* 5-6-epics-browser-and-story-detail-views ([e28ec4c](https://github.com/elvince/bmad-dashboard-extension/commit/e28ec4c61bd32f66bcff33b6e38a1ac73c30b9ce))
+* 5-7-stories-table-and-kanban-board-views ([b49ee37](https://github.com/elvince/bmad-dashboard-extension/commit/b49ee3773600ee09e1e091b434bfa64d4f52f630))
+* 5-8-document-library-and-markdown-viewer ([707f9c8](https://github.com/elvince/bmad-dashboard-extension/commit/707f9c8f6d8515d5e3cdc797d6db071c8b25a3ae))
+* add viewer menu entry ([31df0ba](https://github.com/elvince/bmad-dashboard-extension/commit/31df0ba3c76c7b8f9eb35af8878ac15333a1571b))
+
 # [1.1.0](https://github.com/elvince/bmad-dashboard-extension/compare/v1.0.0...v1.1.0) (2026-02-19)
 
 
