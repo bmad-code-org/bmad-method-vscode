@@ -55,6 +55,7 @@ describe('useMessageHandler', () => {
         hasReadinessReport: false,
       },
       defaultClickBehavior: 'markdown-preview',
+      storySummaries: [],
     };
 
     window.dispatchEvent(

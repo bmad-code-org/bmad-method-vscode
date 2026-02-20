@@ -9,12 +9,17 @@ const VALID_COMMAND_PATTERN = /^\/bmad-[a-z0-9-]+$/;
 const VALID_CLI_PREFIX_PATTERN = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
 const STORY_PATH_REGEX = /^(.+)\/implementation-artifacts\/(\d+)-(\d+[a-z]?)-[\w-]+\.md$/;
 
+export interface MessageHandlerOptions {
+  onNavigateEditorPanel?: (view: string, params?: Record<string, string>) => void;
+}
+
 /**
  * Handle messages from a webview (shared between sidebar and editor panel).
  */
 export function handleWebviewMessage(
   message: unknown,
-  stateManager: StateManager | undefined
+  stateManager: StateManager | undefined,
+  options?: MessageHandlerOptions
 ): void {
   if (!message || typeof message !== 'object' || !('type' in message)) {
     return;
@@ -34,6 +39,14 @@ export function handleWebviewMessage(
       break;
     case ToExtensionType.COPY_COMMAND:
       void copyCommand(msg.payload.command);
+      break;
+    case ToExtensionType.NAVIGATE_EDITOR_PANEL:
+      if (options?.onNavigateEditorPanel) {
+        options.onNavigateEditorPanel(msg.payload.view, msg.payload.params);
+      }
+      break;
+    case ToExtensionType.REQUEST_DOCUMENT_CONTENT:
+      // Handled locally by EditorPanelProvider, not here
       break;
   }
 }

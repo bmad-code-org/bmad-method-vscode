@@ -78,6 +78,34 @@ export interface Story {
 }
 
 /**
+ * Lightweight story summary for DashboardState (no heavy content fields)
+ */
+export interface StorySummary {
+  /** Story key (e.g., "2-1-shared-types-and-message-protocol") */
+  key: string;
+  /** Story title */
+  title: string;
+  /** Current status */
+  status: StoryStatusValue;
+  /** Epic number this story belongs to */
+  epicNumber: number;
+  /** Story number within the epic */
+  storyNumber: number;
+  /** Optional letter suffix for split stories */
+  storySuffix?: string;
+  /** Total number of tasks */
+  totalTasks: number;
+  /** Number of completed tasks */
+  completedTasks: number;
+  /** Total number of subtasks */
+  totalSubtasks: number;
+  /** Number of completed subtasks */
+  completedSubtasks: number;
+  /** File path relative to project root */
+  filePath: string;
+}
+
+/**
  * Calculate completion percentage for a story
  */
 export function calculateStoryProgress(story: Story): number {

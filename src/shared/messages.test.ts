@@ -12,6 +12,9 @@ import {
   isExecuteWorkflowMessage,
   isCopyCommandMessage,
   isRefreshMessage,
+  isRequestDocumentContentMessage,
+  isNavigateEditorPanelMessage,
+  isNavigateToViewMessage,
   // Factory functions
   createStateUpdateMessage,
   createDocumentContentMessage,
@@ -20,6 +23,9 @@ import {
   createExecuteWorkflowMessage,
   createCopyCommandMessage,
   createRefreshMessage,
+  createRequestDocumentContentMessage,
+  createNavigateEditorPanelMessage,
+  createNavigateToViewMessage,
 } from './messages';
 import type { DashboardState } from './types/dashboard-state';
 
@@ -29,6 +35,7 @@ describe('Message Type Constants', () => {
       expect(ToWebviewType.STATE_UPDATE).toBe('STATE_UPDATE');
       expect(ToWebviewType.DOCUMENT_CONTENT).toBe('DOCUMENT_CONTENT');
       expect(ToWebviewType.ERROR).toBe('ERROR');
+      expect(ToWebviewType.NAVIGATE_TO_VIEW).toBe('NAVIGATE_TO_VIEW');
     });
   });
 
@@ -38,6 +45,8 @@ describe('Message Type Constants', () => {
       expect(ToExtensionType.EXECUTE_WORKFLOW).toBe('EXECUTE_WORKFLOW');
       expect(ToExtensionType.COPY_COMMAND).toBe('COPY_COMMAND');
       expect(ToExtensionType.REFRESH).toBe('REFRESH');
+      expect(ToExtensionType.REQUEST_DOCUMENT_CONTENT).toBe('REQUEST_DOCUMENT_CONTENT');
+      expect(ToExtensionType.NAVIGATE_EDITOR_PANEL).toBe('NAVIGATE_EDITOR_PANEL');
     });
   });
 });
@@ -60,6 +69,7 @@ describe('ToWebview message type guards', () => {
       hasReadinessReport: false,
     },
     defaultClickBehavior: 'markdown-preview',
+    storySummaries: [],
   };
 
   describe('isStateUpdateMessage', () => {
@@ -241,6 +251,88 @@ describe('ToExtension message type guards', () => {
       expect(isRefreshMessage(message)).toBe(false);
     });
   });
+
+  describe('isRequestDocumentContentMessage', () => {
+    it('returns true for REQUEST_DOCUMENT_CONTENT messages', () => {
+      const message: ToExtension = {
+        type: ToExtensionType.REQUEST_DOCUMENT_CONTENT,
+        payload: { path: '/story.md' },
+      };
+      expect(isRequestDocumentContentMessage(message)).toBe(true);
+    });
+
+    it('returns false for other message types', () => {
+      const message: ToExtension = { type: ToExtensionType.REFRESH };
+      expect(isRequestDocumentContentMessage(message)).toBe(false);
+    });
+
+    it('narrows type correctly', () => {
+      const message: ToExtension = {
+        type: ToExtensionType.REQUEST_DOCUMENT_CONTENT,
+        payload: { path: '/impl/3-2.md' },
+      };
+      if (isRequestDocumentContentMessage(message)) {
+        expect(message.payload.path).toBe('/impl/3-2.md');
+      }
+    });
+  });
+
+  describe('isNavigateEditorPanelMessage', () => {
+    it('returns true for NAVIGATE_EDITOR_PANEL messages', () => {
+      const message: ToExtension = {
+        type: ToExtensionType.NAVIGATE_EDITOR_PANEL,
+        payload: { view: 'epics' },
+      };
+      expect(isNavigateEditorPanelMessage(message)).toBe(true);
+    });
+
+    it('returns false for other message types', () => {
+      const message: ToExtension = { type: ToExtensionType.REFRESH };
+      expect(isNavigateEditorPanelMessage(message)).toBe(false);
+    });
+
+    it('narrows type correctly with params', () => {
+      const message: ToExtension = {
+        type: ToExtensionType.NAVIGATE_EDITOR_PANEL,
+        payload: { view: 'epics', params: { epicId: '3' } },
+      };
+      if (isNavigateEditorPanelMessage(message)) {
+        expect(message.payload.view).toBe('epics');
+        expect(message.payload.params).toEqual({ epicId: '3' });
+      }
+    });
+  });
+});
+
+describe('ToWebview type guards (new)', () => {
+  describe('isNavigateToViewMessage', () => {
+    it('returns true for NAVIGATE_TO_VIEW messages', () => {
+      const message: ToWebview = {
+        type: ToWebviewType.NAVIGATE_TO_VIEW,
+        payload: { view: 'epics' },
+      };
+      expect(isNavigateToViewMessage(message)).toBe(true);
+    });
+
+    it('returns false for other message types', () => {
+      const message: ToWebview = {
+        type: ToWebviewType.ERROR,
+        payload: { message: 'err', recoverable: true },
+      };
+      expect(isNavigateToViewMessage(message)).toBe(false);
+    });
+
+    it('narrows type correctly with params', () => {
+      const message: ToWebview = {
+        type: ToWebviewType.NAVIGATE_TO_VIEW,
+        payload: { view: 'epics', params: { epicId: '5', storyKey: '5-1-setup' } },
+      };
+      if (isNavigateToViewMessage(message)) {
+        expect(message.payload.view).toBe('epics');
+        expect(message.payload.params).toEqual({ epicId: '5', storyKey: '5-1-setup' });
+      }
+    });
+  });
 });
 
 describe('Message factory functions', () => {
@@ -263,6 +355,7 @@ describe('Message factory functions', () => {
           hasReadinessReport: false,
         },
         defaultClickBehavior: 'markdown-preview',
+        storySummaries: [],
       };
       const message = createStateUpdateMessage(state);
       expect(message.type).toBe('STATE_UPDATE');
@@ -334,6 +427,49 @@ describe('Message factory functions', () => {
       expect(message.type).toBe('REFRESH');
     });
   });
+
+  describe('createRequestDocumentContentMessage', () => {
+    it('creates a REQUEST_DOCUMENT_CONTENT message', () => {
+      const message = createRequestDocumentContentMessage('/impl/3-2-feature.md');
+      expect(message.type).toBe('REQUEST_DOCUMENT_CONTENT');
+      expect(message.payload.path).toBe('/impl/3-2-feature.md');
+    });
+  });
+
+  describe('createNavigateEditorPanelMessage', () => {
+    it('creates a NAVIGATE_EDITOR_PANEL message without params', () => {
+      const message = createNavigateEditorPanelMessage('epics');
+      expect(message.type).toBe('NAVIGATE_EDITOR_PANEL');
+      expect(message.payload.view).toBe('epics');
+      expect(message.payload.params).toBeUndefined();
+    });
+
+    it('creates a NAVIGATE_EDITOR_PANEL message with params', () => {
+      const message = createNavigateEditorPanelMessage('epics', { epicId: '3' });
+      expect(message.type).toBe('NAVIGATE_EDITOR_PANEL');
+      expect(message.payload.view).toBe('epics');
+      expect(message.payload.params).toEqual({ epicId: '3' });
+    });
+  });
+
+  describe('createNavigateToViewMessage', () => {
+    it('creates a NAVIGATE_TO_VIEW message without params', () => {
+      const message = createNavigateToViewMessage('dashboard');
+      expect(message.type).toBe('NAVIGATE_TO_VIEW');
+      expect(message.payload.view).toBe('dashboard');
+      expect(message.payload.params).toBeUndefined();
+    });
+
+    it('creates a NAVIGATE_TO_VIEW message with params', () => {
+      const message = createNavigateToViewMessage('epics', {
+        epicId: '5',
+        storyKey: '5-1-setup',
+      });
+      expect(message.type).toBe('NAVIGATE_TO_VIEW');
+      expect(message.payload.view).toBe('epics');
+      expect(message.payload.params).toEqual({ epicId: '5', storyKey: '5-1-setup' });
+    });
+  });
 });
 
 describe('Discriminated union type narrowing', () => {
@@ -355,6 +491,7 @@ describe('Discriminated union type narrowing', () => {
         hasReadinessReport: false,
       },
       defaultClickBehavior: 'markdown-preview',
+      storySummaries: [],
     };
 
     function handleToWebview(message: ToWebview): string {
@@ -365,6 +502,8 @@ describe('Discriminated union type narrowing', () => {
           return `Document: ${message.payload.path}`;
         case 'ERROR':
           return `Error: ${message.payload.message}`;
+        case 'NAVIGATE_TO_VIEW':
+          return `Navigate: ${message.payload.view}`;
       }
     }
 
@@ -393,6 +532,10 @@ describe('Discriminated union type narrowing', () => {
           return `Copy: ${message.payload.command}`;
         case 'REFRESH':
           return 'Refresh';
+        case 'REQUEST_DOCUMENT_CONTENT':
+          return `Request: ${message.payload.path}`;
+        case 'NAVIGATE_EDITOR_PANEL':
+          return `Navigate: ${message.payload.view}`;
       }
     }
 

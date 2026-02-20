@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { DashboardState } from '@shared/types';
+import type { DashboardState, Story } from '@shared/types';
 import { createInitialDashboardState } from '@shared/types';
 import type { ViewRoute, BreadcrumbItem } from './types';
 
@@ -13,10 +13,51 @@ const VIEW_LABELS: Record<string, string> = {
   docs: 'Docs',
 };
 
-function buildBreadcrumbs(route: ViewRoute): BreadcrumbItem[] {
+function buildBreadcrumbs(
+  route: ViewRoute,
+  state?: { epics: DashboardState['epics']; storySummaries: DashboardState['storySummaries'] }
+): BreadcrumbItem[] {
   const crumbs: BreadcrumbItem[] = [{ label: 'Dashboard', route: { view: 'dashboard' } }];
 
-  if (route.view !== 'dashboard') {
+  if (route.view === 'dashboard') return crumbs;
+
+  const params = route.params;
+
+  if (route.view === 'epics') {
+    // Epics list level
+    crumbs.push({
+      label: 'Epics',
+      route: { view: 'epics' },
+    });
+
+    if (params?.epicId) {
+      // Epic detail level
+      let epicLabel = `Epic ${params.epicId}`;
+      if (state) {
+        const epic = state.epics.find((e) => String(e.number) === params.epicId);
+        if (epic) epicLabel = `Epic ${epic.number}: ${epic.title}`;
+      }
+      crumbs.push({
+        label: epicLabel,
+        route: { view: 'epics', params: { epicId: params.epicId } },
+      });
+
+      if (params.storyKey) {
+        // Story detail level
+        let storyLabel = params.storyKey;
+        if (state) {
+          const summary = state.storySummaries.find((s) => s.key === params.storyKey);
+          if (summary) {
+            storyLabel = `Story ${summary.epicNumber}.${summary.storyNumber}${summary.storySuffix ?? ''}: ${summary.title}`;
+          }
+        }
+        crumbs.push({
+          label: storyLabel,
+          route: { view: 'epics', params: { epicId: params.epicId, storyKey: params.storyKey } },
+        });
+      }
+    }
+  } else {
     crumbs.push({
       label: VIEW_LABELS[route.view] ?? route.view,
       route,
@@ -26,27 +67,39 @@ function buildBreadcrumbs(route: ViewRoute): BreadcrumbItem[] {
   return crumbs;
 }
 
+interface StoryDetailState {
+  storyDetail: Story | null;
+  storyDetailLoading: boolean;
+}
+
 interface NavigationState {
   currentRoute: ViewRoute;
   breadcrumbs: BreadcrumbItem[];
   navigationHistory: ViewRoute[];
 }
 
-interface EditorPanelStore extends DashboardState, NavigationState {
+interface EditorPanelStore extends DashboardState, NavigationState, StoryDetailState {
   updateState: (state: DashboardState) => void;
   setLoading: (loading: boolean) => void;
   setError: (message: string) => void;
   navigateTo: (route: ViewRoute) => void;
   goBack: () => void;
   navigateToBreadcrumb: (index: number) => void;
+  setStoryDetail: (story: Story) => void;
+  setStoryDetailLoading: (loading: boolean) => void;
+  clearStoryDetail: () => void;
 }
 
-export function createInitialEditorPanelState(): DashboardState & NavigationState {
+export function createInitialEditorPanelState(): DashboardState &
+  NavigationState &
+  StoryDetailState {
   return {
     ...createInitialDashboardState(),
     currentRoute: { view: 'dashboard' },
     breadcrumbs: [{ label: 'Dashboard', route: { view: 'dashboard' } }],
     navigationHistory: [],
+    storyDetail: null,
+    storyDetailLoading: false,
   };
 }
 
@@ -65,6 +118,7 @@ export const useEditorPanelStore = create<EditorPanelStore>()((set) => ({
       bmadMetadata: state.bmadMetadata,
       planningArtifacts: state.planningArtifacts,
       defaultClickBehavior: state.defaultClickBehavior,
+      storySummaries: state.storySummaries,
     }),
 
   setLoading: (loading: boolean) => set({ loading }),
@@ -82,7 +136,10 @@ export const useEditorPanelStore = create<EditorPanelStore>()((set) => ({
       }
       return {
         currentRoute: route,
-        breadcrumbs: buildBreadcrumbs(route),
+        breadcrumbs: buildBreadcrumbs(route, {
+          epics: prev.epics,
+          storySummaries: prev.storySummaries,
+        }),
         navigationHistory: history,
       };
     }),
@@ -94,7 +151,10 @@ export const useEditorPanelStore = create<EditorPanelStore>()((set) => ({
       const previousRoute = history.pop()!;
       return {
         currentRoute: previousRoute,
-        breadcrumbs: buildBreadcrumbs(previousRoute),
+        breadcrumbs: buildBreadcrumbs(previousRoute, {
+          epics: prev.epics,
+          storySummaries: prev.storySummaries,
+        }),
         navigationHistory: history,
       };
     }),
@@ -112,6 +172,12 @@ export const useEditorPanelStore = create<EditorPanelStore>()((set) => ({
         navigationHistory: truncatedHistory,
       };
     }),
+
+  setStoryDetail: (story: Story) => set({ storyDetail: story, storyDetailLoading: false }),
+
+  setStoryDetailLoading: (loading: boolean) => set({ storyDetailLoading: loading }),
+
+  clearStoryDetail: () => set({ storyDetail: null, storyDetailLoading: false }),
 }));
 
 // Selector hooks for individual state slices
@@ -124,6 +190,9 @@ export const useOutputRoot = () => useEditorPanelStore((s) => s.outputRoot);
 export const useWorkflows = () => useEditorPanelStore((s) => s.workflows);
 export const useBmadMetadata = () => useEditorPanelStore((s) => s.bmadMetadata);
 export const usePlanningArtifacts = () => useEditorPanelStore((s) => s.planningArtifacts);
+export const useStorySummaries = () => useEditorPanelStore((s) => s.storySummaries);
+export const useStoryDetail = () => useEditorPanelStore((s) => s.storyDetail);
+export const useStoryDetailLoading = () => useEditorPanelStore((s) => s.storyDetailLoading);
 
 // Navigation selector hooks
 export const useCurrentRoute = () => useEditorPanelStore((s) => s.currentRoute);

@@ -4,7 +4,14 @@ import { BmadDetector, BmadPaths } from './bmad-detector';
 import { FileWatcher, FileChangeEvent, FileWatcherError } from './file-watcher';
 import type { WorkflowDiscoveryService } from './workflow-discovery';
 import { parseSprintStatus, parseEpics, parseStory } from '../parsers';
-import type { DashboardState, ParseError, SprintStatus, Epic, Story } from '../../shared/types';
+import type {
+  DashboardState,
+  ParseError,
+  SprintStatus,
+  Epic,
+  Story,
+  StorySummary,
+} from '../../shared/types';
 import { createInitialDashboardState, isStoryKey, isEpicKey } from '../../shared/types';
 
 /**
@@ -156,6 +163,9 @@ export class StateManager implements vscode.Disposable {
 
     // Determine current story from sprint status
     this.determineCurrentStory();
+
+    // Build lightweight story summaries for webview
+    this.buildStorySummaries();
 
     // Compute available workflows
     if (this.workflowDiscovery) {
@@ -447,6 +457,29 @@ export class StateManager implements vscode.Disposable {
   }
 
   /**
+   * Build lightweight story summaries from parsed stories for the webview.
+   */
+  private buildStorySummaries(): void {
+    const summaries: StorySummary[] = [];
+    for (const story of this._parsedStories.values()) {
+      summaries.push({
+        key: story.key,
+        title: story.title,
+        status: story.status,
+        epicNumber: story.epicNumber,
+        storyNumber: story.storyNumber,
+        storySuffix: story.storySuffix,
+        totalTasks: story.totalTasks,
+        completedTasks: story.completedTasks,
+        totalSubtasks: story.totalSubtasks,
+        completedSubtasks: story.completedSubtasks,
+        filePath: story.filePath,
+      });
+    }
+    this._state = { ...this._state, storySummaries: summaries };
+  }
+
+  /**
    * Handle file change events from FileWatcher.
    */
   private async handleFileChanges(event: FileChangeEvent): Promise<void> {
@@ -479,6 +512,7 @@ export class StateManager implements vscode.Disposable {
     await Promise.all(updatePromises);
 
     this.determineCurrentStory();
+    this.buildStorySummaries();
 
     // Recompute available workflows
     if (this.workflowDiscovery) {

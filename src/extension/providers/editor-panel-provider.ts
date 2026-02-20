@@ -1,6 +1,12 @@
 import * as vscode from 'vscode';
+import matter from 'gray-matter';
 import type { StateManager } from '../services/state-manager';
-import { createStateUpdateMessage } from '../../shared/messages';
+import {
+  createStateUpdateMessage,
+  createDocumentContentMessage,
+  createNavigateToViewMessage,
+  ToExtensionType,
+} from '../../shared/messages';
 import { handleWebviewMessage } from './message-handler';
 import { getNonce } from './webview-utils';
 
@@ -63,6 +69,7 @@ export class EditorPanelProvider implements vscode.Disposable {
     // Handle messages from the webview
     this.panel.webview.onDidReceiveMessage(
       (message: unknown) => {
+        if (this.handleLocalMessage(message)) return;
         handleWebviewMessage(message, this.stateManager);
       },
       undefined,
@@ -81,6 +88,63 @@ export class EditorPanelProvider implements vscode.Disposable {
 
     // On dispose: clear singleton ref
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
+  }
+
+  /**
+   * Post a NAVIGATE_TO_VIEW message to the editor panel webview.
+   * Used by the extension host to drive navigation from external triggers (e.g., sidebar).
+   */
+  public static postNavigateToView(view: string, params?: Record<string, string>): void {
+    if (EditorPanelProvider.currentPanel) {
+      void EditorPanelProvider.currentPanel.panel.webview.postMessage(
+        createNavigateToViewMessage(view, params)
+      );
+    }
+  }
+
+  /**
+   * Handle messages that require access to the panel's webview postMessage.
+   * Returns true if the message was handled locally.
+   */
+  private handleLocalMessage(message: unknown): boolean {
+    if (!message || typeof message !== 'object' || !('type' in message)) return false;
+    const msg = message as { type: string; payload?: unknown };
+
+    if (msg.type === ToExtensionType.REQUEST_DOCUMENT_CONTENT) {
+      const payload = msg.payload as { path: string } | undefined;
+      if (payload?.path) {
+        void this.readAndSendDocumentContent(payload.path);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Read a file and send its content back to the webview via DOCUMENT_CONTENT.
+   */
+  private async readAndSendDocumentContent(relativePath: string): Promise<void> {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) return;
+
+    const documentUri = vscode.Uri.joinPath(workspaceFolder.uri, relativePath);
+    try {
+      const content = await vscode.workspace.fs.readFile(documentUri);
+      const text = Buffer.from(content).toString('utf-8');
+      let frontmatter: unknown = null;
+      try {
+        const parsed = matter(text);
+        frontmatter = parsed.data && Object.keys(parsed.data).length > 0 ? parsed.data : null;
+      } catch {
+        // Frontmatter parse failure is non-fatal
+      }
+      void this.panel.webview.postMessage(
+        createDocumentContentMessage(relativePath, text, frontmatter)
+      );
+    } catch {
+      // File not found or unreadable — send empty content so loading stops
+      void this.panel.webview.postMessage(createDocumentContentMessage(relativePath, ''));
+    }
   }
 
   public dispose(): void {

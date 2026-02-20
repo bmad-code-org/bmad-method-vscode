@@ -15,6 +15,7 @@ export const ToWebviewType = {
   STATE_UPDATE: 'STATE_UPDATE',
   DOCUMENT_CONTENT: 'DOCUMENT_CONTENT',
   ERROR: 'ERROR',
+  NAVIGATE_TO_VIEW: 'NAVIGATE_TO_VIEW',
 } as const;
 
 /**
@@ -25,6 +26,8 @@ export const ToExtensionType = {
   EXECUTE_WORKFLOW: 'EXECUTE_WORKFLOW',
   COPY_COMMAND: 'COPY_COMMAND',
   REFRESH: 'REFRESH',
+  REQUEST_DOCUMENT_CONTENT: 'REQUEST_DOCUMENT_CONTENT',
+  NAVIGATE_EDITOR_PANEL: 'NAVIGATE_EDITOR_PANEL',
 } as const;
 
 // ============================================================================
@@ -68,9 +71,26 @@ export interface ErrorMessage {
 }
 
 /**
+ * Navigate to view message - instructs editor panel to navigate to a specific view
+ */
+export interface NavigateToViewMessage {
+  type: typeof ToWebviewType.NAVIGATE_TO_VIEW;
+  payload: {
+    /** View name to navigate to */
+    view: string;
+    /** Optional route parameters */
+    params?: Record<string, string>;
+  };
+}
+
+/**
  * Discriminated union of all messages from Extension to Webview
  */
-export type ToWebview = StateUpdateMessage | DocumentContentMessage | ErrorMessage;
+export type ToWebview =
+  | StateUpdateMessage
+  | DocumentContentMessage
+  | ErrorMessage
+  | NavigateToViewMessage;
 
 // ============================================================================
 // Webview -> Extension Messages (ToExtension)
@@ -119,13 +139,39 @@ export interface RefreshMessage {
 }
 
 /**
+ * Request document content message - requests file content sent back via DOCUMENT_CONTENT
+ */
+export interface RequestDocumentContentMessage {
+  type: typeof ToExtensionType.REQUEST_DOCUMENT_CONTENT;
+  payload: {
+    /** File path to read (relative to project root) */
+    path: string;
+  };
+}
+
+/**
+ * Navigate editor panel message - requests the editor panel open and navigate to a specific view
+ */
+export interface NavigateEditorPanelMessage {
+  type: typeof ToExtensionType.NAVIGATE_EDITOR_PANEL;
+  payload: {
+    /** View name to navigate to */
+    view: string;
+    /** Optional route parameters */
+    params?: Record<string, string>;
+  };
+}
+
+/**
  * Discriminated union of all messages from Webview to Extension
  */
 export type ToExtension =
   | OpenDocumentMessage
   | ExecuteWorkflowMessage
   | CopyCommandMessage
-  | RefreshMessage;
+  | RefreshMessage
+  | RequestDocumentContentMessage
+  | NavigateEditorPanelMessage;
 
 // ============================================================================
 // Type Guards for Message Type Narrowing
@@ -182,6 +228,31 @@ export function isCopyCommandMessage(message: ToExtension): message is CopyComma
  */
 export function isRefreshMessage(message: ToExtension): message is RefreshMessage {
   return message.type === ToExtensionType.REFRESH;
+}
+
+/**
+ * Type guard for REQUEST_DOCUMENT_CONTENT messages
+ */
+export function isRequestDocumentContentMessage(
+  message: ToExtension
+): message is RequestDocumentContentMessage {
+  return message.type === ToExtensionType.REQUEST_DOCUMENT_CONTENT;
+}
+
+/**
+ * Type guard for NAVIGATE_EDITOR_PANEL messages
+ */
+export function isNavigateEditorPanelMessage(
+  message: ToExtension
+): message is NavigateEditorPanelMessage {
+  return message.type === ToExtensionType.NAVIGATE_EDITOR_PANEL;
+}
+
+/**
+ * Type guard for NAVIGATE_TO_VIEW messages
+ */
+export function isNavigateToViewMessage(message: ToWebview): message is NavigateToViewMessage {
+  return message.type === ToWebviewType.NAVIGATE_TO_VIEW;
 }
 
 // ============================================================================
@@ -242,4 +313,31 @@ export function createCopyCommandMessage(command: string): CopyCommandMessage {
  */
 export function createRefreshMessage(): RefreshMessage {
   return { type: ToExtensionType.REFRESH };
+}
+
+/**
+ * Create a REQUEST_DOCUMENT_CONTENT message
+ */
+export function createRequestDocumentContentMessage(path: string): RequestDocumentContentMessage {
+  return { type: ToExtensionType.REQUEST_DOCUMENT_CONTENT, payload: { path } };
+}
+
+/**
+ * Create a NAVIGATE_EDITOR_PANEL message
+ */
+export function createNavigateEditorPanelMessage(
+  view: string,
+  params?: Record<string, string>
+): NavigateEditorPanelMessage {
+  return { type: ToExtensionType.NAVIGATE_EDITOR_PANEL, payload: { view, params } };
+}
+
+/**
+ * Create a NAVIGATE_TO_VIEW message
+ */
+export function createNavigateToViewMessage(
+  view: string,
+  params?: Record<string, string>
+): NavigateToViewMessage {
+  return { type: ToWebviewType.NAVIGATE_TO_VIEW, payload: { view, params } };
 }

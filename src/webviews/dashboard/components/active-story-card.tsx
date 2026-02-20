@@ -1,7 +1,8 @@
 import React from 'react';
-import { useCurrentStory } from '../store';
+import { useCurrentStory, useDefaultClickBehavior } from '../store';
 import { useVSCodeApi } from '../../shared/hooks';
 import { createDocumentLinkHandler } from '../../shared/utils/document-link';
+import { createNavigateEditorPanelMessage } from '@shared/messages';
 import { calculateStoryProgress } from '@shared/types/story';
 import type { StoryStatusValue } from '@shared/types/sprint-status';
 import { cn } from '../../shared/utils/cn';
@@ -44,6 +45,7 @@ export function ActiveStoryCard({
 }: ActiveStoryCardProps = {}): React.ReactElement {
   const currentStoryFromStore = useCurrentStory();
   const currentStory = currentStoryProp !== undefined ? currentStoryProp : currentStoryFromStore;
+  const defaultClickBehavior = useDefaultClickBehavior();
   const vscodeApi = useVSCodeApi();
 
   if (!currentStory) {
@@ -81,7 +83,21 @@ export function ActiveStoryCard({
         <button
           type="button"
           className="text-left text-sm text-[var(--vscode-textLink-foreground)] hover:underline"
-          onClick={createDocumentLinkHandler(vscodeApi, currentStory.filePath)}
+          onClick={(e) => {
+            if (e.shiftKey || e.ctrlKey || e.metaKey) {
+              // Modifier-click always opens raw file
+              createDocumentLinkHandler(vscodeApi, currentStory.filePath)(e);
+            } else if (defaultClickBehavior === 'editor-panel') {
+              vscodeApi.postMessage(
+                createNavigateEditorPanelMessage('epics', {
+                  epicId: String(currentStory.epicNumber),
+                  storyKey: currentStory.key,
+                })
+              );
+            } else {
+              createDocumentLinkHandler(vscodeApi, currentStory.filePath)(e);
+            }
+          }}
         >
           Story {currentStory.epicNumber}.{currentStory.storyNumber}
           {currentStory.storySuffix || ''}: {currentStory.title}

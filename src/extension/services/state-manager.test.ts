@@ -1008,4 +1008,58 @@ ides:
       manager.dispose();
     });
   });
+
+  suite('Story Summaries', () => {
+    test('storySummaries populated from parsed stories', async () => {
+      const paths = createMockPaths();
+      mockDetector.getBmadPaths.returns(paths);
+
+      const manager = createTestableManager(
+        createReadFileMock({
+          'sprint-status.yaml': createSprintStatusYaml(),
+          'epics.md': '',
+          '1-1-first-story.md': createStoryMarkdown('1-1-first-story', 'First Story'),
+          '1-2-second-story.md': createStoryMarkdown('1-2-second-story', 'Second Story'),
+        }),
+        createReadDirMock([
+          ['sprint-status.yaml', vscode.FileType.File],
+          ['1-1-first-story.md', vscode.FileType.File],
+          ['1-2-second-story.md', vscode.FileType.File],
+        ])
+      );
+      await manager.initialize();
+
+      assert.strictEqual(manager.state.storySummaries.length, 2);
+      const keys = manager.state.storySummaries.map((s) => s.key).sort();
+      assert.deepStrictEqual(keys, ['1-1-first-story', '1-2-second-story']);
+
+      // Verify lightweight fields are present
+      const summary = manager.state.storySummaries.find((s) => s.key === '1-1-first-story');
+      assert.ok(summary);
+      assert.strictEqual(summary.title, 'First Story');
+      assert.strictEqual(summary.epicNumber, 1);
+      assert.strictEqual(summary.storyNumber, 1);
+      assert.strictEqual(summary.totalTasks, 2);
+      assert.ok(typeof summary.completedTasks === 'number');
+      assert.ok(typeof summary.filePath === 'string');
+      manager.dispose();
+    });
+
+    test('storySummaries is empty when no stories exist', async () => {
+      const paths = createMockPaths();
+      mockDetector.getBmadPaths.returns(paths);
+
+      const manager = createTestableManager(
+        createReadFileMock({
+          'sprint-status.yaml': createSprintStatusYaml(),
+          'epics.md': '',
+        }),
+        createReadDirMock([['sprint-status.yaml', vscode.FileType.File]])
+      );
+      await manager.initialize();
+
+      assert.deepStrictEqual(manager.state.storySummaries, []);
+      manager.dispose();
+    });
+  });
 });

@@ -3,6 +3,7 @@ import type { DetectionResult } from '../services/bmad-detector';
 import type { StateManager } from '../services/state-manager';
 import { createStateUpdateMessage } from '../../shared/messages';
 import { handleWebviewMessage } from './message-handler';
+import { EditorPanelProvider } from './editor-panel-provider';
 import { getNonce } from './webview-utils';
 
 /**
@@ -40,7 +41,14 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
     // Handle messages from the webview
     webviewView.webview.onDidReceiveMessage(
       (message: unknown) => {
-        handleWebviewMessage(message, this.stateManager);
+        handleWebviewMessage(message, this.stateManager, {
+          onNavigateEditorPanel: (view, params) => {
+            if (this.stateManager) {
+              EditorPanelProvider.createOrShow(this.extensionUri, this.stateManager);
+              EditorPanelProvider.postNavigateToView(view, params);
+            }
+          },
+        });
       },
       undefined,
       this.disposables

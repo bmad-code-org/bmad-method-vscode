@@ -30,11 +30,10 @@ describe('NavigationShell', () => {
     expect(screen.getByTestId('editor-dashboard')).toBeInTheDocument();
   });
 
-  it('renders placeholder view for non-dashboard routes', () => {
+  it('renders epics view for epics route', () => {
     useEditorPanelStore.getState().navigateTo({ view: 'epics' });
     render(<NavigationShell />);
-    expect(screen.getByTestId('placeholder-view')).toBeInTheDocument();
-    expect(screen.getByText('Coming in Story 5.6')).toBeInTheDocument();
+    expect(screen.getByTestId('epics-view-empty')).toBeInTheDocument();
   });
 
   it('renders placeholder view for stories route', () => {

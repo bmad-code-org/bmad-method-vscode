@@ -79,6 +79,7 @@ describe('useEditorPanelStore', () => {
           hasReadinessReport: false,
         },
         defaultClickBehavior: 'markdown-preview',
+        storySummaries: [],
       };
 
       useEditorPanelStore.getState().updateState(newState);
@@ -119,6 +120,7 @@ describe('useEditorPanelStore', () => {
           hasReadinessReport: false,
         },
         defaultClickBehavior: 'markdown-preview',
+        storySummaries: [],
       };
 
       const secondState: DashboardState = {
@@ -138,6 +140,7 @@ describe('useEditorPanelStore', () => {
           hasReadinessReport: false,
         },
         defaultClickBehavior: 'markdown-preview',
+        storySummaries: [],
       };
 
       useEditorPanelStore.getState().updateState(firstState);

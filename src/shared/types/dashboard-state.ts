@@ -3,7 +3,7 @@
 
 import type { SprintStatus } from './sprint-status';
 import type { Epic } from './epic';
-import type { Story } from './story';
+import type { Story, StorySummary } from './story';
 import type { ParseError } from './parse-result';
 import type { AvailableWorkflow } from './workflow';
 import type { BmadMetadata } from './bmad-metadata';
@@ -45,6 +45,8 @@ export interface DashboardState {
   planningArtifacts: PlanningArtifacts;
   /** Default click behavior for document links: 'markdown-preview' or 'editor-panel' */
   defaultClickBehavior: 'markdown-preview' | 'editor-panel';
+  /** Lightweight story summaries for all parsed stories */
+  storySummaries: StorySummary[];
 }
 
 /**
@@ -68,5 +70,6 @@ export function createInitialDashboardState(): DashboardState {
       hasReadinessReport: false,
     },
     defaultClickBehavior: 'markdown-preview',
+    storySummaries: [],
   };
 }

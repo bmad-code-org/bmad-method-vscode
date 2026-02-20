@@ -26,6 +26,7 @@ export const useDashboardStore = create<DashboardStore>()((set) => ({
       bmadMetadata: state.bmadMetadata,
       planningArtifacts: state.planningArtifacts,
       defaultClickBehavior: state.defaultClickBehavior,
+      storySummaries: state.storySummaries,
     }),
 
   setLoading: (loading: boolean) => set({ loading }),
@@ -46,3 +47,5 @@ export const useOutputRoot = () => useDashboardStore((s) => s.outputRoot);
 export const useWorkflows = () => useDashboardStore((s) => s.workflows);
 export const useBmadMetadata = () => useDashboardStore((s) => s.bmadMetadata);
 export const usePlanningArtifacts = () => useDashboardStore((s) => s.planningArtifacts);
+export const useStorySummaries = () => useDashboardStore((s) => s.storySummaries);
+export const useDefaultClickBehavior = () => useDashboardStore((s) => s.defaultClickBehavior);

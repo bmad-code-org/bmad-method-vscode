@@ -69,6 +69,7 @@ describe('useDashboardStore', () => {
           hasReadinessReport: false,
         },
         defaultClickBehavior: 'markdown-preview',
+        storySummaries: [],
       };
 
       useDashboardStore.getState().updateState(newState);
@@ -111,6 +112,7 @@ describe('useDashboardStore', () => {
           hasReadinessReport: false,
         },
         defaultClickBehavior: 'markdown-preview',
+        storySummaries: [],
       };
 
       const secondState: DashboardState = {
@@ -130,6 +132,7 @@ describe('useDashboardStore', () => {
           hasReadinessReport: false,
         },
         defaultClickBehavior: 'markdown-preview',
+        storySummaries: [],
       };
 
       useDashboardStore.getState().updateState(firstState);
@@ -295,6 +298,7 @@ describe('useDashboardStore', () => {
           hasReadinessReport: false,
         },
         defaultClickBehavior: 'markdown-preview',
+        storySummaries: [],
       };
 
       useDashboardStore.getState().updateState(stateWithoutWorkflows);
