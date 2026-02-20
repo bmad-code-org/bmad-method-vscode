@@ -190,4 +190,101 @@ describe('useMessageHandler (editor panel)', () => {
     const state = useEditorPanelStore.getState();
     expect(state.currentRoute).toEqual({ view: 'epics', params: { epicId: '5' } });
   });
+
+  it('handles FILE_TREE message by setting file tree in store', () => {
+    renderHook(() => useMessageHandler());
+
+    const roots = [
+      {
+        name: 'docs',
+        path: 'docs',
+        type: 'directory' as const,
+        children: [{ name: 'readme.md', path: 'docs/readme.md', type: 'file' as const }],
+      },
+    ];
+
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          type: ToWebviewType.FILE_TREE,
+          payload: { roots },
+        },
+      })
+    );
+
+    const state = useEditorPanelStore.getState();
+    expect(state.fileTree).toHaveLength(1);
+    expect(state.fileTree![0].name).toBe('docs');
+    expect(state.fileTreeLoading).toBe(false);
+  });
+
+  it('routes DOCUMENT_CONTENT to selectedDoc when selectedDocLoading is true', () => {
+    // Set selectedDocLoading to simulate docs view waiting for content
+    useEditorPanelStore.setState({ selectedDocLoading: true });
+
+    renderHook(() => useMessageHandler());
+
+    // Clear any mock calls from setup
+    vi.mocked(parseStoryContent).mockClear();
+
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          type: ToWebviewType.DOCUMENT_CONTENT,
+          payload: {
+            path: 'docs/architecture.md',
+            content: '# Architecture\n\nThis is the architecture doc.',
+            frontmatter: null,
+          },
+        },
+      })
+    );
+
+    const state = useEditorPanelStore.getState();
+    expect(state.selectedDocPath).toBe('docs/architecture.md');
+    expect(state.selectedDocContent).toBe('# Architecture\n\nThis is the architecture doc.');
+    expect(state.selectedDocLoading).toBe(false);
+    // parseStoryContent should NOT have been called for this message
+    expect(parseStoryContent).not.toHaveBeenCalled();
+  });
+
+  it('routes DOCUMENT_CONTENT to storyDetail when selectedDocLoading is false', () => {
+    const mockStory: Story = {
+      key: '1-1-test',
+      epicNumber: 1,
+      storyNumber: 1,
+      title: 'Test',
+      userStory: 'As a user...',
+      acceptanceCriteria: [],
+      tasks: [],
+      filePath: 'stories/1-1-test.md',
+      status: 'in-progress',
+      totalTasks: 0,
+      completedTasks: 0,
+      totalSubtasks: 0,
+      completedSubtasks: 0,
+    };
+
+    vi.mocked(parseStoryContent).mockReturnValue(mockStory);
+
+    // selectedDocLoading is false (default)
+    renderHook(() => useMessageHandler());
+
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          type: ToWebviewType.DOCUMENT_CONTENT,
+          payload: {
+            path: 'stories/1-1-test.md',
+            content: '# Story 1.1: Test',
+            frontmatter: null,
+          },
+        },
+      })
+    );
+
+    const state = useEditorPanelStore.getState();
+    expect(state.storyDetail).toEqual(mockStory);
+    expect(state.selectedDocPath).toBeNull(); // doc state untouched
+  });
 });

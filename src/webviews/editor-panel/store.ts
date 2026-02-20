@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { DashboardState, Story } from '@shared/types';
+import type { DashboardState, Story, FileTreeNode } from '@shared/types';
 import { createInitialDashboardState } from '@shared/types';
 import type { ViewRoute, BreadcrumbItem } from './types';
 
@@ -77,6 +77,21 @@ function buildBreadcrumbs(
         route: { view: 'stories', params: { storyKey: params.storyKey } },
       });
     }
+  } else if (route.view === 'docs') {
+    crumbs.push({
+      label: 'Docs',
+      route: { view: 'docs' },
+    });
+
+    if (params?.filePath) {
+      // Extract filename from path
+      const parts = params.filePath.split('/');
+      const fileName = parts[parts.length - 1] || params.filePath;
+      crumbs.push({
+        label: fileName,
+        route: { view: 'docs', params: { filePath: params.filePath } },
+      });
+    }
   } else {
     crumbs.push({
       label: VIEW_LABELS[route.view] ?? route.view,
@@ -92,13 +107,22 @@ interface StoryDetailState {
   storyDetailLoading: boolean;
 }
 
+interface DocumentLibraryState {
+  fileTree: FileTreeNode[] | null;
+  fileTreeLoading: boolean;
+  selectedDocPath: string | null;
+  selectedDocContent: string | null;
+  selectedDocLoading: boolean;
+}
+
 interface NavigationState {
   currentRoute: ViewRoute;
   breadcrumbs: BreadcrumbItem[];
   navigationHistory: ViewRoute[];
 }
 
-interface EditorPanelStore extends DashboardState, NavigationState, StoryDetailState {
+interface EditorPanelStore
+  extends DashboardState, NavigationState, StoryDetailState, DocumentLibraryState {
   updateState: (state: DashboardState) => void;
   setLoading: (loading: boolean) => void;
   setError: (message: string) => void;
@@ -108,11 +132,17 @@ interface EditorPanelStore extends DashboardState, NavigationState, StoryDetailS
   setStoryDetail: (story: Story) => void;
   setStoryDetailLoading: (loading: boolean) => void;
   clearStoryDetail: () => void;
+  setFileTree: (roots: FileTreeNode[]) => void;
+  setFileTreeLoading: (loading: boolean) => void;
+  setSelectedDoc: (path: string, content: string) => void;
+  setSelectedDocLoading: (loading: boolean) => void;
+  clearSelectedDoc: () => void;
 }
 
 export function createInitialEditorPanelState(): DashboardState &
   NavigationState &
-  StoryDetailState {
+  StoryDetailState &
+  DocumentLibraryState {
   return {
     ...createInitialDashboardState(),
     currentRoute: { view: 'dashboard' },
@@ -120,6 +150,11 @@ export function createInitialEditorPanelState(): DashboardState &
     navigationHistory: [],
     storyDetail: null,
     storyDetailLoading: false,
+    fileTree: null,
+    fileTreeLoading: false,
+    selectedDocPath: null,
+    selectedDocContent: null,
+    selectedDocLoading: false,
   };
 }
 
@@ -198,6 +233,18 @@ export const useEditorPanelStore = create<EditorPanelStore>()((set) => ({
   setStoryDetailLoading: (loading: boolean) => set({ storyDetailLoading: loading }),
 
   clearStoryDetail: () => set({ storyDetail: null, storyDetailLoading: false }),
+
+  setFileTree: (roots: FileTreeNode[]) => set({ fileTree: roots, fileTreeLoading: false }),
+
+  setFileTreeLoading: (loading: boolean) => set({ fileTreeLoading: loading }),
+
+  setSelectedDoc: (path: string, content: string) =>
+    set({ selectedDocPath: path, selectedDocContent: content, selectedDocLoading: false }),
+
+  setSelectedDocLoading: (loading: boolean) => set({ selectedDocLoading: loading }),
+
+  clearSelectedDoc: () =>
+    set({ selectedDocPath: null, selectedDocContent: null, selectedDocLoading: false }),
 }));
 
 // Selector hooks for individual state slices
@@ -213,6 +260,13 @@ export const usePlanningArtifacts = () => useEditorPanelStore((s) => s.planningA
 export const useStorySummaries = () => useEditorPanelStore((s) => s.storySummaries);
 export const useStoryDetail = () => useEditorPanelStore((s) => s.storyDetail);
 export const useStoryDetailLoading = () => useEditorPanelStore((s) => s.storyDetailLoading);
+
+// Document library selector hooks
+export const useFileTree = () => useEditorPanelStore((s) => s.fileTree);
+export const useFileTreeLoading = () => useEditorPanelStore((s) => s.fileTreeLoading);
+export const useSelectedDocPath = () => useEditorPanelStore((s) => s.selectedDocPath);
+export const useSelectedDocContent = () => useEditorPanelStore((s) => s.selectedDocContent);
+export const useSelectedDocLoading = () => useEditorPanelStore((s) => s.selectedDocLoading);
 
 // Navigation selector hooks
 export const useCurrentRoute = () => useEditorPanelStore((s) => s.currentRoute);

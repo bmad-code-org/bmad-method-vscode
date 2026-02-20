@@ -43,6 +43,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^7.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.6",
     "@tailwindcss/vite": "^4.1.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -70,10 +74,6 @@
     "mocha": "^11.7.5",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/exec": "^7.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^12.0.6",
     "semantic-release": "^25.0.3",
     "sinon": "^21.0.1",
     "tailwindcss": "^4.1.0",
@@ -89,6 +89,9 @@
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.0"
   },
@@ -150,6 +153,18 @@
           ],
           "default": "markdown-preview",
           "description": "Default click behavior for document links in the sidebar. 'markdown-preview' opens files normally; 'editor-panel' opens the editor panel at the relevant view."
+        },
+        "bmad.docLibraryPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "planning-artifacts",
+            "implementation-artifacts",
+            "docs"
+          ],
+          "description": "Folders to display in the Document Library. 'planning-artifacts' and 'implementation-artifacts' are resolved relative to the configured outputRoot. Other paths (e.g. 'docs') are resolved relative to workspace root. Add custom folder paths as needed."
         }
       }
     }

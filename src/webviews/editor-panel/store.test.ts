@@ -15,6 +15,11 @@ import {
   useCurrentRoute,
   useBreadcrumbs,
   useCanGoBack,
+  useFileTree,
+  useFileTreeLoading,
+  useSelectedDocPath,
+  useSelectedDocContent,
+  useSelectedDocLoading,
 } from './store';
 import { createInitialDashboardState } from '@shared/types';
 import type { DashboardState } from '@shared/types';
@@ -471,6 +476,125 @@ describe('useEditorPanelStore', () => {
       useEditorPanelStore.getState().navigateTo({ view: 'epics' });
       const { result } = renderHook(() => useCanGoBack());
       expect(result.current).toBe(true);
+    });
+  });
+
+  describe('document library state', () => {
+    it('initializes with null/false defaults', () => {
+      const state = useEditorPanelStore.getState();
+      expect(state.fileTree).toBeNull();
+      expect(state.fileTreeLoading).toBe(false);
+      expect(state.selectedDocPath).toBeNull();
+      expect(state.selectedDocContent).toBeNull();
+      expect(state.selectedDocLoading).toBe(false);
+    });
+
+    it('setFileTree stores roots and clears loading', () => {
+      useEditorPanelStore.getState().setFileTreeLoading(true);
+      useEditorPanelStore
+        .getState()
+        .setFileTree([{ name: 'docs', path: 'docs', type: 'directory', children: [] }]);
+
+      const state = useEditorPanelStore.getState();
+      expect(state.fileTree).toHaveLength(1);
+      expect(state.fileTree![0].name).toBe('docs');
+      expect(state.fileTreeLoading).toBe(false);
+    });
+
+    it('setFileTreeLoading toggles loading state', () => {
+      useEditorPanelStore.getState().setFileTreeLoading(true);
+      expect(useEditorPanelStore.getState().fileTreeLoading).toBe(true);
+
+      useEditorPanelStore.getState().setFileTreeLoading(false);
+      expect(useEditorPanelStore.getState().fileTreeLoading).toBe(false);
+    });
+
+    it('setSelectedDoc stores path and content, clears loading', () => {
+      useEditorPanelStore.getState().setSelectedDocLoading(true);
+      useEditorPanelStore.getState().setSelectedDoc('docs/readme.md', '# Hello');
+
+      const state = useEditorPanelStore.getState();
+      expect(state.selectedDocPath).toBe('docs/readme.md');
+      expect(state.selectedDocContent).toBe('# Hello');
+      expect(state.selectedDocLoading).toBe(false);
+    });
+
+    it('setSelectedDocLoading toggles loading state', () => {
+      useEditorPanelStore.getState().setSelectedDocLoading(true);
+      expect(useEditorPanelStore.getState().selectedDocLoading).toBe(true);
+    });
+
+    it('clearSelectedDoc resets doc state', () => {
+      useEditorPanelStore.getState().setSelectedDoc('docs/readme.md', '# Hello');
+      useEditorPanelStore.getState().clearSelectedDoc();
+
+      const state = useEditorPanelStore.getState();
+      expect(state.selectedDocPath).toBeNull();
+      expect(state.selectedDocContent).toBeNull();
+      expect(state.selectedDocLoading).toBe(false);
+    });
+  });
+
+  describe('document library selector hooks', () => {
+    it('useFileTree returns fileTree slice', () => {
+      const { result } = renderHook(() => useFileTree());
+      expect(result.current).toBeNull();
+    });
+
+    it('useFileTreeLoading returns fileTreeLoading slice', () => {
+      const { result } = renderHook(() => useFileTreeLoading());
+      expect(result.current).toBe(false);
+    });
+
+    it('useSelectedDocPath returns selectedDocPath slice', () => {
+      const { result } = renderHook(() => useSelectedDocPath());
+      expect(result.current).toBeNull();
+    });
+
+    it('useSelectedDocContent returns selectedDocContent slice', () => {
+      const { result } = renderHook(() => useSelectedDocContent());
+      expect(result.current).toBeNull();
+    });
+
+    it('useSelectedDocLoading returns selectedDocLoading slice', () => {
+      const { result } = renderHook(() => useSelectedDocLoading());
+      expect(result.current).toBe(false);
+    });
+  });
+
+  describe('buildBreadcrumbs for docs view', () => {
+    it('generates Dashboard / Docs breadcrumbs', () => {
+      useEditorPanelStore.getState().navigateTo({ view: 'docs' });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.breadcrumbs).toHaveLength(2);
+      expect(state.breadcrumbs[0]).toEqual({ label: 'Dashboard', route: { view: 'dashboard' } });
+      expect(state.breadcrumbs[1]).toEqual({ label: 'Docs', route: { view: 'docs' } });
+    });
+
+    it('generates Dashboard / Docs / filename.md with filePath param', () => {
+      useEditorPanelStore
+        .getState()
+        .navigateTo({ view: 'docs', params: { filePath: 'docs/architecture.md' } });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.breadcrumbs).toHaveLength(3);
+      expect(state.breadcrumbs[0]).toEqual({ label: 'Dashboard', route: { view: 'dashboard' } });
+      expect(state.breadcrumbs[1]).toEqual({ label: 'Docs', route: { view: 'docs' } });
+      expect(state.breadcrumbs[2]).toEqual({
+        label: 'architecture.md',
+        route: { view: 'docs', params: { filePath: 'docs/architecture.md' } },
+      });
+    });
+
+    it('extracts filename from nested path', () => {
+      useEditorPanelStore.getState().navigateTo({
+        view: 'docs',
+        params: { filePath: '_bmad-output/planning-artifacts/prd.md' },
+      });
+
+      const state = useEditorPanelStore.getState();
+      expect(state.breadcrumbs[2].label).toBe('prd.md');
     });
   });
 });

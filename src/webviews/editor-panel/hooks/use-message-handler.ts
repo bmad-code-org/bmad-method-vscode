@@ -11,6 +11,8 @@ export function useMessageHandler(): void {
   const setStoryDetail = useEditorPanelStore((s) => s.setStoryDetail);
   const setStoryDetailLoading = useEditorPanelStore((s) => s.setStoryDetailLoading);
   const navigateTo = useEditorPanelStore((s) => s.navigateTo);
+  const setFileTree = useEditorPanelStore((s) => s.setFileTree);
+  const setSelectedDoc = useEditorPanelStore((s) => s.setSelectedDoc);
 
   useEffect(() => {
     const handler = (event: MessageEvent<ToWebview>) => {
@@ -20,14 +22,23 @@ export function useMessageHandler(): void {
           updateState(message.payload);
           break;
         case ToWebviewType.DOCUMENT_CONTENT: {
-          const story = parseStoryContent(message.payload.content, message.payload.path);
-          if (story) {
-            setStoryDetail(story);
+          // Route to docs view if selectedDocLoading, otherwise to story detail
+          const state = useEditorPanelStore.getState();
+          if (state.selectedDocLoading) {
+            setSelectedDoc(message.payload.path, message.payload.content);
           } else {
-            setStoryDetailLoading(false);
+            const story = parseStoryContent(message.payload.content, message.payload.path);
+            if (story) {
+              setStoryDetail(story);
+            } else {
+              setStoryDetailLoading(false);
+            }
           }
           break;
         }
+        case ToWebviewType.FILE_TREE:
+          setFileTree(message.payload.roots);
+          break;
         case ToWebviewType.NAVIGATE_TO_VIEW:
           navigateTo({
             view: message.payload.view as ViewType,
@@ -44,5 +55,13 @@ export function useMessageHandler(): void {
 
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [updateState, setError, setStoryDetail, setStoryDetailLoading, navigateTo]);
+  }, [
+    updateState,
+    setError,
+    setStoryDetail,
+    setStoryDetailLoading,
+    navigateTo,
+    setFileTree,
+    setSelectedDoc,
+  ]);
 }

@@ -1,12 +1,9 @@
 import React from 'react';
-import type { ViewType } from '../types';
 
-const COMING_SOON_MAP: Partial<Record<ViewType, string>> = {
-  docs: 'Coming in Story 5.8',
-};
+const COMING_SOON_MAP: Record<string, string> = {};
 
 interface PlaceholderViewProps {
-  view: ViewType;
+  view: string;
 }
 
 export function PlaceholderView({ view }: PlaceholderViewProps): React.ReactElement {

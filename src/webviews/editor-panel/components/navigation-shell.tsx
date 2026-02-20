@@ -7,6 +7,7 @@ import { EpicDetailView } from '../views/epic-detail-view';
 import { StoryDetailView } from '../views/story-detail-view';
 import { StoriesView } from '../views/stories-view';
 import { PlaceholderView } from '../views/placeholder-view';
+import { DocsView } from '../views/docs-view';
 
 function renderView(view: string, params?: Record<string, string>): React.ReactElement {
   switch (view) {
@@ -19,8 +20,10 @@ function renderView(view: string, params?: Record<string, string>): React.ReactE
     case 'stories':
       if (params?.storyKey) return <StoryDetailView />;
       return <StoriesView />;
+    case 'docs':
+      return <DocsView />;
     default:
-      return <PlaceholderView view={view as 'docs'} />;
+      return <PlaceholderView view={view} />;
   }
 }
 

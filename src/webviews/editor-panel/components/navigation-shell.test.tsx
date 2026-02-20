@@ -54,11 +54,10 @@ describe('NavigationShell', () => {
     expect(screen.getByTestId('story-detail-error')).toBeInTheDocument();
   });
 
-  it('renders placeholder view for docs route', () => {
+  it('renders DocsView for docs route', () => {
     useEditorPanelStore.getState().navigateTo({ view: 'docs' });
     render(<NavigationShell />);
-    expect(screen.getByTestId('placeholder-view')).toBeInTheDocument();
-    expect(screen.getByText('Coming in Story 5.8')).toBeInTheDocument();
+    expect(screen.getByTestId('docs-view')).toBeInTheDocument();
   });
 
   it('switches back to dashboard view when navigating back', () => {

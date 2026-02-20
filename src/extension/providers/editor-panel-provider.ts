@@ -4,9 +4,11 @@ import type { StateManager } from '../services/state-manager';
 import {
   createStateUpdateMessage,
   createDocumentContentMessage,
+  createFileTreeMessage,
   createNavigateToViewMessage,
   ToExtensionType,
 } from '../../shared/messages';
+import { FileTreeScanner } from '../services/file-tree-scanner';
 import { handleWebviewMessage } from './message-handler';
 import { getNonce } from './webview-utils';
 
@@ -117,6 +119,12 @@ export class EditorPanelProvider implements vscode.Disposable {
       }
       return true;
     }
+
+    if (msg.type === ToExtensionType.REQUEST_FILE_TREE) {
+      void this.scanAndSendFileTree();
+      return true;
+    }
+
     return false;
   }
 
@@ -145,6 +153,15 @@ export class EditorPanelProvider implements vscode.Disposable {
       // File not found or unreadable — send empty content so loading stops
       void this.panel.webview.postMessage(createDocumentContentMessage(relativePath, ''));
     }
+  }
+
+  /**
+   * Scan document library directories and send the file tree to the webview.
+   */
+  private async scanAndSendFileTree(): Promise<void> {
+    const scanner = new FileTreeScanner();
+    const roots = await scanner.scan();
+    void this.panel.webview.postMessage(createFileTreeMessage(roots));
   }
 
   public dispose(): void {

@@ -3,6 +3,7 @@
 // All message types use SCREAMING_SNAKE_CASE naming convention
 
 import type { DashboardState } from './types/dashboard-state';
+import type { FileTreeNode } from './types/file-tree';
 
 // ============================================================================
 // Message Type Constants
@@ -16,6 +17,7 @@ export const ToWebviewType = {
   DOCUMENT_CONTENT: 'DOCUMENT_CONTENT',
   ERROR: 'ERROR',
   NAVIGATE_TO_VIEW: 'NAVIGATE_TO_VIEW',
+  FILE_TREE: 'FILE_TREE',
 } as const;
 
 /**
@@ -28,6 +30,7 @@ export const ToExtensionType = {
   REFRESH: 'REFRESH',
   REQUEST_DOCUMENT_CONTENT: 'REQUEST_DOCUMENT_CONTENT',
   NAVIGATE_EDITOR_PANEL: 'NAVIGATE_EDITOR_PANEL',
+  REQUEST_FILE_TREE: 'REQUEST_FILE_TREE',
 } as const;
 
 // ============================================================================
@@ -84,13 +87,24 @@ export interface NavigateToViewMessage {
 }
 
 /**
+ * File tree message - sends document library file tree to webview
+ */
+export interface FileTreeMessage {
+  type: typeof ToWebviewType.FILE_TREE;
+  payload: {
+    roots: FileTreeNode[];
+  };
+}
+
+/**
  * Discriminated union of all messages from Extension to Webview
  */
 export type ToWebview =
   | StateUpdateMessage
   | DocumentContentMessage
   | ErrorMessage
-  | NavigateToViewMessage;
+  | NavigateToViewMessage
+  | FileTreeMessage;
 
 // ============================================================================
 // Webview -> Extension Messages (ToExtension)
@@ -163,6 +177,13 @@ export interface NavigateEditorPanelMessage {
 }
 
 /**
+ * Request file tree message - requests the document library file tree
+ */
+export interface RequestFileTreeMessage {
+  type: typeof ToExtensionType.REQUEST_FILE_TREE;
+}
+
+/**
  * Discriminated union of all messages from Webview to Extension
  */
 export type ToExtension =
@@ -171,7 +192,8 @@ export type ToExtension =
   | CopyCommandMessage
   | RefreshMessage
   | RequestDocumentContentMessage
-  | NavigateEditorPanelMessage;
+  | NavigateEditorPanelMessage
+  | RequestFileTreeMessage;
 
 // ============================================================================
 // Type Guards for Message Type Narrowing
@@ -249,10 +271,24 @@ export function isNavigateEditorPanelMessage(
 }
 
 /**
+ * Type guard for REQUEST_FILE_TREE messages
+ */
+export function isRequestFileTreeMessage(message: ToExtension): message is RequestFileTreeMessage {
+  return message.type === ToExtensionType.REQUEST_FILE_TREE;
+}
+
+/**
  * Type guard for NAVIGATE_TO_VIEW messages
  */
 export function isNavigateToViewMessage(message: ToWebview): message is NavigateToViewMessage {
   return message.type === ToWebviewType.NAVIGATE_TO_VIEW;
+}
+
+/**
+ * Type guard for FILE_TREE messages
+ */
+export function isFileTreeMessage(message: ToWebview): message is FileTreeMessage {
+  return message.type === ToWebviewType.FILE_TREE;
 }
 
 // ============================================================================
@@ -340,4 +376,18 @@ export function createNavigateToViewMessage(
   params?: Record<string, string>
 ): NavigateToViewMessage {
   return { type: ToWebviewType.NAVIGATE_TO_VIEW, payload: { view, params } };
+}
+
+/**
+ * Create a FILE_TREE message
+ */
+export function createFileTreeMessage(roots: FileTreeNode[]): FileTreeMessage {
+  return { type: ToWebviewType.FILE_TREE, payload: { roots } };
+}
+
+/**
+ * Create a REQUEST_FILE_TREE message
+ */
+export function createRequestFileTreeMessage(): RequestFileTreeMessage {
+  return { type: ToExtensionType.REQUEST_FILE_TREE };
 }

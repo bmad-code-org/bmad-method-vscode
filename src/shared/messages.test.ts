@@ -15,6 +15,8 @@ import {
   isRequestDocumentContentMessage,
   isNavigateEditorPanelMessage,
   isNavigateToViewMessage,
+  isFileTreeMessage,
+  isRequestFileTreeMessage,
   // Factory functions
   createStateUpdateMessage,
   createDocumentContentMessage,
@@ -26,8 +28,11 @@ import {
   createRequestDocumentContentMessage,
   createNavigateEditorPanelMessage,
   createNavigateToViewMessage,
+  createFileTreeMessage,
+  createRequestFileTreeMessage,
 } from './messages';
 import type { DashboardState } from './types/dashboard-state';
+import type { FileTreeNode } from './types/file-tree';
 
 describe('Message Type Constants', () => {
   describe('ToWebviewType', () => {
@@ -36,6 +41,7 @@ describe('Message Type Constants', () => {
       expect(ToWebviewType.DOCUMENT_CONTENT).toBe('DOCUMENT_CONTENT');
       expect(ToWebviewType.ERROR).toBe('ERROR');
       expect(ToWebviewType.NAVIGATE_TO_VIEW).toBe('NAVIGATE_TO_VIEW');
+      expect(ToWebviewType.FILE_TREE).toBe('FILE_TREE');
     });
   });
 
@@ -47,6 +53,7 @@ describe('Message Type Constants', () => {
       expect(ToExtensionType.REFRESH).toBe('REFRESH');
       expect(ToExtensionType.REQUEST_DOCUMENT_CONTENT).toBe('REQUEST_DOCUMENT_CONTENT');
       expect(ToExtensionType.NAVIGATE_EDITOR_PANEL).toBe('NAVIGATE_EDITOR_PANEL');
+      expect(ToExtensionType.REQUEST_FILE_TREE).toBe('REQUEST_FILE_TREE');
     });
   });
 });
@@ -333,6 +340,60 @@ describe('ToWebview type guards (new)', () => {
       }
     });
   });
+
+  describe('isFileTreeMessage', () => {
+    it('returns true for FILE_TREE messages', () => {
+      const message: ToWebview = {
+        type: ToWebviewType.FILE_TREE,
+        payload: { roots: [] },
+      };
+      expect(isFileTreeMessage(message)).toBe(true);
+    });
+
+    it('returns false for other message types', () => {
+      const message: ToWebview = {
+        type: ToWebviewType.ERROR,
+        payload: { message: 'err', recoverable: true },
+      };
+      expect(isFileTreeMessage(message)).toBe(false);
+    });
+
+    it('narrows type correctly', () => {
+      const roots: FileTreeNode[] = [
+        {
+          name: 'docs',
+          path: 'docs',
+          type: 'directory',
+          children: [{ name: 'readme.md', path: 'docs/readme.md', type: 'file' }],
+        },
+      ];
+      const message: ToWebview = {
+        type: ToWebviewType.FILE_TREE,
+        payload: { roots },
+      };
+      if (isFileTreeMessage(message)) {
+        expect(message.payload.roots).toHaveLength(1);
+        expect(message.payload.roots[0].name).toBe('docs');
+        expect(message.payload.roots[0].children).toHaveLength(1);
+      }
+    });
+  });
+});
+
+describe('ToExtension type guards (file tree)', () => {
+  describe('isRequestFileTreeMessage', () => {
+    it('returns true for REQUEST_FILE_TREE messages', () => {
+      const message: ToExtension = {
+        type: ToExtensionType.REQUEST_FILE_TREE,
+      };
+      expect(isRequestFileTreeMessage(message)).toBe(true);
+    });
+
+    it('returns false for other message types', () => {
+      const message: ToExtension = { type: ToExtensionType.REFRESH };
+      expect(isRequestFileTreeMessage(message)).toBe(false);
+    });
+  });
 });
 
 describe('Message factory functions', () => {
@@ -470,6 +531,30 @@ describe('Message factory functions', () => {
       expect(message.payload.params).toEqual({ epicId: '5', storyKey: '5-1-setup' });
     });
   });
+
+  describe('createFileTreeMessage', () => {
+    it('creates a FILE_TREE message with roots', () => {
+      const roots: FileTreeNode[] = [
+        { name: 'docs', path: 'docs', type: 'directory', children: [] },
+      ];
+      const message = createFileTreeMessage(roots);
+      expect(message.type).toBe('FILE_TREE');
+      expect(message.payload.roots).toBe(roots);
+    });
+
+    it('creates a FILE_TREE message with empty roots', () => {
+      const message = createFileTreeMessage([]);
+      expect(message.type).toBe('FILE_TREE');
+      expect(message.payload.roots).toEqual([]);
+    });
+  });
+
+  describe('createRequestFileTreeMessage', () => {
+    it('creates a REQUEST_FILE_TREE message', () => {
+      const message = createRequestFileTreeMessage();
+      expect(message.type).toBe('REQUEST_FILE_TREE');
+    });
+  });
 });
 
 describe('Discriminated union type narrowing', () => {
@@ -504,6 +589,8 @@ describe('Discriminated union type narrowing', () => {
           return `Error: ${message.payload.message}`;
         case 'NAVIGATE_TO_VIEW':
           return `Navigate: ${message.payload.view}`;
+        case 'FILE_TREE':
+          return `FileTree: ${message.payload.roots.length} roots`;
       }
     }
 
@@ -536,6 +623,8 @@ describe('Discriminated union type narrowing', () => {
           return `Request: ${message.payload.path}`;
         case 'NAVIGATE_EDITOR_PANEL':
           return `Navigate: ${message.payload.view}`;
+        case 'REQUEST_FILE_TREE':
+          return 'RequestFileTree';
       }
     }
 

@@ -46,6 +46,7 @@ export function handleWebviewMessage(
       }
       break;
     case ToExtensionType.REQUEST_DOCUMENT_CONTENT:
+    case ToExtensionType.REQUEST_FILE_TREE:
       // Handled locally by EditorPanelProvider, not here
       break;
   }
