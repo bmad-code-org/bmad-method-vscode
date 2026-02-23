@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/elvince/bmad-dashboard-extension/compare/v1.2.1...v1.2.2) (2026-02-23)
+
+
+### Bug Fixes
+
+* next action optional retro is no more proposed if the epic is done ([1afc482](https://github.com/elvince/bmad-dashboard-extension/commit/1afc482e9377100f09311d155d6dd732863b7885))
+
 ## [1.2.1](https://github.com/elvince/bmad-dashboard-extension/compare/v1.2.0...v1.2.1) (2026-02-20)
 
 
