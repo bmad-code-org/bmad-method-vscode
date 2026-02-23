@@ -5,6 +5,7 @@ import { useVSCodeApi } from '../../shared/hooks';
 import { createExecuteWorkflowMessage, createCopyCommandMessage } from '@shared/messages';
 import { getNextAction } from '../utils/get-next-action';
 import type { NextAction } from '../utils/get-next-action';
+import { buildCommandWithStory } from '../utils/build-command-with-story';
 
 const actionIcons: Record<NextAction['type'], string> = {
   'create-prd': '📄',
@@ -65,16 +66,19 @@ export function NextActionRecommendation({
   const action = getNextAction(sprint, currentStory, planningArtifacts);
   const icon = actionIcons[action.type];
   const primaryWorkflow = workflows.find((w) => w.kind === 'primary');
+  const command = primaryWorkflow
+    ? buildCommandWithStory(primaryWorkflow.command, currentStory, primaryWorkflow.id)
+    : '';
 
   const handleExecute = () => {
     if (primaryWorkflow) {
-      vscodeApi.postMessage(createExecuteWorkflowMessage(primaryWorkflow.command));
+      vscodeApi.postMessage(createExecuteWorkflowMessage(command));
     }
   };
 
   const handleCopy = () => {
     if (primaryWorkflow) {
-      vscodeApi.postMessage(createCopyCommandMessage(primaryWorkflow.command));
+      vscodeApi.postMessage(createCopyCommandMessage(command));
     }
   };
 
@@ -109,7 +113,7 @@ export function NextActionRecommendation({
               type="button"
               data-testid="next-action-copy"
               onClick={handleCopy}
-              title={`Copy: ${primaryWorkflow.command}`}
+              title={`Copy: ${command}`}
               aria-label={`Copy ${primaryWorkflow.name} command`}
               className={actionButtonClass}
             >

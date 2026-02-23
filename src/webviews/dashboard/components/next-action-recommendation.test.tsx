@@ -204,25 +204,25 @@ describe('NextActionRecommendation', () => {
     expect(screen.getByTestId('next-action-label')).toHaveTextContent('Retrospective');
   });
 
-  test('play button renders and sends EXECUTE_WORKFLOW message with correct command', () => {
+  test('play button renders and sends EXECUTE_WORKFLOW message with story ref', () => {
     render(<NextActionRecommendation />);
     const playButton = screen.getByTestId('next-action-execute');
     expect(playButton).toBeInTheDocument();
     fireEvent.click(playButton);
     expect(mockPostMessage).toHaveBeenCalledWith({
       type: 'EXECUTE_WORKFLOW',
-      payload: { command: '/bmad-bmm-dev-story' },
+      payload: { command: '/bmad-bmm-dev-story story 3.5' },
     });
   });
 
-  test('copy button renders and sends COPY_COMMAND message with correct command', () => {
+  test('copy button renders and sends COPY_COMMAND message with story ref', () => {
     render(<NextActionRecommendation />);
     const copyButton = screen.getByTestId('next-action-copy');
     expect(copyButton).toBeInTheDocument();
     fireEvent.click(copyButton);
     expect(mockPostMessage).toHaveBeenCalledWith({
       type: 'COPY_COMMAND',
-      payload: { command: '/bmad-bmm-dev-story' },
+      payload: { command: '/bmad-bmm-dev-story story 3.5' },
     });
   });
 
@@ -258,13 +258,13 @@ describe('NextActionRecommendation', () => {
     expect(playButton).toHaveAttribute('title', 'Implement the next story');
   });
 
-  test('copy button has title showing full command', () => {
+  test('copy button has title showing full command with story ref', () => {
     render(<NextActionRecommendation />);
     const copyButton = screen.getByTestId('next-action-copy');
-    expect(copyButton).toHaveAttribute('title', 'Copy: /bmad-bmm-dev-story');
+    expect(copyButton).toHaveAttribute('title', 'Copy: /bmad-bmm-dev-story story 3.5');
   });
 
-  test('play/copy buttons use primary workflow command even when next action type differs', () => {
+  test('play/copy buttons use primary workflow command with story ref even when next action type differs', () => {
     // Simulate edge case: story is in review (next action = code-review)
     // but primary workflow is still dev-story (stale/mismatched state)
     useDashboardStore.setState({
@@ -273,11 +273,11 @@ describe('NextActionRecommendation', () => {
     render(<NextActionRecommendation />);
     // Next action label should reflect review state
     expect(screen.getByTestId('next-action-label')).toHaveTextContent('Run Code Review');
-    // But buttons still use whatever the primary workflow is
+    // But buttons still use whatever the primary workflow is, with story ref
     fireEvent.click(screen.getByTestId('next-action-execute'));
     expect(mockPostMessage).toHaveBeenCalledWith({
       type: 'EXECUTE_WORKFLOW',
-      payload: { command: '/bmad-bmm-dev-story' },
+      payload: { command: '/bmad-bmm-dev-story story 3.5' },
     });
   });
 });

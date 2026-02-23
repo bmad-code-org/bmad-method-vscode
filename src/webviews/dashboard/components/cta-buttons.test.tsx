@@ -3,6 +3,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { useDashboardStore } from '../store';
 import { CTAButtons, CTAButtonsSkeleton } from './cta-buttons';
 import type { AvailableWorkflow } from '@shared/types';
+import type { Story } from '@shared/types/story';
 
 const mockPostMessage = vi.fn();
 vi.mock('../../shared/hooks', () => ({
@@ -164,6 +165,69 @@ describe('CTAButtons', () => {
     useDashboardStore.setState({ workflows: [primaryWorkflow] });
     const { container } = render(<CTAButtons />);
     expect(container.innerHTML).toBe('');
+  });
+
+  test('appends story ref to story-aware workflow commands when currentStory is set', () => {
+    const mockStory: Story = {
+      key: '2-3-auth-flow',
+      epicNumber: 2,
+      storyNumber: 3,
+      title: 'Auth Flow',
+      userStory: 'As a user...',
+      acceptanceCriteria: [],
+      tasks: [],
+      filePath: '_bmad-output/implementation-artifacts/2-3-auth-flow.md',
+      status: 'in-progress',
+      totalTasks: 5,
+      completedTasks: 2,
+      totalSubtasks: 10,
+      completedSubtasks: 5,
+    };
+    const devStoryOptional: AvailableWorkflow = {
+      id: 'dev-story',
+      name: 'Dev Story',
+      command: '/bmad-bmm-dev-story',
+      description: 'Implement story',
+      kind: 'optional' as const,
+    };
+    useDashboardStore.setState({
+      workflows: [devStoryOptional],
+      currentStory: mockStory,
+    });
+    render(<CTAButtons />);
+    fireEvent.click(screen.getByTestId('cta-execute-dev-story'));
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      type: 'EXECUTE_WORKFLOW',
+      payload: { command: '/bmad-bmm-dev-story story 2.3' },
+    });
+  });
+
+  test('does not append story ref to non-story-aware workflow commands', () => {
+    const mockStory: Story = {
+      key: '2-3-auth-flow',
+      epicNumber: 2,
+      storyNumber: 3,
+      title: 'Auth Flow',
+      userStory: 'As a user...',
+      acceptanceCriteria: [],
+      tasks: [],
+      filePath: '_bmad-output/implementation-artifacts/2-3-auth-flow.md',
+      status: 'in-progress',
+      totalTasks: 5,
+      completedTasks: 2,
+      totalSubtasks: 10,
+      completedSubtasks: 5,
+    };
+    useDashboardStore.setState({
+      workflows: [mandatoryWorkflow],
+      currentStory: mockStory,
+    });
+    render(<CTAButtons />);
+    fireEvent.click(screen.getByTestId('cta-execute-validate-prd'));
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      type: 'EXECUTE_WORKFLOW',
+      payload: { command: '/bmad-bmm-validate-prd' },
+    });
   });
 });
 

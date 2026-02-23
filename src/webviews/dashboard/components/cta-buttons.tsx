@@ -1,9 +1,10 @@
 import React, { useCallback } from 'react';
 import { Copy } from 'lucide-react';
-import { useWorkflows } from '../store';
+import { useWorkflows, useCurrentStory } from '../store';
 import { useVSCodeApi } from '../../shared/hooks';
 import { createExecuteWorkflowMessage, createCopyCommandMessage } from '@shared/messages';
 import type { AvailableWorkflow } from '@shared/types';
+import { buildCommandWithStory } from '../utils/build-command-with-story';
 
 export function CTAButtonsSkeleton(): React.ReactElement {
   return (
@@ -23,13 +24,15 @@ export function CTAButtonsSkeleton(): React.ReactElement {
 
 function WorkflowButtonRow({
   workflow,
+  resolvedCommand,
   onExecute,
   onCopy,
   variant,
 }: {
   workflow: AvailableWorkflow;
-  onExecute: (w: AvailableWorkflow) => void;
-  onCopy: (w: AvailableWorkflow) => void;
+  resolvedCommand: string;
+  onExecute: (command: string) => void;
+  onCopy: (command: string) => void;
   variant: 'mandatory' | 'optional';
 }): React.ReactElement {
   const bgClass =
@@ -42,7 +45,7 @@ function WorkflowButtonRow({
       <button
         type="button"
         data-testid={`cta-execute-${workflow.id}`}
-        onClick={() => onExecute(workflow)}
+        onClick={() => onExecute(resolvedCommand)}
         title={workflow.description}
         className={`flex-1 rounded-l px-3 py-1.5 text-xs font-medium transition-colors focus:ring-1 focus:ring-[var(--vscode-focusBorder)] focus:outline-none ${bgClass}`}
       >
@@ -51,8 +54,8 @@ function WorkflowButtonRow({
       <button
         type="button"
         data-testid={`cta-copy-${workflow.id}`}
-        onClick={() => onCopy(workflow)}
-        title={`Copy: ${workflow.command}`}
+        onClick={() => onCopy(resolvedCommand)}
+        title={`Copy: ${resolvedCommand}`}
         aria-label={`Copy ${workflow.name} command`}
         className={`rounded-r border-l border-[var(--vscode-contrastBorder)] px-2 py-1.5 text-xs transition-colors focus:ring-1 focus:ring-[var(--vscode-focusBorder)] focus:outline-none ${bgClass}`}
       >
@@ -71,18 +74,19 @@ export function CTAButtons({
 }: CTAButtonsProps = {}): React.ReactElement | null {
   const workflowsFromStore = useWorkflows();
   const workflows = workflowsProp !== undefined ? workflowsProp : workflowsFromStore;
+  const currentStory = useCurrentStory();
   const vscodeApi = useVSCodeApi();
 
   const handleExecute = useCallback(
-    (workflow: AvailableWorkflow) => {
-      vscodeApi.postMessage(createExecuteWorkflowMessage(workflow.command));
+    (command: string) => {
+      vscodeApi.postMessage(createExecuteWorkflowMessage(command));
     },
     [vscodeApi]
   );
 
   const handleCopy = useCallback(
-    (workflow: AvailableWorkflow) => {
-      vscodeApi.postMessage(createCopyCommandMessage(workflow.command));
+    (command: string) => {
+      vscodeApi.postMessage(createCopyCommandMessage(command));
     },
     [vscodeApi]
   );
@@ -105,6 +109,7 @@ export function CTAButtons({
             <WorkflowButtonRow
               key={workflow.id}
               workflow={workflow}
+              resolvedCommand={buildCommandWithStory(workflow.command, currentStory, workflow.id)}
               onExecute={handleExecute}
               onCopy={handleCopy}
               variant="mandatory"
@@ -121,6 +126,7 @@ export function CTAButtons({
             <WorkflowButtonRow
               key={workflow.id}
               workflow={workflow}
+              resolvedCommand={buildCommandWithStory(workflow.command, currentStory, workflow.id)}
               onExecute={handleExecute}
               onCopy={handleCopy}
               variant="optional"

@@ -211,6 +211,32 @@ suite('DashboardViewProvider - EXECUTE_WORKFLOW handler', () => {
     assert.ok(showErrorStub.calledOnce, 'Should show error message');
     assert.strictEqual(showErrorStub.firstCall.args[0], 'Invalid workflow command');
   });
+
+  test('accepts command with story suffix and sends it to terminal', async () => {
+    sandbox.stub(vscode.window, 'terminals').value([]);
+
+    const provider = new DashboardViewProvider(vscode.Uri.file('/test'), createDetectedResult());
+    const { view, simulateMessage } = createMockWebviewView();
+
+    provider.resolveWebviewView(
+      view,
+      {} as vscode.WebviewViewResolveContext,
+      new vscode.CancellationTokenSource().token
+    );
+
+    simulateMessage({
+      type: 'EXECUTE_WORKFLOW',
+      payload: { command: '/bmad-bmm-dev-story story 3.5' },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    assert.ok(mockTerminal.sendText.calledOnce, 'Should send command to terminal');
+    assert.strictEqual(
+      mockTerminal.sendText.firstCall.args[0],
+      'claude /bmad-bmm-dev-story story 3.5'
+    );
+  });
 });
 
 suite('DashboardViewProvider - EXECUTE_WORKFLOW error handling', () => {

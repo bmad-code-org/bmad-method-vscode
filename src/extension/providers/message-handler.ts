@@ -5,7 +5,7 @@ import type { ToExtension } from '../../shared/messages';
 import { ToExtensionType } from '../../shared/messages';
 
 const TERMINAL_NAME = 'BMAD';
-const VALID_COMMAND_PATTERN = /^\/bmad-[a-z0-9-]+$/;
+const VALID_COMMAND_PATTERN = /^\/bmad-[a-z0-9-]+( story \d+\.\d+[a-z]?)?$/;
 const VALID_CLI_PREFIX_PATTERN = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
 const STORY_PATH_REGEX = /^(.+)\/implementation-artifacts\/(\d+)-(\d+[a-z]?)-[\w-]+\.md$/;
 
