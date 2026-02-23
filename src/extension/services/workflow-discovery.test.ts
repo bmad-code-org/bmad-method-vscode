@@ -447,6 +447,43 @@ suite('WorkflowDiscoveryService', () => {
       assert.strictEqual(primary?.id, 'create-story');
     });
 
+    test('skips epic with optional retrospective and returns create-story for backlog', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'done',
+          '1-1-first-story': 'done',
+          '1-2-second-story': 'done',
+          'epic-1-retrospective': 'optional',
+          'epic-2': 'in-progress',
+          '2-1-third-story': 'backlog',
+        }),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'create-story');
+    });
+
+    test('skips retrospective when epic is done even without retrospective entry', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'done',
+          '1-1-first-story': 'done',
+          '1-2-second-story': 'done',
+          'epic-2': 'in-progress',
+          '2-1-third-story': 'in-progress',
+        }),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.notStrictEqual(primary?.id, 'retrospective');
+    });
+
     test('all stories in sprint complete returns retrospective', async () => {
       setup();
       await service.discoverInstalledWorkflows();

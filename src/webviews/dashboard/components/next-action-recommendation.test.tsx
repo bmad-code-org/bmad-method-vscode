@@ -191,7 +191,7 @@ describe('NextActionRecommendation', () => {
       sprint: {
         ...mockSprintStatus,
         development_status: {
-          'epic-1': 'done',
+          'epic-1': 'in-progress',
           '1-1-project-init': 'done',
           '1-2-test-framework': 'done',
           'epic-2': 'in-progress',

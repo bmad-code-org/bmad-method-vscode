@@ -3,12 +3,12 @@ import * as vscode from 'vscode';
 
 suite('Extension', () => {
   test('extension should be present', () => {
-    const extension = vscode.extensions.getExtension('bmad.bmad-extension');
+    const extension = vscode.extensions.getExtension('elvince.bmad-dashboard');
     assert.ok(extension, 'Extension should be found by ID');
   });
 
   test('extension should activate', async () => {
-    const extension = vscode.extensions.getExtension('bmad.bmad-extension');
+    const extension = vscode.extensions.getExtension('elvince.bmad-dashboard');
     assert.ok(extension, 'Extension should be found');
     if (!extension.isActive) {
       await extension.activate();
