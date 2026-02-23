@@ -183,7 +183,7 @@ describe('getNextAction', () => {
     const sprint: SprintStatus = {
       ...mockSprint,
       development_status: {
-        'epic-1': 'done',
+        'epic-1': 'in-progress',
         '1-1-project-init': 'done',
         '1-2-test-framework': 'done',
         'epic-2': 'in-progress',
@@ -309,11 +309,28 @@ describe('getNextAction', () => {
     expect(result.label).toBe('Create Next Story');
   });
 
-  test('returns retrospective for earliest completed epic', () => {
+  test('skips epic with optional retrospective and returns create-story for backlog', () => {
     const sprint: SprintStatus = {
       ...mockSprint,
       development_status: {
         'epic-1': 'done',
+        '1-1-project-init': 'done',
+        '1-2-test-framework': 'done',
+        'epic-1-retrospective': 'optional',
+        'epic-2': 'in-progress',
+        '2-1-shared-types': 'backlog',
+      },
+    };
+    const result = getNextAction(sprint, null);
+    expect(result.type).toBe('create-story');
+    expect(result.label).toBe('Create Next Story');
+  });
+
+  test('returns retrospective for earliest completed epic', () => {
+    const sprint: SprintStatus = {
+      ...mockSprint,
+      development_status: {
+        'epic-1': 'in-progress',
         '1-1-project-init': 'done',
         '1-2-test-framework': 'done',
         'epic-2': 'in-progress',
@@ -324,5 +341,20 @@ describe('getNextAction', () => {
     const result = getNextAction(sprint, null);
     expect(result.type).toBe('retrospective');
     expect(result.label).toContain('Epic 1');
+  });
+
+  test('skips retrospective when epic is done even without retrospective entry', () => {
+    const sprint: SprintStatus = {
+      ...mockSprint,
+      development_status: {
+        'epic-1': 'done',
+        '1-1-project-init': 'done',
+        '1-2-test-framework': 'done',
+        'epic-2': 'in-progress',
+        '2-1-shared-types': 'in-progress',
+      },
+    };
+    const result = getNextAction(sprint, null);
+    expect(result.type).not.toBe('retrospective');
   });
 });

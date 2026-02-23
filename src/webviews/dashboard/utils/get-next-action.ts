@@ -113,18 +113,22 @@ export function getNextAction(
   let allStoriesDone = true;
   let hasStories = false;
 
-  // Track per-epic story completion and retrospective status
+  // Track per-epic story completion, epic status, and retrospective status
   const epicStories = new Map<number, { total: number; done: number }>();
-  const retroDone = new Set<number>();
+  const epicDone = new Set<number>();
+  const retroHandled = new Set<number>();
 
   // Collect epic keys and retrospective statuses
   for (const [key, status] of entries) {
     if (isEpicKey(key)) {
       const epicNum = parseInt(key.replace('epic-', ''), 10);
       epicStories.set(epicNum, { total: 0, done: 0 });
-    } else if (isRetrospectiveKey(key) && status === 'done') {
+      if (status === 'done') {
+        epicDone.add(epicNum);
+      }
+    } else if (isRetrospectiveKey(key) && (status === 'done' || status === 'optional')) {
       const epicNum = parseInt(key.replace('epic-', '').replace('-retrospective', ''), 10);
-      retroDone.add(epicNum);
+      retroHandled.add(epicNum);
     }
   }
 
@@ -168,9 +172,14 @@ export function getNextAction(
   }
 
   // Check if any single epic has all its stories done (per-epic retrospective)
-  // Skip epics whose retrospective is already done
+  // Skip epics that are already done or whose retrospective is already handled
   for (const [epicNum, counts] of epicStories) {
-    if (counts.total > 0 && counts.done === counts.total && !retroDone.has(epicNum)) {
+    if (
+      counts.total > 0 &&
+      counts.done === counts.total &&
+      !epicDone.has(epicNum) &&
+      !retroHandled.has(epicNum)
+    ) {
       return {
         type: 'retrospective',
         label: `Run Retrospective for Epic ${epicNum}`,
