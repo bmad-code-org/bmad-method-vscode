@@ -77,3 +77,9 @@ Displays BMAD version, last-updated date, and installed modules (from `manifest.
 | ----------------- | -------------- | ---------------------------------------------------------- |
 | `bmad.outputRoot` | `_bmad-output` | Root directory for BMAD output files                       |
 | `bmad.cliPrefix`  | `claude`       | CLI prefix for terminal commands (e.g., `claude`, `aider`) |
+
+# DISLAIMER
+
+This is not an official VS Code Extension for BMAD.
+This extension try to follow the BMAD philosophy and workflow as close as possible.
+This extension will remain until the official one is out.
