@@ -30,6 +30,11 @@ playwright/.cache/
 
 #claude
 .claude/settings.local.json
+.claude/commands/bmad*
+
+# BMAD method working files
+_bmad/
+_bmad-output/
 
 # Build Outputs
 .next/
