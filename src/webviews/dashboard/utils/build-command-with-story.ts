@@ -1,7 +1,7 @@
 import type { Story } from '@shared/types/story';
 
 /** IDs of workflows that are story-specific and should include a story reference. */
-const STORY_AWARE_WORKFLOW_IDS = new Set(['dev-story', 'code-review', 'create-story']);
+const STORY_AWARE_WORKFLOW_IDS = new Set(['dev-story', 'code-review']);
 
 /** Append ` story X.Y` suffix to a command when the workflow is story-aware and a story is available. */
 export function buildCommandWithStory(

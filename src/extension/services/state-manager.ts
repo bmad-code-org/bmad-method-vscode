@@ -127,7 +127,21 @@ export class StateManager implements vscode.Disposable {
    * Updates state with results and fires state change event.
    */
   private async parseAll(): Promise<void> {
-    const paths = this.bmadDetector.getBmadPaths();
+    let paths = this.bmadDetector.getBmadPaths();
+
+    // Re-run detection if outputRoot was not found previously —
+    // the directory may have been created since activation (e.g., after project init).
+    if (paths && !paths.outputRoot) {
+      await this.bmadDetector.detectBmadProject();
+      paths = this.bmadDetector.getBmadPaths();
+
+      // If outputRoot is now available, restart the file watcher so it picks up changes
+      if (paths?.outputRoot) {
+        this.fileWatcher.stop();
+        this.fileWatcher.start();
+      }
+    }
+
     if (!paths || !paths.outputRoot) {
       // No BMAD output directory - set loading to false and keep defaults
       this._state = { ...this._state, loading: false };

@@ -164,7 +164,7 @@ export function StoryDetailView(): React.ReactElement {
               <li key={ac.number} className="list-decimal">
                 <span className="font-medium">{ac.title}</span>
                 {ac.content && (
-                  <pre className="mt-1 whitespace-pre-wrap text-xs text-(--vscode-descriptionForeground)">
+                  <pre className="mt-1 text-xs whitespace-pre-wrap text-(--vscode-descriptionForeground)">
                     {ac.content}
                   </pre>
                 )}

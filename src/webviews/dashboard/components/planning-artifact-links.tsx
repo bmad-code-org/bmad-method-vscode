@@ -1,7 +1,8 @@
 import React from 'react';
 import { useVSCodeApi } from '../../shared/hooks';
-import { useOutputRoot } from '../store';
+import { useDefaultClickBehavior, useOutputRoot } from '../store';
 import { createDocumentLinkHandler } from '../../shared/utils/document-link';
+import { createNavigateEditorPanelMessage } from '@shared/messages';
 
 export interface ArtifactLink {
   label: string;
@@ -26,6 +27,7 @@ export function PlanningArtifactLinks({
 }: PlanningArtifactLinksProps): React.ReactElement | null {
   const vscodeApi = useVSCodeApi();
   const outputRootFromStore = useOutputRoot();
+  const defaultClickBehavior = useDefaultClickBehavior();
   const outputRoot =
     (outputRootProp !== undefined ? outputRootProp : outputRootFromStore) ?? '_bmad-output';
   const resolvedLinks = links ?? getDefaultPlanningArtifacts(outputRoot);
@@ -33,6 +35,16 @@ export function PlanningArtifactLinks({
   if (resolvedLinks.length === 0) {
     return null;
   }
+
+  const handleClick = (path: string) => (e: React.MouseEvent) => {
+    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+      createDocumentLinkHandler(vscodeApi, path)(e);
+    } else if (defaultClickBehavior === 'editor-panel') {
+      vscodeApi.postMessage(createNavigateEditorPanelMessage('docs', { filePath: path }));
+    } else {
+      createDocumentLinkHandler(vscodeApi, path)(e);
+    }
+  };
 
   return (
     <div data-testid="planning-artifact-links" className="flex flex-col gap-2">
@@ -45,7 +57,7 @@ export function PlanningArtifactLinks({
             key={path}
             type="button"
             className="text-xs text-[var(--vscode-textLink-foreground)] hover:underline"
-            onClick={createDocumentLinkHandler(vscodeApi, path)}
+            onClick={handleClick(path)}
           >
             {label}
           </button>

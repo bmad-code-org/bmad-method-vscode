@@ -9,14 +9,17 @@ A VS Code extension that acts as a real-time GPS for BMAD V6 projects. It monito
 Auto-activates when the workspace contains a `_bmad/` directory. Appears as a custom icon in the Activity Bar.
 
 **Header Toolbar**
+
 - **Help icon** — copies `bmad help` to clipboard
 - **Overflow menu (⋮)** — lists all available workflow commands with descriptions, plus a manual Refresh option; dismisses on click-outside or ESC
 
 **Sprint Progress**
+
 - Visual progress bar with done / in-progress / backlog counts
 - Project name and completion percentage
 
 **Epic List**
+
 - Collapsible cards per epic showing status, progress bar, and done/total story counts
 - Active epic highlighted (blue left border)
 - Done epics hidden by default; toggle to reveal them
@@ -26,6 +29,7 @@ Auto-activates when the workspace contains a `_bmad/` directory. Appears as a cu
 - **Click** a story inside the list → open the story markdown file
 
 **Active Story Card**
+
 - Shows current story's epic/story number, title, task progress bar, subtask count, and status badge
 - Progress combines tasks + subtasks
 - **Click** story title → open story file in preview
@@ -69,12 +73,12 @@ A multi-view editor panel (`BMAD: Open Editor Panel` command) with breadcrumb na
 
 ## Configuration
 
-| Setting                      | Default                                                        | Purpose                                                                    |
-| ---------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `bmad.outputRoot`            | `_bmad-output`                                                 | Root directory for BMAD output files                                       |
-| `bmad.cliPrefix`             | `claude`                                                       | CLI prefix for terminal commands (e.g., `claude`, `aider`, `copilot`)      |
-| `bmad.defaultClickBehavior`  | `markdown-preview`                                             | Click behavior for doc links: `markdown-preview` or `editor-panel`         |
-| `bmad.docLibraryPaths`       | `["planning-artifacts", "implementation-artifacts", "docs"]`   | Folders to display in the Document Library                                 |
+| Setting                     | Default                                                      | Purpose                                                               |
+| --------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------- |
+| `bmad.outputRoot`           | `_bmad-output`                                               | Root directory for BMAD output files                                  |
+| `bmad.cliPrefix`            | `claude`                                                     | CLI prefix for terminal commands (e.g., `claude`, `aider`, `copilot`) |
+| `bmad.defaultClickBehavior` | `markdown-preview`                                           | Click behavior for doc links: `markdown-preview` or `editor-panel`    |
+| `bmad.docLibraryPaths`      | `["planning-artifacts", "implementation-artifacts", "docs"]` | Folders to display in the Document Library                            |
 
 ## Prerequisites
 
@@ -145,6 +149,7 @@ Versioning and releases are fully automated via [semantic-release](https://githu
 ### CI pipeline
 
 Pull requests to `main` run the CI workflow (`.github/workflows/ci.yml`):
+
 - Lint → Typecheck → Test → Build
 
 ### Local dry run
