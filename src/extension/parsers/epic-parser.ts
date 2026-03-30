@@ -5,6 +5,7 @@ import matter from 'gray-matter';
 import type { Epic, EpicMetadata, EpicStoryEntry, ParseResult } from '../../shared/types';
 import { parseSuccess, parseFailure } from '../../shared/types';
 import { promises as fs } from 'node:fs';
+import { toKebabCase } from './utils';
 
 /**
  * Regex patterns for parsing epic file content
@@ -15,30 +16,9 @@ const EPIC_HEADER_REGEX = /^##\s+Epic\s+(\d+):\s+(.+)$/m;
 // Story header: ### Story 2.1: Shared Types and Message Protocol (also handles split stories like 5.5a)
 const STORY_HEADER_REGEX = /^###\s+Story\s+(\d+)\.(\d+)([a-z]?):\s+(.+)$/gm;
 
-// User story pattern: As a [role], I want [action], so that [benefit]
+// User story pattern: As a [role], I want [action], so that [benefit].
 const USER_STORY_REGEX =
-  /As\s+(?:a|an)\s+[^,]+,\s*\n?I\s+want\s+[^,]+,\s*\n?(?:so\s+that|So\s+that)\s+[^.]+/i;
-
-/**
- * Convert title to kebab-case key for story identifiers
- *
- * @param title - The story title to convert (e.g., "Shared Types and Message Protocol")
- * @returns Kebab-case string suitable for use as a key (e.g., "shared-types-and-message-protocol")
- *
- * @example
- * toKebabCase("Shared Types and Message Protocol") // "shared-types-and-message-protocol"
- * toKebabCase("Handle Special (chars)!") // "handle-special-chars"
- */
-function toKebabCase(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/&/g, 'and') // Convert & to and
-    .replace(/\./g, '-') // Convert dots to dashes (e.g., package.json → package-json)
-    .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
-    .replace(/\s+/g, '-') // Spaces to dashes
-    .replace(/-+/g, '-') // Collapse multiple dashes
-    .replace(/^-|-$/g, ''); // Trim leading/trailing dashes
-}
+  /As\s+(?:a|an)\s+[^,]+,\s*\n?I\s+want\s+[^,]+,\s*\n?(?:so\s+that|So\s+that)\s+[^.]+\./is;
 
 /**
  * Extract epic description - the paragraph(s) after the epic header
@@ -82,6 +62,7 @@ function parseStoryEntries(content: string): EpicStoryEntry[] {
     storyNum: number;
     storySuffix: string;
     title: string;
+    startIndex: number;
     index: number;
   }> = [];
 
@@ -92,6 +73,7 @@ function parseStoryEntries(content: string): EpicStoryEntry[] {
       storyNum: parseInt(match[2], 10),
       storySuffix: match[3] || '',
       title: match[4].trim(),
+      startIndex: match.index,
       index: match.index + match[0].length,
     });
   }
@@ -100,14 +82,9 @@ function parseStoryEntries(content: string): EpicStoryEntry[] {
   for (let i = 0; i < matches.length; i++) {
     const current = matches[i];
     // Calculate end boundary for this story's content section.
-    // For the last story, use end of content. For others, estimate the start of the next
-    // story header by subtracting: title length + ~20 chars for "### Story N.M: " prefix.
-    // This ensures we don't accidentally include the next story's header in the content.
-    const STORY_HEADER_PREFIX_LENGTH = 20; // Approximate length of "### Story N.M: "
+    // For the last story, use end of content. For others, use the start of the next header.
     const nextIndex =
-      i + 1 < matches.length
-        ? matches[i + 1].index - matches[i + 1].title.length - STORY_HEADER_PREFIX_LENGTH
-        : content.length;
+      i + 1 < matches.length ? matches[i + 1].startIndex : content.length;
 
     // Get content between this story header and the next (or end)
     const storyContent = content.slice(current.index, nextIndex);

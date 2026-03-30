@@ -227,8 +227,8 @@ export class StateManager implements vscode.Disposable {
           this._state = { ...this._state, sprint: result.partial as SprintStatus };
         }
       }
-    } catch {
-      // Unexpected error - already handled by readFile returning null
+    } catch (err) {
+      console.debug('[BMAD] Failed to parse sprint status:', err);
     }
   }
 
@@ -262,8 +262,8 @@ export class StateManager implements vscode.Disposable {
           recoverable: true,
         });
       }
-    } catch {
-      // Error reading directory - not critical
+    } catch (err) {
+      console.debug('[BMAD] Failed to parse epics:', err);
     }
   }
 

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import matter from 'gray-matter';
 import type { StateManager } from '../services/state-manager';
 import {
@@ -136,6 +137,15 @@ export class EditorPanelProvider implements vscode.Disposable {
     if (!workspaceFolder) return;
 
     const documentUri = vscode.Uri.joinPath(workspaceFolder.uri, relativePath);
+
+    // Prevent path traversal: resolved path must stay within workspace
+    const resolved = path.resolve(documentUri.fsPath);
+    const workspace = path.resolve(workspaceFolder.uri.fsPath);
+    if (!resolved.startsWith(workspace + path.sep)) {
+      void this.panel.webview.postMessage(createDocumentContentMessage(relativePath, ''));
+      return;
+    }
+
     try {
       const content = await vscode.workspace.fs.readFile(documentUri);
       const text = Buffer.from(content).toString('utf-8');

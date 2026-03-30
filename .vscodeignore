@@ -1,3 +1,6 @@
+# Ensure bundled output is always included
+!out/**
+
 # Source and config (only bundled output is needed)
 src/**
 **/*.test.ts
@@ -15,11 +18,14 @@ node_modules/**
 .github/**
 .releaserc.json
 vite.config.ts
+vitest.config.ts
 tsconfig*.json
 vitest.setup.ts
 eslint.config.*
 .prettierrc*
 .gitignore
+pnpm-lock.yaml
+.vscode-test.mjs
 coverage/**
 
 # BMAD project artifacts (not part of the extension)

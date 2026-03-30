@@ -33,7 +33,7 @@ export const useDashboardStore = create<DashboardStore>()((set) => ({
 
   setError: (message: string) =>
     set((prev) => ({
-      errors: [...prev.errors, { message, recoverable: true }],
+      errors: [...prev.errors, { message, recoverable: true }].slice(-50),
     })),
 }));
 

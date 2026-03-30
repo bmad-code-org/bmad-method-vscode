@@ -198,8 +198,8 @@ function StoriesTable({
               <tr
                 key={story.key}
                 data-testid={`story-table-row-${story.key}`}
-                role="button"
                 tabIndex={0}
+                aria-label={`Open story ${story.key}`}
                 className="cursor-pointer border-b border-[var(--vscode-panel-border)] transition-colors hover:bg-[var(--vscode-list-hoverBackground)]"
                 onClick={createShiftOpenHandler(vscodeApi, story.filePath, () =>
                   navigateTo({ view: 'stories', params: { storyKey: story.key } })

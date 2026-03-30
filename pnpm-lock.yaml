@@ -7,40 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
-      gray-matter:
-        specifier: ^4.0.3
-        version: 4.0.3
-      js-yaml:
-        specifier: ^4.1.1
-        version: 4.1.1
-      lucide-react:
-        specifier: ^0.563.0
-        version: 0.563.0(react@19.2.4)
-      react:
-        specifier: ^19.2.0
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.2.0
-        version: 19.2.4(react@19.2.4)
-      react-markdown:
-        specifier: ^10.1.0
-        version: 10.1.0(@types/react@19.2.10)(react@19.2.4)
-      rehype-highlight:
-        specifier: ^7.0.2
-        version: 7.0.2
-      remark-gfm:
-        specifier: ^4.0.1
-        version: 4.0.1
-      tailwind-merge:
-        specifier: ^3.4.0
-        version: 3.4.0
-      zustand:
-        specifier: ^5.0.0
-        version: 5.0.10(@types/react@19.2.10)(react@19.2.4)
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.0
@@ -102,6 +68,9 @@ importers:
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       esbuild:
         specifier: ^0.27.0
         version: 0.27.2
@@ -126,9 +95,18 @@ importers:
       globals:
         specifier: ^17.2.0
         version: 17.2.0
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      js-yaml:
+        specifier: ^4.1.1
+        version: 4.1.1
       jsdom:
         specifier: ^27.4.0
         version: 27.4.0
+      lucide-react:
+        specifier: ^0.563.0
+        version: 0.563.0(react@19.2.4)
       mocha:
         specifier: ^11.7.5
         version: 11.7.5
@@ -138,12 +116,30 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.7.2
         version: 0.7.2(prettier@3.8.1)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.2.0
+        version: 19.2.4(react@19.2.4)
+      react-markdown:
+        specifier: ^10.1.0
+        version: 10.1.0(@types/react@19.2.10)(react@19.2.4)
+      rehype-highlight:
+        specifier: ^7.0.2
+        version: 7.0.2
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1
       semantic-release:
         specifier: ^25.0.3
         version: 25.0.3(typescript@5.9.3)
       sinon:
         specifier: ^21.0.1
         version: 21.0.1
+      tailwind-merge:
+        specifier: ^3.4.0
+        version: 3.4.0
       tailwindcss:
         specifier: ^4.1.0
         version: 4.1.18
@@ -159,6 +155,9 @@ importers:
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@22.19.7)(jiti@2.6.1)(jsdom@27.4.0)(lightningcss@1.30.2)
+      zustand:
+        specifier: ^5.0.0
+        version: 5.0.10(@types/react@19.2.10)(react@19.2.4)
 
 packages:
 
