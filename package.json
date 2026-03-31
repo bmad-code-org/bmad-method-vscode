@@ -23,7 +23,7 @@
     "vscode:prepublish": "pnpm build",
     "vscode:package": "npx @vscode/vsce package --no-dependencies -o out/",
     "build": "pnpm build:extension && pnpm build:webview",
-    "build:extension": "esbuild src/extension/extension.ts --bundle --outfile=out/extension/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "build:extension": "esbuild src/extension/extension.ts --bundle --outfile=out/extension/extension.js --external:vscode --format=cjs --platform=node --sourcemap --minify",
     "build:webview": "vite build",
     "watch": "pnpm run --parallel '/watch:.*/'",
     "watch:extension": "esbuild src/extension/extension.ts --bundle --outfile=out/extension/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch",

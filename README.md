@@ -132,25 +132,18 @@ pnpm typecheck            # typecheck both extension and webview
 
 ## Release Process
 
-Versioning and releases are fully automated via [semantic-release](https://github.com/semantic-release/semantic-release) and a GitHub Actions workflow.
+Versioning and releases are fully automated via [semantic-release](https://github.com/semantic-release/semantic-release). CI/CD workflows are not yet configured — see below for how to run releases locally.
 
 ### How it works
 
-1. **Push to `main`** triggers the release workflow (`.github/workflows/release.yml`)
-2. **Commit analysis** — `@semantic-release/commit-analyzer` determines the next version from [Conventional Commits](https://www.conventionalcommits.org/):
+1. **Commit analysis** — `@semantic-release/commit-analyzer` determines the next version from [Conventional Commits](https://www.conventionalcommits.org/):
    - `fix:` → patch bump (1.2.x)
    - `feat:` → minor bump (1.x.0)
    - `BREAKING CHANGE:` / `feat!:` → major bump (x.0.0)
-3. **Changelog** — `CHANGELOG.md` is updated automatically
-4. **Build & package** — the extension is built and packaged as a `.vsix`
-5. **Git commit** — `package.json` and `CHANGELOG.md` are committed with `chore(release): <version> [skip ci]`
-6. **GitHub release** — a release is created with the `.vsix` attached as a downloadable asset
-
-### CI pipeline
-
-Pull requests to `main` run the CI workflow (`.github/workflows/ci.yml`):
-
-- Lint → Typecheck → Test → Build
+2. **Changelog** — `CHANGELOG.md` is updated automatically
+3. **Build & package** — the extension is built and packaged as a `.vsix`
+4. **Git commit** — `package.json` and `CHANGELOG.md` are committed with `chore(release): <version> [skip ci]`
+5. **GitHub release** — a release is created with the `.vsix` attached as a downloadable asset
 
 ### Local dry run
 

@@ -191,6 +191,6 @@ export default defineConfig(
   // IGNORES
   // ============================================================================
   {
-    ignores: ['out/', 'node_modules/', '.vscode-test/', '*.js', '*.mjs'],
+    ignores: ['out/', 'node_modules/', '.vscode-test/', 'coverage/', '*.js', '*.mjs'],
   }
 );
