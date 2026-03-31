@@ -83,8 +83,7 @@ function parseStoryEntries(content: string): EpicStoryEntry[] {
     const current = matches[i];
     // Calculate end boundary for this story's content section.
     // For the last story, use end of content. For others, use the start of the next header.
-    const nextIndex =
-      i + 1 < matches.length ? matches[i + 1].startIndex : content.length;
+    const nextIndex = i + 1 < matches.length ? matches[i + 1].startIndex : content.length;
 
     // Get content between this story header and the next (or end)
     const storyContent = content.slice(current.index, nextIndex);

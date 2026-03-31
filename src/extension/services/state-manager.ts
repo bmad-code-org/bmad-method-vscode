@@ -23,6 +23,7 @@ import { createInitialDashboardState, isStoryKey, isEpicKey } from '../../shared
  *   'readme.md' → false (doesn't match X-Y-name pattern)
  */
 const STORY_FILE_REGEX = /^\d+-\d+[a-z]?-[\w-]+\.md$/;
+const MAX_STORED_ERRORS = 50;
 
 /**
  * Service for managing aggregated BMAD dashboard state.
@@ -516,14 +517,15 @@ export class StateManager implements vscode.Disposable {
       this.removeFromState(filePath);
     }
 
-    // Process creates/changes in parallel
+    // Process creates/changes sequentially to avoid concurrent state mutation
     const updateChanges = Array.from(event.changes.entries()).filter(
       ([, changeType]) => changeType !== 'delete'
     );
-    const updatePromises = updateChanges.map(async ([filePath]) =>
-      this.handleFileUpdate(filePath, paths.outputRoot!)
-    );
-    await Promise.all(updatePromises);
+    for (const [filePath] of updateChanges) {
+      // Sequential processing is intentional — prevents concurrent state mutation
+      // eslint-disable-next-line no-await-in-loop
+      await this.handleFileUpdate(filePath, paths.outputRoot);
+    }
 
     this.determineCurrentStory();
     this.buildStorySummaries();
@@ -543,11 +545,13 @@ export class StateManager implements vscode.Disposable {
    * Handle a file update (create or change).
    */
   private async handleFileUpdate(filePath: string, outputRoot: vscode.Uri): Promise<void> {
-    const fileName = this.getFileName(filePath);
+    // Normalize path separators for reliable matching on all platforms
+    const normalizedPath = filePath.replace(/\\/g, '/');
+    const fileName = normalizedPath.split('/').pop()!;
 
     if (fileName === 'sprint-status.yaml') {
       await this.parseSprintStatus(outputRoot);
-    } else if (filePath.includes('planning-artifacts') && fileName === 'epics.md') {
+    } else if (normalizedPath.includes('planning-artifacts') && fileName === 'epics.md') {
       await this.parseEpics(outputRoot);
       this._state = {
         ...this._state,
@@ -557,14 +561,14 @@ export class StateManager implements vscode.Disposable {
         },
       };
     } else if (
-      filePath.includes('planning-artifacts') &&
+      normalizedPath.includes('planning-artifacts') &&
       (fileName === 'prd.md' ||
         fileName === 'architecture.md' ||
         this.isProductBriefFile(fileName) ||
         this.isReadinessReportFile(fileName))
     ) {
       await this.detectPlanningArtifacts(outputRoot);
-    } else if (filePath.includes('implementation-artifacts') && this.isStoryFile(fileName)) {
+    } else if (normalizedPath.includes('implementation-artifacts') && this.isStoryFile(fileName)) {
       await this.parseStoryFile(vscode.Uri.file(filePath));
     }
     // Other files are ignored (not relevant to BMAD dashboard)
@@ -670,8 +674,8 @@ export class StateManager implements vscode.Disposable {
       ? this._state.errors.filter((e) => e.filePath !== error.filePath)
       : this._state.errors;
 
-    // Add the new error
-    this._state = { ...this._state, errors: [...errors, error] };
+    // Add the new error (cap to prevent unbounded growth)
+    this._state = { ...this._state, errors: [...errors, error].slice(-MAX_STORED_ERRORS) };
   }
 
   /**

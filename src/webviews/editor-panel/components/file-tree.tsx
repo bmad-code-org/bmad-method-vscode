@@ -125,7 +125,11 @@ function FileTreeItem({
   );
 
   return (
-    <div role="treeitem">
+    <div
+      role="treeitem"
+      aria-selected={isSelected}
+      aria-expanded={isDirectory ? isExpanded : undefined}
+    >
       <button
         data-testid={`file-tree-item-${node.path}`}
         className="flex w-full items-center gap-1.5 rounded px-1.5 py-0.5 text-left hover:bg-[var(--vscode-list-hoverBackground)]"

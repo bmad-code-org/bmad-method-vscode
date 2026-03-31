@@ -3,6 +3,11 @@ import { BmadDetector, FileWatcher, StateManager, WorkflowDiscoveryService } fro
 import { DashboardViewProvider } from './providers/dashboard-view-provider';
 import { EditorPanelProvider } from './providers/editor-panel-provider';
 
+function showCommandError(action: string, err: unknown): Thenable<string | undefined> {
+  const msg = err instanceof Error ? err.message : String(err);
+  return vscode.window.showErrorMessage(`BMAD ${action} failed: ${msg}`);
+}
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   // Detect BMAD project in current workspace
   const detector = new BmadDetector();
@@ -32,11 +37,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(DashboardViewProvider.viewType, dashboardProvider),
-      vscode.commands.registerCommand('bmad.refresh', () => {
-        void stateManager.refresh();
+      vscode.commands.registerCommand('bmad.refresh', async () => {
+        try {
+          await stateManager.refresh();
+        } catch (err) {
+          void showCommandError('refresh', err);
+        }
       }),
       vscode.commands.registerCommand('bmad.openEditorPanel', () => {
-        EditorPanelProvider.createOrShow(context.extensionUri, stateManager);
+        try {
+          EditorPanelProvider.createOrShow(context.extensionUri, stateManager);
+        } catch (err) {
+          void showCommandError('open panel', err);
+        }
       }),
       // Dispose editor panel on extension deactivation (singleton may be open)
       { dispose: () => EditorPanelProvider.disposePanel() },

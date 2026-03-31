@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
+import * as path from 'node:path';
 import matter from 'gray-matter';
 import type { StateManager } from '../services/state-manager';
 import {
@@ -169,9 +169,14 @@ export class EditorPanelProvider implements vscode.Disposable {
    * Scan document library directories and send the file tree to the webview.
    */
   private async scanAndSendFileTree(): Promise<void> {
-    const scanner = new FileTreeScanner();
-    const roots = await scanner.scan();
-    void this.panel.webview.postMessage(createFileTreeMessage(roots));
+    try {
+      const scanner = new FileTreeScanner();
+      const roots = await scanner.scan();
+      void this.panel.webview.postMessage(createFileTreeMessage(roots));
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.debug('[BMAD] Failed to scan file tree:', err);
+    }
   }
 
   public dispose(): void {

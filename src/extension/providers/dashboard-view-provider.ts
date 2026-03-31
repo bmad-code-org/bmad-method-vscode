@@ -78,6 +78,14 @@ export class DashboardViewProvider implements vscode.WebviewViewProvider {
         this.disposables
       );
     }
+
+    // Clean up disposables when the webview is disposed
+    webviewView.onDidDispose(() => {
+      for (const d of this.disposables) {
+        d.dispose();
+      }
+      this.disposables.length = 0;
+    });
   }
 
   /**

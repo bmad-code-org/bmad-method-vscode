@@ -55,10 +55,11 @@ export function StoryDetailView(): React.ReactElement {
   );
 
   // Load story detail on mount when needed
+  const storyDetailKey = storyDetail?.key;
   useEffect(() => {
     if (!summary?.filePath) return;
     // If we already have the correct story loaded, skip
-    if (storyDetail?.key === storyKey) return;
+    if (storyDetailKey === storyKey) return;
 
     setStoryDetailLoading(true);
     vscodeApi.postMessage(createRequestDocumentContentMessage(summary.filePath));
@@ -66,7 +67,14 @@ export function StoryDetailView(): React.ReactElement {
     return () => {
       clearStoryDetail();
     };
-  }, [storyKey, summary?.filePath]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    storyKey,
+    summary?.filePath,
+    storyDetailKey,
+    setStoryDetailLoading,
+    vscodeApi,
+    clearStoryDetail,
+  ]);
 
   if (!storyKey) {
     return (
