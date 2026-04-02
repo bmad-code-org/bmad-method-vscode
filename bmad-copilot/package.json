@@ -1,0 +1,149 @@
+{
+  "name": "bmad-copilot-adapter",
+  "displayName": "BMAD Method — Copilot Chat Adapter",
+  "description": "Official prompt executor that enables BMAD-METHOD workflows to run natively inside GitHub Copilot Chat. VS Code extension (VSIX) must be built from source — not available on Marketplace.",
+  "version": "0.2.6",
+  "publisher": "evil9369",
+  "license": "MIT",
+  "author": {
+    "name": "evil0119"
+  },
+  "homepage": "https://github.com/pi-docket/bmad-method-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/pi-docket/bmad-method-vscode/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pi-docket/bmad-method-vscode.git"
+  },
+  "engines": {
+    "vscode": "^1.93.0",
+    "node": ">=18.0.0"
+  },
+  "categories": [
+    "AI",
+    "Chat"
+  ],
+  "keywords": [
+    "bmad",
+    "bmad-method",
+    "copilot",
+    "chat-participant",
+    "vscode",
+    "agile",
+    "ai-agents",
+    "workflow",
+    "prompt-executor"
+  ],
+  "activationEvents": [
+    "onChatParticipant:bmad"
+  ],
+  "main": "./dist/extension.js",
+  "bin": {
+    "bmad-copilot-adapter": "bin/bmad-copilot-adapter.js"
+  },
+  "peerDependencies": {
+    "bmad-method": ">=6.0.0-Beta.1"
+  },
+  "peerDependenciesMeta": {
+    "bmad-method": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "@types/vscode": "^1.93.0",
+    "typescript": "^5.3.0"
+  },
+  "scripts": {
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "compile": "tsc -p ./",
+    "build": "npm run clean && npm run compile",
+    "watch": "tsc -watch -p ./",
+    "lint": "tsc --noEmit",
+    "test": "npm run lint",
+    "prevsce": "npm run build",
+    "vsce:package": "npx @vscode/vsce package --out releases/",
+    "vsce:publish": "npx @vscode/vsce publish",
+    "prepublishOnly": "npm run build"
+  },
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "bmad",
+        "fullName": "BMAD Method",
+        "name": "bmad",
+        "description": "Run BMAD-METHOD workflows, agents, and tasks inside Copilot Chat. Type /bmad then a slash-command to get started.",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "help",
+            "description": "Show available BMAD workflows, agents, and next-step guidance."
+          },
+          {
+            "name": "run",
+            "description": "Execute any BMAD command by name. Example: /run bmad-bmm-create-prd"
+          },
+          {
+            "name": "agents",
+            "description": "List all installed BMAD agents with persona details."
+          },
+          {
+            "name": "workflows",
+            "description": "List all installed BMAD workflows grouped by module and phase."
+          },
+          {
+            "name": "tasks",
+            "description": "List all installed BMAD tasks and tools."
+          },
+          {
+            "name": "status",
+            "description": "Show BMAD installation status, detected modules, and configuration."
+          },
+          {
+            "name": "install",
+            "description": "Run the BMAD installer in a terminal. Sets up _bmad/ and Copilot prompt files."
+          },
+          {
+            "name": "update",
+            "description": "Rescan prompts, rebuild command map, and refresh Copilot integration."
+          }
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "bmad-copilot.rescan",
+        "title": "BMAD Copilot: Rescan Commands"
+      },
+      {
+        "command": "bmad-copilot.update",
+        "title": "BMAD Copilot: Update (Invalidate + Rescan)"
+      },
+      {
+        "command": "bmad-copilot.install",
+        "title": "BMAD Copilot: Run Installer"
+      }
+    ],
+    "configuration": {
+      "title": "BMAD Copilot Adapter",
+      "properties": {
+        "bmad.bmadDir": {
+          "type": "string",
+          "default": "",
+          "description": "Override path to _bmad installation directory. Leave empty for auto-detection from workspace root."
+        },
+        "bmad.autoScan": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan for BMAD installation on activation."
+        },
+        "bmad.verbose": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable verbose logging to the BMAD output channel."
+        }
+      }
+    }
+  }
+}

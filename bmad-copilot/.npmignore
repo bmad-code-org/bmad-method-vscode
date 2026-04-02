@@ -1,0 +1,24 @@
+# Source
+src/
+*.ts
+!dist/**/*.d.ts
+
+# Development
+.vscode/
+.github/
+out/
+node_modules/
+scripts/
+releases/
+
+# Testing
+TESTING.md
+*.vsix
+
+# Config
+tsconfig.json
+.vscodeignore
+.eslintrc*
+.prettierrc*
+.gitignore
+.editorconfig
