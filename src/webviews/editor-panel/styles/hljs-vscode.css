@@ -1,0 +1,61 @@
+/* highlight.js theme mapped to VS Code CSS variables */
+/* Used by rehype-highlight in the MarkdownRenderer component */
+
+.hljs {
+  color: var(--vscode-editor-foreground);
+  background: var(--vscode-textCodeBlock-background);
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-link {
+  color: var(--vscode-symbolIcon-keywordForeground, #569cd6);
+}
+
+.hljs-string,
+.hljs-attr,
+.hljs-addition {
+  color: var(--vscode-symbolIcon-stringForeground, #ce9178);
+}
+
+.hljs-comment,
+.hljs-quote,
+.hljs-meta {
+  color: var(--vscode-symbolIcon-commentForeground, #6a9955);
+  font-style: italic;
+}
+
+.hljs-number {
+  color: var(--vscode-symbolIcon-numberForeground, #b5cea8);
+}
+
+.hljs-title,
+.hljs-title.function_,
+.hljs-title.class_ {
+  color: var(--vscode-symbolIcon-functionForeground, #dcdcaa);
+}
+
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type {
+  color: var(--vscode-symbolIcon-variableForeground, #9cdcfe);
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: var(--vscode-symbolIcon-classForeground, #4ec9b0);
+}
+
+.hljs-deletion {
+  color: var(--vscode-errorForeground, #f44747);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}

@@ -1,0 +1,689 @@
+import { suite, test, beforeEach, afterEach } from 'mocha';
+import * as assert from 'assert';
+import * as vscode from 'vscode';
+import * as sinon from 'sinon';
+import { WorkflowDiscoveryService } from './workflow-discovery';
+import { BmadDetector, BmadPaths } from './bmad-detector';
+import type { DashboardState, AvailableWorkflow, SprintStatus } from '../../shared/types';
+import { createInitialDashboardState } from '../../shared/types';
+
+/**
+ * Testable WorkflowDiscoveryService subclass that allows mocking file system operations.
+ */
+class TestableWorkflowDiscoveryService extends WorkflowDiscoveryService {
+  private _mockReadDirectory: ((uri: vscode.Uri) => Promise<[string, vscode.FileType][]>) | null =
+    null;
+
+  setReadDirectoryMock(mockFn: (uri: vscode.Uri) => Promise<[string, vscode.FileType][]>): void {
+    this._mockReadDirectory = mockFn;
+  }
+
+  protected override async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
+    if (this._mockReadDirectory) {
+      return this._mockReadDirectory(uri);
+    }
+    return super.readDirectory(uri);
+  }
+}
+
+function createMockPaths(): BmadPaths {
+  return {
+    bmadRoot: vscode.Uri.file('/test/_bmad'),
+    outputRoot: vscode.Uri.file('/test/_bmad-output'),
+  };
+}
+
+function createMockSprintStatus(developmentStatus: Record<string, string>): SprintStatus {
+  return {
+    generated: '2026-01-27',
+    project: 'test-project',
+    project_key: 'test-project',
+    tracking_system: 'file-system',
+    story_location: '_bmad-output/implementation-artifacts',
+    development_status: developmentStatus as SprintStatus['development_status'],
+  };
+}
+
+function createState(overrides: Partial<DashboardState> = {}): DashboardState {
+  return {
+    ...createInitialDashboardState(),
+    loading: false,
+    ...overrides,
+  };
+}
+
+/** Planning artifacts representing all phases complete (ready for sprint planning) */
+const allPlanningArtifacts = {
+  hasProductBrief: false,
+  hasPrd: true,
+  hasArchitecture: true,
+  hasEpics: true,
+  hasReadinessReport: true,
+};
+const noPlanningArtifacts = {
+  hasProductBrief: false,
+  hasPrd: false,
+  hasArchitecture: false,
+  hasEpics: false,
+  hasReadinessReport: false,
+};
+
+/** Standard BMAD workflow folder entries for readDirectory mock */
+const ALL_WORKFLOW_FOLDERS: [string, vscode.FileType][] = [
+  ['sprint-planning', vscode.FileType.Directory],
+  ['create-story', vscode.FileType.Directory],
+  ['dev-story', vscode.FileType.Directory],
+  ['code-review', vscode.FileType.Directory],
+  ['retrospective', vscode.FileType.Directory],
+  ['correct-course', vscode.FileType.Directory],
+];
+
+suite('WorkflowDiscoveryService', () => {
+  let sandbox: sinon.SinonSandbox;
+  let detector: sinon.SinonStubbedInstance<BmadDetector>;
+  let service: TestableWorkflowDiscoveryService;
+
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  /**
+   * Default readDirectory mock that returns appropriate entries per directory.
+   * Phase 4 gets ALL_WORKFLOW_FOLDERS, extra dirs get a single file to indicate "installed".
+   */
+  function defaultReadDirectoryMock(
+    implFolders: [string, vscode.FileType][] = ALL_WORKFLOW_FOLDERS
+  ): (uri: vscode.Uri) => Promise<[string, vscode.FileType][]> {
+    return async (uri: vscode.Uri) => {
+      const path = uri.fsPath.replace(/\\/g, '/');
+      if (path.includes('4-implementation')) {
+        const result = await Promise.resolve(implFolders);
+        return result;
+      }
+      // Extra workflow directories: return a file entry to indicate "installed"
+      const installed: [string, vscode.FileType][] = [['workflow.md', vscode.FileType.File]];
+      const result = await Promise.resolve(installed);
+      return result;
+    };
+  }
+
+  function setup(
+    paths: BmadPaths | null = createMockPaths(),
+    workflowFolders: [string, vscode.FileType][] = ALL_WORKFLOW_FOLDERS
+  ): void {
+    detector = sandbox.createStubInstance(BmadDetector);
+    detector.getBmadPaths.returns(paths);
+    service = new TestableWorkflowDiscoveryService(detector as unknown as BmadDetector);
+    service.setReadDirectoryMock(defaultReadDirectoryMock(workflowFolders));
+  }
+
+  function findById(workflows: AvailableWorkflow[], id: string): AvailableWorkflow | undefined {
+    return workflows.find((w) => w.id === id);
+  }
+
+  suite('discoverInstalledWorkflows', () => {
+    test('discovers all standard workflow folders', async () => {
+      setup();
+      const installed = await service.discoverInstalledWorkflows();
+      // 6 implementation + 10 extra = 16
+      assert.strictEqual(installed.size, 16);
+      // Phase 4
+      assert.ok(installed.has('sprint-planning'));
+      assert.ok(installed.has('create-story'));
+      assert.ok(installed.has('dev-story'));
+      assert.ok(installed.has('code-review'));
+      assert.ok(installed.has('retrospective'));
+      assert.ok(installed.has('correct-course'));
+      // Extra workflows
+      assert.ok(installed.has('brainstorming'));
+      assert.ok(installed.has('create-product-brief'));
+      assert.ok(installed.has('create-prd'));
+      assert.ok(installed.has('validate-prd'));
+      assert.ok(installed.has('edit-prd'));
+      assert.ok(installed.has('create-ux-design'));
+      assert.ok(installed.has('create-architecture'));
+      assert.ok(installed.has('create-epics'));
+      assert.ok(installed.has('check-implementation-readiness'));
+      assert.ok(installed.has('qa-automate'));
+    });
+
+    test('returns empty set when no BMAD paths detected', async () => {
+      setup(null);
+      const installed = await service.discoverInstalledWorkflows();
+      assert.strictEqual(installed.size, 0);
+    });
+
+    test('filters out non-directory entries from implementation folders', async () => {
+      setup(createMockPaths(), [
+        ['dev-story', vscode.FileType.Directory],
+        ['readme.md', vscode.FileType.File],
+      ]);
+      const installed = await service.discoverInstalledWorkflows();
+      // 1 impl workflow + 10 extra workflows
+      assert.strictEqual(installed.size, 11);
+      assert.ok(installed.has('dev-story'));
+      assert.ok(!installed.has('readme.md'));
+    });
+
+    test('filters out unknown implementation workflow folders', async () => {
+      setup(createMockPaths(), [
+        ['dev-story', vscode.FileType.Directory],
+        ['unknown-workflow', vscode.FileType.Directory],
+      ]);
+      const installed = await service.discoverInstalledWorkflows();
+      // 1 impl workflow + 10 extra workflows
+      assert.strictEqual(installed.size, 11);
+      assert.ok(installed.has('dev-story'));
+      assert.ok(!installed.has('unknown-workflow'));
+    });
+
+    test('caches result after first scan', async () => {
+      setup();
+      const first = await service.discoverInstalledWorkflows();
+      // Change the mock - should still return cached result
+      service.setReadDirectoryMock(async () => Promise.resolve([]));
+      const second = await service.discoverInstalledWorkflows();
+      assert.strictEqual(first, second);
+    });
+
+    test('invalidateCache forces re-scan', async () => {
+      setup();
+      const initial = await service.discoverInstalledWorkflows();
+      assert.strictEqual(initial.size, 16);
+      service.invalidateCache();
+      // After invalidation, return empty for all directories
+      service.setReadDirectoryMock(async () => Promise.resolve([]));
+      const refreshed = await service.discoverInstalledWorkflows();
+      assert.strictEqual(refreshed.size, 0);
+    });
+
+    test('returns empty set when readDirectory fails', async () => {
+      setup();
+      service.setReadDirectoryMock(async () => Promise.reject(new Error('directory not found')));
+      service.invalidateCache();
+      const installed = await service.discoverInstalledWorkflows();
+      assert.strictEqual(installed.size, 0);
+    });
+  });
+
+  suite('discoverWorkflows - state mapping', () => {
+    test('no sprint data with all planning artifacts and readiness report returns sprint-planning', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({ sprint: null, planningArtifacts: allPlanningArtifacts });
+      const workflows = service.discoverWorkflows(state);
+      assert.strictEqual(workflows.length, 1);
+      assert.strictEqual(workflows[0].id, 'sprint-planning');
+      assert.strictEqual(workflows[0].kind, 'primary');
+    });
+
+    test('no sprint and no PRD returns create-prd with brainstorming and brief', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({ sprint: null, planningArtifacts: noPlanningArtifacts });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'create-prd');
+      assert.ok(findById(workflows, 'brainstorming'));
+      assert.ok(findById(workflows, 'create-product-brief'));
+    });
+
+    test('no sprint, no PRD, but product brief exists hides Create Brief', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: null,
+        planningArtifacts: { ...noPlanningArtifacts, hasProductBrief: true },
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'create-prd');
+      assert.ok(findById(workflows, 'brainstorming'));
+      assert.strictEqual(findById(workflows, 'create-product-brief'), undefined);
+    });
+
+    test('no sprint with PRD but no architecture returns create-architecture with optional PRD workflows', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: null,
+        planningArtifacts: {
+          hasProductBrief: false,
+          hasPrd: true,
+          hasArchitecture: false,
+          hasEpics: false,
+          hasReadinessReport: false,
+        },
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'create-architecture');
+      assert.ok(findById(workflows, 'validate-prd'));
+      assert.ok(findById(workflows, 'edit-prd'));
+      assert.ok(findById(workflows, 'create-ux-design'));
+    });
+
+    test('no sprint with PRD+arch but no epics returns create-epics with optional UX', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: null,
+        planningArtifacts: {
+          hasProductBrief: false,
+          hasPrd: true,
+          hasArchitecture: true,
+          hasEpics: false,
+          hasReadinessReport: false,
+        },
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'create-epics');
+      assert.ok(findById(workflows, 'create-ux-design'));
+    });
+
+    test('all planning artifacts but no readiness report returns check-implementation-readiness', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: null,
+        planningArtifacts: {
+          ...allPlanningArtifacts,
+          hasReadinessReport: false,
+        },
+      });
+      const workflows = service.discoverWorkflows(state);
+      assert.strictEqual(workflows.length, 1);
+      assert.strictEqual(workflows[0].id, 'check-implementation-readiness');
+      assert.strictEqual(workflows[0].kind, 'primary');
+    });
+
+    test('sprint active with all backlog stories returns create-story', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'in-progress',
+          '1-1-first-story': 'backlog',
+          '1-2-second-story': 'backlog',
+        }),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'create-story');
+    });
+
+    test('story with ready-for-dev status returns dev-story', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'in-progress',
+          '1-1-first-story': 'ready-for-dev',
+        }),
+        currentStory: {
+          key: '1-1-first-story',
+          epicNumber: 1,
+          storyNumber: 1,
+          title: 'First Story',
+          userStory: 'As a...',
+          acceptanceCriteria: [],
+          tasks: [],
+          filePath: 'stories/1-1-first-story.md',
+          status: 'ready-for-dev',
+          totalTasks: 0,
+          completedTasks: 0,
+          totalSubtasks: 0,
+          completedSubtasks: 0,
+        },
+      });
+      const workflows = service.discoverWorkflows(state);
+      assert.strictEqual(workflows.length, 1);
+      assert.strictEqual(workflows[0].id, 'dev-story');
+      assert.strictEqual(workflows[0].kind, 'primary');
+    });
+
+    test('story with in-progress status returns dev-story (continue)', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'in-progress',
+          '1-1-first-story': 'in-progress',
+        }),
+        currentStory: {
+          key: '1-1-first-story',
+          epicNumber: 1,
+          storyNumber: 1,
+          title: 'First Story',
+          userStory: 'As a...',
+          acceptanceCriteria: [],
+          tasks: [],
+          filePath: 'stories/1-1-first-story.md',
+          status: 'in-progress',
+          totalTasks: 0,
+          completedTasks: 0,
+          totalSubtasks: 0,
+          completedSubtasks: 0,
+        },
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'dev-story');
+      assert.ok(findById(workflows, 'correct-course'));
+    });
+
+    test('story with review status returns code-review, create-story and qa-automate', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'in-progress',
+          '1-1-first-story': 'review',
+        }),
+        currentStory: {
+          key: '1-1-first-story',
+          epicNumber: 1,
+          storyNumber: 1,
+          title: 'First Story',
+          userStory: 'As a...',
+          acceptanceCriteria: [],
+          tasks: [],
+          filePath: 'stories/1-1-first-story.md',
+          status: 'review',
+          totalTasks: 0,
+          completedTasks: 0,
+          totalSubtasks: 0,
+          completedSubtasks: 0,
+        },
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'code-review');
+      assert.ok(findById(workflows, 'create-story'));
+      assert.ok(findById(workflows, 'qa-automate'));
+    });
+
+    test('all stories in an epic complete returns retrospective and create-story', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'in-progress',
+          '1-1-first-story': 'done',
+          '1-2-second-story': 'done',
+          'epic-2': 'backlog',
+          '2-1-third-story': 'backlog',
+        }),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'retrospective');
+      assert.ok(findById(workflows, 'create-story'));
+    });
+
+    test('skips epic with completed retrospective and returns create-story for backlog', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'done',
+          '1-1-first-story': 'done',
+          '1-2-second-story': 'done',
+          'epic-1-retrospective': 'done',
+          'epic-2': 'in-progress',
+          '2-1-third-story': 'backlog',
+        }),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'create-story');
+    });
+
+    test('skips epic with optional retrospective and returns create-story for backlog', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'done',
+          '1-1-first-story': 'done',
+          '1-2-second-story': 'done',
+          'epic-1-retrospective': 'optional',
+          'epic-2': 'in-progress',
+          '2-1-third-story': 'backlog',
+        }),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.strictEqual(primary?.id, 'create-story');
+    });
+
+    test('skips retrospective when epic is done even without retrospective entry', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'done',
+          '1-1-first-story': 'done',
+          '1-2-second-story': 'done',
+          'epic-2': 'in-progress',
+          '2-1-third-story': 'in-progress',
+        }),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primary = workflows.find((w) => w.kind === 'primary');
+      assert.notStrictEqual(primary?.id, 'retrospective');
+    });
+
+    test('all stories in sprint complete returns retrospective', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'in-progress',
+          '1-1-first-story': 'done',
+          '1-2-second-story': 'done',
+        }),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      assert.strictEqual(workflows.length, 1);
+      assert.strictEqual(workflows[0].id, 'retrospective');
+      assert.strictEqual(workflows[0].kind, 'primary');
+    });
+
+    test('sprint with no stories returns create-story', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'in-progress',
+        }),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      assert.strictEqual(workflows.length, 1);
+      assert.strictEqual(workflows[0].id, 'create-story');
+      assert.strictEqual(workflows[0].kind, 'primary');
+    });
+  });
+
+  suite('discoverWorkflows - installation filtering', () => {
+    test('workflows filtered against installed workflows', async () => {
+      // Only dev-story is installed
+      setup(createMockPaths(), [['dev-story', vscode.FileType.Directory]]);
+      await service.discoverInstalledWorkflows();
+
+      // State would normally return [dev-story, correct-course]
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'in-progress',
+          '1-1-first-story': 'in-progress',
+        }),
+        currentStory: {
+          key: '1-1-first-story',
+          epicNumber: 1,
+          storyNumber: 1,
+          title: 'First Story',
+          userStory: 'As a...',
+          acceptanceCriteria: [],
+          tasks: [],
+          filePath: 'stories/1-1-first-story.md',
+          status: 'in-progress',
+          totalTasks: 0,
+          completedTasks: 0,
+          totalSubtasks: 0,
+          completedSubtasks: 0,
+        },
+      });
+      const workflows = service.discoverWorkflows(state);
+      // correct-course should be filtered out since it's not installed
+      assert.strictEqual(workflows.length, 1);
+      assert.strictEqual(workflows[0].id, 'dev-story');
+    });
+
+    test('returns empty array when no workflows are installed', async () => {
+      detector = sandbox.createStubInstance(BmadDetector);
+      detector.getBmadPaths.returns(createMockPaths());
+      service = new TestableWorkflowDiscoveryService(detector as unknown as BmadDetector);
+      // Return empty for ALL directories (no workflows installed anywhere)
+      service.setReadDirectoryMock(async () => Promise.resolve([]));
+      await service.discoverInstalledWorkflows();
+      const state = createState({ sprint: null });
+      const workflows = service.discoverWorkflows(state);
+      assert.strictEqual(workflows.length, 0);
+    });
+  });
+
+  suite('discoverWorkflows - primary workflow marking', () => {
+    test('exactly one workflow is marked as primary', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({
+          'epic-1': 'in-progress',
+          '1-1-first-story': 'review',
+        }),
+        currentStory: {
+          key: '1-1-first-story',
+          epicNumber: 1,
+          storyNumber: 1,
+          title: 'First Story',
+          userStory: 'As a...',
+          acceptanceCriteria: [],
+          tasks: [],
+          filePath: 'stories/1-1-first-story.md',
+          status: 'review',
+          totalTasks: 0,
+          completedTasks: 0,
+          totalSubtasks: 0,
+          completedSubtasks: 0,
+        },
+      });
+      const workflows = service.discoverWorkflows(state);
+      const primaryCount = workflows.filter((w) => w.kind === 'primary').length;
+      assert.strictEqual(primaryCount, 1);
+    });
+  });
+
+  suite('discoverWorkflows - graceful degradation', () => {
+    test('handles partial state with no sprint gracefully', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: null,
+        epics: [],
+        currentStory: null,
+        planningArtifacts: allPlanningArtifacts,
+      });
+      const workflows = service.discoverWorkflows(state);
+      assert.ok(workflows.length > 0);
+      assert.strictEqual(workflows[0].id, 'sprint-planning');
+    });
+
+    test('handles sprint with empty development_status', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: createMockSprintStatus({}),
+        currentStory: null,
+      });
+      const workflows = service.discoverWorkflows(state);
+      assert.ok(workflows.length > 0);
+      // No stories at all → create-story
+      assert.strictEqual(workflows[0].id, 'create-story');
+    });
+
+    test('never throws an exception', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      // Pass various degenerate states
+      const states: DashboardState[] = [
+        createState({ sprint: null }),
+        createState({ sprint: createMockSprintStatus({}), currentStory: null }),
+        createState({
+          sprint: createMockSprintStatus({ 'epic-1': 'in-progress' }),
+          currentStory: null,
+        }),
+      ];
+      for (const state of states) {
+        assert.doesNotThrow(() => service.discoverWorkflows(state));
+      }
+    });
+  });
+
+  suite('workflow properties', () => {
+    test('workflows have correct structure', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: null,
+        planningArtifacts: allPlanningArtifacts,
+      });
+      const workflows = service.discoverWorkflows(state);
+      for (const w of workflows) {
+        assert.ok(typeof w.id === 'string' && w.id.length > 0);
+        assert.ok(typeof w.name === 'string' && w.name.length > 0);
+        assert.ok(typeof w.command === 'string' && w.command.length > 0);
+        assert.ok(typeof w.description === 'string' && w.description.length > 0);
+        assert.ok(typeof w.kind === 'string');
+      }
+    });
+
+    test('commands follow /bmad- pattern without CLI prefix', async () => {
+      setup();
+      await service.discoverInstalledWorkflows();
+      const state = createState({
+        sprint: null,
+        planningArtifacts: noPlanningArtifacts,
+      });
+      const workflows = service.discoverWorkflows(state);
+      for (const w of workflows) {
+        assert.ok(
+          w.command.startsWith('/bmad-'),
+          `Expected command to start with '/bmad-', got '${w.command}'`
+        );
+        assert.ok(
+          !w.command.startsWith('claude'),
+          `Command should not include CLI prefix, got '${w.command}'`
+        );
+      }
+    });
+  });
+
+  suite('dispose', () => {
+    test('can be disposed without errors', () => {
+      setup();
+      assert.doesNotThrow(() => service.dispose());
+    });
+  });
+});

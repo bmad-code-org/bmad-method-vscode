@@ -1,0 +1,728 @@
+import * as vscode from 'vscode';
+import * as yaml from 'js-yaml';
+import { BmadDetector, BmadPaths } from './bmad-detector';
+import { FileWatcher, FileChangeEvent, FileWatcherError } from './file-watcher';
+import type { WorkflowDiscoveryService } from './workflow-discovery';
+import { parseSprintStatus, parseEpics, parseStory } from '../parsers';
+import type {
+  DashboardState,
+  ParseError,
+  SprintStatus,
+  Epic,
+  Story,
+  StorySummary,
+} from '../../shared/types';
+import { createInitialDashboardState, isStoryKey, isEpicKey } from '../../shared/types';
+
+/**
+ * Story file validation regex - only files matching X-Y-name.md or X-Ya-name.md are stories
+ * Examples:
+ *   '2-6-state-manager.md' → true (story)
+ *   '5-5a-editor-panel.md' → true (split story)
+ *   'sprint-status.yaml' → false (not .md)
+ *   'readme.md' → false (doesn't match X-Y-name pattern)
+ */
+const STORY_FILE_REGEX = /^\d+-\d+[a-z]?-[\w-]+\.md$/;
+const MAX_STORED_ERRORS = 50;
+
+/**
+ * Service for managing aggregated BMAD dashboard state.
+ *
+ * Aggregates parsed data from sprint status, epics, and stories,
+ * collects parse errors, and notifies subscribers on state changes.
+ *
+ * Uses VS Code's workspace.fs API (NOT Node.js fs) for remote development compatibility.
+ */
+export class StateManager implements vscode.Disposable {
+  /** Disposables that live for the lifetime of the StateManager instance */
+  private readonly disposables: vscode.Disposable[] = [];
+
+  /** Aggregated dashboard state */
+  private _state: DashboardState;
+
+  /** Internal story storage - NOT exposed in DashboardState */
+  private readonly _parsedStories: Map<string, Story> = new Map();
+
+  /** Flag to prevent race conditions during initialization */
+  private _initializing = false;
+
+  /** Queue for file changes that arrive during initialization */
+  private readonly _pendingChanges: FileChangeEvent[] = [];
+
+  /** Event emitter for state changes */
+  private readonly _onStateChange = new vscode.EventEmitter<DashboardState>();
+
+  /** Event fired when dashboard state changes */
+  public readonly onStateChange = this._onStateChange.event;
+
+  /**
+   * Create a new StateManager instance.
+   * @param bmadDetector - The BMAD detector service for path resolution
+   * @param fileWatcher - The FileWatcher service for change events
+   * @param workflowDiscovery - Optional workflow discovery service for computing available workflows
+   */
+  constructor(
+    private readonly bmadDetector: BmadDetector,
+    private readonly fileWatcher: FileWatcher,
+    private readonly workflowDiscovery?: WorkflowDiscoveryService
+  ) {
+    this._state = createInitialDashboardState();
+    this.disposables.push(this._onStateChange);
+  }
+
+  /**
+   * Get the current dashboard state (read-only).
+   */
+  get state(): DashboardState {
+    return this._state;
+  }
+
+  /**
+   * Initialize the state manager by performing a full parse.
+   * Subscribes to file watcher events for ongoing updates.
+   */
+  async initialize(): Promise<void> {
+    this._initializing = true;
+    try {
+      // Subscribe to file watcher events
+      this.disposables.push(
+        this.fileWatcher.onDidChange((event) => {
+          void this.handleFileChanges(event);
+        })
+      );
+      this.disposables.push(
+        this.fileWatcher.onError((error) => this.handleFileWatcherError(error))
+      );
+
+      await this.parseAll();
+    } finally {
+      this._initializing = false;
+      // Process any changes that arrived during initialization
+      await this.processPendingChanges();
+    }
+  }
+
+  /**
+   * Trigger a full re-parse of all BMAD artifacts.
+   * Clears errors before re-parsing.
+   */
+  async refresh(): Promise<void> {
+    // Set loading state and clear errors
+    this._state = { ...this._state, loading: true, errors: [] };
+    this._onStateChange.fire(this._state);
+
+    await this.parseAll();
+  }
+
+  /**
+   * Dispose all resources.
+   */
+  dispose(): void {
+    for (const d of this.disposables) {
+      d.dispose();
+    }
+  }
+
+  /**
+   * Parse all BMAD artifacts (sprint status, epics, stories).
+   * Updates state with results and fires state change event.
+   */
+  private async parseAll(): Promise<void> {
+    let paths = this.bmadDetector.getBmadPaths();
+
+    // Re-run detection if outputRoot was not found previously —
+    // the directory may have been created since activation (e.g., after project init).
+    if (paths && !paths.outputRoot) {
+      await this.bmadDetector.detectBmadProject();
+      paths = this.bmadDetector.getBmadPaths();
+
+      // If outputRoot is now available, restart the file watcher so it picks up changes
+      if (paths?.outputRoot) {
+        this.fileWatcher.stop();
+        this.fileWatcher.start();
+      }
+    }
+
+    if (!paths || !paths.outputRoot) {
+      // No BMAD output directory - set loading to false and keep defaults
+      this._state = { ...this._state, loading: false };
+      this._onStateChange.fire(this._state);
+      return;
+    }
+
+    // Populate outputRoot and settings from config so webview can construct document paths
+    const config = vscode.workspace.getConfiguration('bmad');
+    this._state = {
+      ...this._state,
+      outputRoot: config.get<string>('outputRoot', '_bmad-output'),
+      defaultClickBehavior: config.get<'markdown-preview' | 'editor-panel'>(
+        'defaultClickBehavior',
+        'markdown-preview'
+      ),
+    };
+
+    // Parse sprint status
+    await this.parseSprintStatus(paths.outputRoot);
+
+    // Parse epics
+    await this.parseEpics(paths.outputRoot);
+
+    // Parse stories
+    await this.parseStories(paths.outputRoot);
+
+    // Parse BMAD manifest metadata
+    await this.parseManifest(paths);
+
+    // Detect planning artifact existence for lifecycle-aware recommendations
+    await this.detectPlanningArtifacts(paths.outputRoot);
+
+    // Determine current story from sprint status
+    this.determineCurrentStory();
+
+    // Build lightweight story summaries for webview
+    this.buildStorySummaries();
+
+    // Compute available workflows
+    if (this.workflowDiscovery) {
+      this._state = {
+        ...this._state,
+        workflows: this.workflowDiscovery.discoverWorkflows(this._state),
+      };
+    }
+
+    // Mark loading complete
+    this._state = { ...this._state, loading: false };
+    this._onStateChange.fire(this._state);
+  }
+
+  /**
+   * Parse sprint status file.
+   */
+  private async parseSprintStatus(outputRoot: vscode.Uri): Promise<void> {
+    const sprintStatusPath = vscode.Uri.joinPath(
+      outputRoot,
+      'implementation-artifacts',
+      'sprint-status.yaml'
+    );
+
+    try {
+      const content = await this.readFile(sprintStatusPath);
+      if (content === null) {
+        // File doesn't exist - not an error, just no sprint status
+        this._state = { ...this._state, sprint: null };
+        return;
+      }
+
+      const result = parseSprintStatus(content);
+      if (result.success) {
+        this.clearErrorForFile(sprintStatusPath.fsPath);
+        this._state = { ...this._state, sprint: result.data };
+      } else {
+        this.collectError({
+          message: result.error,
+          filePath: sprintStatusPath.fsPath,
+          recoverable: true,
+        });
+        // Use partial data if available
+        if (result.partial) {
+          this._state = { ...this._state, sprint: result.partial as SprintStatus };
+        }
+      }
+    } catch (err) {
+      console.debug('[BMAD] Failed to parse sprint status:', err);
+    }
+  }
+
+  /**
+   * Parse epic files.
+   */
+  private async parseEpics(outputRoot: vscode.Uri): Promise<void> {
+    const planningArtifactsPath = vscode.Uri.joinPath(outputRoot, 'planning-artifacts');
+
+    try {
+      // Look for epics.md file (the consolidated epics file)
+      const epicsFilePath = vscode.Uri.joinPath(planningArtifactsPath, 'epics.md');
+      const content = await this.readFile(epicsFilePath);
+
+      if (content === null) {
+        // No epics file found
+        this._state = { ...this._state, epics: [] };
+        return;
+      }
+
+      const result = parseEpics(content, epicsFilePath.fsPath);
+      if (result.success) {
+        this.clearErrorForFile(epicsFilePath.fsPath);
+        // Merge status from sprint status if available
+        const epicsWithStatus = result.data.map((epic) => this.mergeEpicStatus(epic));
+        this._state = { ...this._state, epics: epicsWithStatus };
+      } else {
+        this.collectError({
+          message: result.error,
+          filePath: epicsFilePath.fsPath,
+          recoverable: true,
+        });
+      }
+    } catch (err) {
+      console.debug('[BMAD] Failed to parse epics:', err);
+    }
+  }
+
+  /**
+   * Merge epic status from sprint status data.
+   */
+  private mergeEpicStatus(epic: Epic): Epic {
+    if (!this._state.sprint) {
+      return epic;
+    }
+
+    const statusKey = `epic-${epic.number}`;
+    const status = this._state.sprint.development_status[statusKey];
+    if (status && (status === 'backlog' || status === 'in-progress' || status === 'done')) {
+      return { ...epic, status };
+    }
+    return epic;
+  }
+
+  /**
+   * Parse story files from implementation-artifacts directory.
+   */
+  private async parseStories(outputRoot: vscode.Uri): Promise<void> {
+    const implementationArtifactsPath = vscode.Uri.joinPath(outputRoot, 'implementation-artifacts');
+
+    this._parsedStories.clear();
+
+    // Read directory contents using protected method (for testability)
+    const entries = await this.readDirectory(implementationArtifactsPath);
+
+    // Filter to only story files and map to parse promises
+    const storyParsePromises = entries
+      .filter(([name, type]) => type === vscode.FileType.File && this.isStoryFile(name))
+      .map(async ([name]) =>
+        this.parseStoryFile(vscode.Uri.joinPath(implementationArtifactsPath, name))
+      );
+
+    await Promise.all(storyParsePromises);
+  }
+
+  /**
+   * Parse a single story file and add to internal storage.
+   */
+  private async parseStoryFile(storyPath: vscode.Uri): Promise<void> {
+    const content = await this.readFile(storyPath);
+    if (content === null) {
+      return;
+    }
+
+    // Use workspace-relative path so openDocument() in the webview can resolve it correctly
+    const relativePath = vscode.workspace.asRelativePath(storyPath, false);
+    const result = parseStory(content, relativePath);
+    if (result.success) {
+      this.clearErrorForFile(storyPath.fsPath);
+      this._parsedStories.set(result.data.key, result.data);
+    } else {
+      this.collectError({
+        message: result.error,
+        filePath: storyPath.fsPath,
+        recoverable: true,
+      });
+      // Store partial data if available
+      if (result.partial && 'key' in result.partial && result.partial.key) {
+        this._parsedStories.set(result.partial.key, result.partial as Story);
+      }
+    }
+  }
+
+  /**
+   * Parse BMAD manifest.yaml for installation metadata.
+   */
+  private async parseManifest(paths: BmadPaths): Promise<void> {
+    const manifestPath = vscode.Uri.joinPath(paths.bmadRoot, '_config', 'manifest.yaml');
+    const content = await this.readFile(manifestPath);
+    if (content === null) {
+      this._state = { ...this._state, bmadMetadata: null };
+      return;
+    }
+    try {
+      const raw = yaml.load(content) as Record<string, unknown>;
+      const installation = raw?.installation as Record<string, unknown> | undefined;
+      const modules = (raw?.modules as Array<Record<string, unknown>>) ?? [];
+      const str = (val: unknown, fallback = ''): string =>
+        typeof val === 'string'
+          ? val
+          : val instanceof Date
+            ? val.toISOString()
+            : typeof val === 'number'
+              ? String(val)
+              : fallback;
+      this._state = {
+        ...this._state,
+        bmadMetadata: {
+          version: str(installation?.version, 'Unknown'),
+          lastUpdated: str(installation?.lastUpdated),
+          modules: modules.map((m) => ({
+            name: str(m.name),
+            version: str(m.version),
+            source: str(m.source),
+          })),
+        },
+      };
+    } catch {
+      this._state = { ...this._state, bmadMetadata: null };
+    }
+  }
+
+  /**
+   * Detect existence of key planning artifacts (PRD, architecture).
+   * Epics presence is derived from the already-parsed epics array.
+   */
+  private async detectPlanningArtifacts(outputRoot: vscode.Uri): Promise<void> {
+    const planningPath = vscode.Uri.joinPath(outputRoot, 'planning-artifacts');
+
+    const prdPath = vscode.Uri.joinPath(planningPath, 'prd.md');
+    const archPath = vscode.Uri.joinPath(planningPath, 'architecture.md');
+
+    const [prdContent, archContent, planningEntries] = await Promise.all([
+      this.readFile(prdPath),
+      this.readFile(archPath),
+      this.readDirectory(planningPath),
+    ]);
+
+    const hasProductBrief = planningEntries.some(
+      ([name, type]) =>
+        type === vscode.FileType.File && name.startsWith('product-brief-') && name.endsWith('.md')
+    );
+
+    const hasReadinessReport = planningEntries.some(
+      ([name, type]) =>
+        type === vscode.FileType.File &&
+        name.startsWith('implementation-readiness-report-') &&
+        name.endsWith('.md')
+    );
+
+    this._state = {
+      ...this._state,
+      planningArtifacts: {
+        hasProductBrief,
+        hasPrd: prdContent !== null,
+        hasArchitecture: archContent !== null,
+        hasEpics: this._state.epics.length > 0,
+        hasReadinessReport,
+      },
+    };
+  }
+
+  /**
+   * Check if a filename matches the story file pattern (X-Y-name.md).
+   */
+  private isStoryFile(fileName: string): boolean {
+    return STORY_FILE_REGEX.test(fileName);
+  }
+
+  /**
+   * Check if a filename matches the product brief pattern (product-brief-*.md).
+   */
+  private isProductBriefFile(fileName: string): boolean {
+    return fileName.startsWith('product-brief-') && fileName.endsWith('.md');
+  }
+
+  /**
+   * Check if a filename matches the readiness report pattern (implementation-readiness-report-*.md).
+   */
+  private isReadinessReportFile(fileName: string): boolean {
+    return fileName.startsWith('implementation-readiness-report-') && fileName.endsWith('.md');
+  }
+
+  /**
+   * Determine the current story based on sprint status.
+   * Finds the first story with status 'in-progress', 'ready-for-dev', or 'review'.
+   */
+  private determineCurrentStory(): void {
+    if (!this._state.sprint || !this._state.sprint.development_status) {
+      this._state = { ...this._state, currentStory: null };
+      return;
+    }
+
+    // Find first story with an active status (in-progress, ready-for-dev, or review)
+    const activeStatuses = ['in-progress', 'ready-for-dev', 'review'];
+    const entries = Object.entries(this._state.sprint.development_status);
+
+    for (const [key, status] of entries) {
+      // Skip epic entries (epic-X) and retrospectives
+      if (isEpicKey(key) || key.includes('retrospective')) {
+        continue;
+      }
+
+      // Only process story keys
+      if (!isStoryKey(key)) {
+        continue;
+      }
+
+      if (activeStatuses.includes(status)) {
+        // Find matching story in internal _parsedStories map
+        const story = this._parsedStories.get(key);
+        if (story) {
+          this._state = { ...this._state, currentStory: story };
+          return;
+        }
+      }
+    }
+
+    this._state = { ...this._state, currentStory: null };
+  }
+
+  /**
+   * Build lightweight story summaries from parsed stories for the webview.
+   */
+  private buildStorySummaries(): void {
+    const summaries: StorySummary[] = [];
+    for (const story of this._parsedStories.values()) {
+      summaries.push({
+        key: story.key,
+        title: story.title,
+        status: story.status,
+        epicNumber: story.epicNumber,
+        storyNumber: story.storyNumber,
+        storySuffix: story.storySuffix,
+        totalTasks: story.totalTasks,
+        completedTasks: story.completedTasks,
+        totalSubtasks: story.totalSubtasks,
+        completedSubtasks: story.completedSubtasks,
+        filePath: story.filePath,
+      });
+    }
+    this._state = { ...this._state, storySummaries: summaries };
+  }
+
+  /**
+   * Handle file change events from FileWatcher.
+   */
+  private async handleFileChanges(event: FileChangeEvent): Promise<void> {
+    // Queue changes if still initializing
+    if (this._initializing) {
+      this._pendingChanges.push(event);
+      return;
+    }
+
+    const paths = this.bmadDetector.getBmadPaths();
+    if (!paths || !paths.outputRoot) {
+      return;
+    }
+
+    // Process deletes synchronously (no I/O needed)
+    const deleteChanges = Array.from(event.changes.entries()).filter(
+      ([, changeType]) => changeType === 'delete'
+    );
+    for (const [filePath] of deleteChanges) {
+      this.removeFromState(filePath);
+    }
+
+    // Process creates/changes sequentially to avoid concurrent state mutation
+    const updateChanges = Array.from(event.changes.entries()).filter(
+      ([, changeType]) => changeType !== 'delete'
+    );
+    for (const [filePath] of updateChanges) {
+      // Sequential processing is intentional — prevents concurrent state mutation
+      // eslint-disable-next-line no-await-in-loop
+      await this.handleFileUpdate(filePath, paths.outputRoot);
+    }
+
+    this.determineCurrentStory();
+    this.buildStorySummaries();
+
+    // Recompute available workflows
+    if (this.workflowDiscovery) {
+      this._state = {
+        ...this._state,
+        workflows: this.workflowDiscovery.discoverWorkflows(this._state),
+      };
+    }
+
+    this.notifyWebviews();
+  }
+
+  /**
+   * Handle a file update (create or change).
+   */
+  private async handleFileUpdate(filePath: string, outputRoot: vscode.Uri): Promise<void> {
+    // Normalize path separators for reliable matching on all platforms
+    const normalizedPath = filePath.replace(/\\/g, '/');
+    const fileName = normalizedPath.split('/').pop()!;
+
+    if (fileName === 'sprint-status.yaml') {
+      await this.parseSprintStatus(outputRoot);
+    } else if (normalizedPath.includes('planning-artifacts') && fileName === 'epics.md') {
+      await this.parseEpics(outputRoot);
+      this._state = {
+        ...this._state,
+        planningArtifacts: {
+          ...this._state.planningArtifacts,
+          hasEpics: this._state.epics.length > 0,
+        },
+      };
+    } else if (
+      normalizedPath.includes('planning-artifacts') &&
+      (fileName === 'prd.md' ||
+        fileName === 'architecture.md' ||
+        this.isProductBriefFile(fileName) ||
+        this.isReadinessReportFile(fileName))
+    ) {
+      await this.detectPlanningArtifacts(outputRoot);
+    } else if (normalizedPath.includes('implementation-artifacts') && this.isStoryFile(fileName)) {
+      await this.parseStoryFile(vscode.Uri.file(filePath));
+    }
+    // Other files are ignored (not relevant to BMAD dashboard)
+  }
+
+  /**
+   * Remove data from state when a file is deleted.
+   */
+  private removeFromState(filePath: string): void {
+    const fileName = this.getFileName(filePath);
+
+    // Clear error for this file
+    this.clearErrorForFile(filePath);
+
+    if (fileName === 'sprint-status.yaml') {
+      this._state = { ...this._state, sprint: null };
+    } else if (fileName === 'epics.md') {
+      this._state = {
+        ...this._state,
+        epics: [],
+        planningArtifacts: { ...this._state.planningArtifacts, hasEpics: false },
+      };
+    } else if (fileName === 'prd.md') {
+      this._state = {
+        ...this._state,
+        planningArtifacts: { ...this._state.planningArtifacts, hasPrd: false },
+      };
+    } else if (fileName === 'architecture.md') {
+      this._state = {
+        ...this._state,
+        planningArtifacts: { ...this._state.planningArtifacts, hasArchitecture: false },
+      };
+    } else if (this.isProductBriefFile(fileName)) {
+      this._state = {
+        ...this._state,
+        planningArtifacts: { ...this._state.planningArtifacts, hasProductBrief: false },
+      };
+    } else if (this.isReadinessReportFile(fileName)) {
+      this._state = {
+        ...this._state,
+        planningArtifacts: { ...this._state.planningArtifacts, hasReadinessReport: false },
+      };
+    } else if (this.isStoryFile(fileName)) {
+      // Find and remove the story from internal map
+      const storyKey = this.extractStoryKeyFromFileName(fileName);
+      if (storyKey) {
+        this._parsedStories.delete(storyKey);
+        // If deleted story was the current story, clear it
+        if (this._state.currentStory?.key === storyKey) {
+          this._state = { ...this._state, currentStory: null };
+        }
+      }
+    }
+  }
+
+  /**
+   * Extract story key from filename.
+   * E.g., "2-6-state-manager.md" → "2-6-state-manager"
+   * E.g., "5-5a-editor-panel.md" → "5-5a-editor-panel"
+   */
+  private extractStoryKeyFromFileName(fileName: string): string | null {
+    const match = fileName.match(/^(\d+-\d+[a-z]?-[\w-]+)\.md$/);
+    return match ? match[1] : null;
+  }
+
+  /**
+   * Get the filename from a file path.
+   */
+  private getFileName(filePath: string): string {
+    const parts = filePath.replace(/\\/g, '/').split('/');
+    return parts[parts.length - 1];
+  }
+
+  /**
+   * Process any file changes that were queued during initialization.
+   * Must be sequential to maintain event ordering.
+   */
+  private async processPendingChanges(): Promise<void> {
+    // Process sequentially to maintain ordering
+    while (this._pendingChanges.length > 0) {
+      const event = this._pendingChanges.shift()!;
+      await this.handleFileChanges(event); // eslint-disable-line no-await-in-loop -- intentional sequential processing
+    }
+  }
+
+  /**
+   * Handle file watcher errors by adding to errors array.
+   */
+  private handleFileWatcherError(error: FileWatcherError): void {
+    this.collectError({
+      message: `File watcher error: ${error.message}`,
+      recoverable: error.recoverable,
+    });
+  }
+
+  /**
+   * Collect a parse error into state.
+   * Errors are deduplicated by filePath - new error replaces existing error for same file.
+   */
+  private collectError(error: ParseError): void {
+    // Remove any existing error for this file
+    const errors = error.filePath
+      ? this._state.errors.filter((e) => e.filePath !== error.filePath)
+      : this._state.errors;
+
+    // Add the new error (cap to prevent unbounded growth)
+    this._state = { ...this._state, errors: [...errors, error].slice(-MAX_STORED_ERRORS) };
+  }
+
+  /**
+   * Clear error for a specific file on successful parse.
+   */
+  private clearErrorForFile(filePath: string): void {
+    const errors = this._state.errors.filter((e) => e.filePath !== filePath);
+    if (errors.length !== this._state.errors.length) {
+      this._state = { ...this._state, errors };
+    }
+  }
+
+  /**
+   * Notify webviews of state change (placeholder for Epic 3 integration).
+   */
+  private notifyWebviews(): void {
+    this._onStateChange.fire(this._state);
+  }
+
+  /**
+   * Read a file using VS Code's workspace.fs API.
+   * Returns null if file doesn't exist or can't be read.
+   *
+   * Protected to allow subclassing for testing (vscode.workspace.fs is non-configurable).
+   */
+  protected async readFile(uri: vscode.Uri): Promise<string | null> {
+    try {
+      const content = await vscode.workspace.fs.readFile(uri);
+      return Buffer.from(content).toString('utf-8');
+    } catch {
+      // File doesn't exist or can't be read
+      return null;
+    }
+  }
+
+  /**
+   * Read directory using VS Code's workspace.fs API.
+   * Returns empty array if directory doesn't exist or can't be read.
+   *
+   * Protected to allow subclassing for testing (vscode.workspace.fs is non-configurable).
+   */
+  protected async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
+    try {
+      return await vscode.workspace.fs.readDirectory(uri);
+    } catch {
+      // Directory doesn't exist or can't be read
+      return [];
+    }
+  }
+}

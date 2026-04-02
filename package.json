@@ -1,0 +1,170 @@
+{
+  "name": "bmad-dashboard",
+  "displayName": "BMAD Dashboard",
+  "description": "Interactive dashboard for BMAD V6 projects",
+  "version": "1.2.2",
+  "publisher": "elvince",
+  "main": "./out/extension/extension.js",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "vscode",
+    "bmad",
+    "dashboard"
+  ],
+  "license": "MIT",
+  "repository": "https://github.com/elvince/bmad-dashboard-extension",
+  "packageManager": "pnpm@10.26.2",
+  "scripts": {
+    "vscode:prepublish": "pnpm build",
+    "vscode:package": "npx @vscode/vsce package --no-dependencies -o out/",
+    "build": "pnpm build:extension && pnpm build:webview",
+    "build:extension": "esbuild src/extension/extension.ts --bundle --outfile=out/extension/extension.js --external:vscode --format=cjs --platform=node --sourcemap --minify",
+    "build:webview": "vite build",
+    "watch": "pnpm run --parallel '/watch:.*/'",
+    "watch:extension": "esbuild src/extension/extension.ts --bundle --outfile=out/extension/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch",
+    "watch:webview": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "pretest:extension": "tsc -p tsconfig.extension.json",
+    "test:extension": "vscode-test",
+    "lint": "eslint",
+    "typecheck": "pnpm typecheck:extension && pnpm typecheck:webview",
+    "typecheck:extension": "tsc -p tsconfig.extension.json --noEmit",
+    "typecheck:webview": "tsc -p tsconfig.webview.json --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "release": "semantic-release",
+    "release:dry": "semantic-release --dry-run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^7.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.6",
+    "@tailwindcss/vite": "^4.1.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/js-yaml": "^4.0.9",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.12.0",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "@types/sinon": "^21.0.0",
+    "@types/vscode": "^1.96.0",
+    "@vitejs/plugin-react": "^5.1.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "esbuild": "^0.27.0",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "globals": "^17.2.0",
+    "jsdom": "^27.4.0",
+    "mocha": "^11.7.5",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "semantic-release": "^25.0.3",
+    "sinon": "^21.0.1",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.53.0",
+    "vite": "^7.3.0",
+    "vitest": "^4.0.18",
+    "clsx": "^2.1.1",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.1",
+    "lucide-react": "^0.563.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1",
+    "tailwind-merge": "^3.4.0",
+    "zustand": "^5.0.0"
+  },
+  "activationEvents": [
+    "workspaceContains:**/_bmad/**"
+  ],
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "bmad-dashboard",
+          "title": "BMAD Dashboard",
+          "icon": "resources/bmad-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "bmad-dashboard": [
+        {
+          "type": "webview",
+          "id": "bmad.dashboardView",
+          "name": "Dashboard"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "bmad.refresh",
+        "title": "BMAD: Refresh Dashboard"
+      },
+      {
+        "command": "bmad.openEditorPanel",
+        "title": "BMAD: Open Editor Panel"
+      }
+    ],
+    "configuration": {
+      "title": "BMAD Dashboard",
+      "properties": {
+        "bmad.outputRoot": {
+          "type": "string",
+          "default": "_bmad-output",
+          "description": "Root directory for BMAD output files, relative to workspace root."
+        },
+        "bmad.cliPrefix": {
+          "type": "string",
+          "default": "claude",
+          "description": "CLI tool prefix for workflow terminal commands (e.g., 'claude', 'aider', 'copilot'). The BMAD slash command is appended after this prefix."
+        },
+        "bmad.defaultClickBehavior": {
+          "type": "string",
+          "enum": [
+            "markdown-preview",
+            "editor-panel"
+          ],
+          "default": "markdown-preview",
+          "description": "Default click behavior for document links in the sidebar. 'markdown-preview' opens files normally; 'editor-panel' opens the editor panel at the relevant view."
+        },
+        "bmad.docLibraryPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "planning-artifacts",
+            "implementation-artifacts",
+            "docs"
+          ],
+          "description": "Folders to display in the Document Library. 'planning-artifacts' and 'implementation-artifacts' are resolved relative to the configured outputRoot. Other paths (e.g. 'docs') are resolved relative to workspace root. Add custom folder paths as needed."
+        }
+      }
+    }
+  }
+}
